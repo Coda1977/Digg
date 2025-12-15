@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
     try {
       const result = await signIn("password", {
         flow: mode,
-        email,
+        email: email.trim(),
         password,
       });
 
@@ -51,7 +51,11 @@ export default function AdminLoginPage() {
         return;
       }
 
-      router.replace("/admin");
+      if (!result.signingIn) {
+        setError(
+          "Sign-in did not complete. Double-check your email/password and try again."
+        );
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");
     } finally {
