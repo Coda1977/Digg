@@ -18,17 +18,19 @@ export const save = mutation({
     content: v.string(),
   },
   handler: async (ctx, args) => {
-    // Get the current message count to determine order
-    const existingMessages = await ctx.db
+    const lastMessage = await ctx.db
       .query("messages")
-      .withIndex("by_survey", (q) => q.eq("surveyId", args.surveyId))
-      .collect();
+      .withIndex("by_survey_order", (q) => q.eq("surveyId", args.surveyId))
+      .order("desc")
+      .first();
+
+    const nextOrder = (lastMessage?.order ?? -1) + 1;
 
     const messageId = await ctx.db.insert("messages", {
       surveyId: args.surveyId,
       role: args.role,
       content: args.content,
-      order: existingMessages.length,
+      order: nextOrder,
       createdAt: Date.now(),
     });
 

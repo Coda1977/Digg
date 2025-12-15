@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
@@ -10,44 +10,23 @@ import { ThankYouScreen } from "@/components/survey/ThankYouScreen";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-type SurveyState = "loading" | "not_found" | "intro" | "chat" | "completed" | "resume";
-
 export default function SurveyPage() {
   const params = useParams();
-  const surveyId = params.id as string;
+  const uniqueId = params.id as string;
 
-  const [state, setState] = useState<SurveyState>("loading");
   const [relationship, setRelationship] = useState<string>("");
+  const [forceCompleted, setForceCompleted] = useState(false);
 
   // First, try to find the survey by uniqueId
-  const surveyData = useQuery(api.surveys.getByUniqueId, { uniqueId: surveyId });
+  const surveyData = useQuery(api.surveys.getByUniqueId, { uniqueId });
   const startSurvey = useMutation(api.surveys.start);
 
-  useEffect(() => {
-    if (surveyData === undefined) {
-      setState("loading");
-      return;
-    }
+  const relationshipId = relationship || surveyData?.relationship || "";
 
-    if (surveyData === null) {
-      setState("not_found");
-      return;
-    }
-
-    // Check survey status
-    if (surveyData.status === "completed") {
-      setState("completed");
-    } else if (surveyData.status === "in_progress") {
-      // Resume existing survey
-      setRelationship(surveyData.relationship || "");
-      setState("chat");
-    } else {
-      // Not started - show intro
-      setState("intro");
-    }
-  }, [surveyData]);
-
-  const handleStart = async (selectedRelationship: string, respondentName?: string) => {
+  const handleStart = async (
+    selectedRelationship: string,
+    respondentName?: string
+  ) => {
     if (!surveyData) return;
 
     await startSurvey({
@@ -57,15 +36,14 @@ export default function SurveyPage() {
     });
 
     setRelationship(selectedRelationship);
-    setState("chat");
   };
 
   const handleComplete = () => {
-    setState("completed");
+    setForceCompleted(true);
   };
 
   // Loading state
-  if (state === "loading") {
+  if (surveyData === undefined) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
@@ -81,7 +59,7 @@ export default function SurveyPage() {
   }
 
   // Not found state
-  if (state === "not_found") {
+  if (surveyData === null) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-md text-center">
@@ -97,12 +75,12 @@ export default function SurveyPage() {
   }
 
   // Completed state
-  if (state === "completed" && surveyData) {
+  if (forceCompleted || surveyData.status === "completed") {
     return <ThankYouScreen subjectName={surveyData.project.subjectName} />;
   }
 
   // Intro state
-  if (state === "intro" && surveyData) {
+  if (surveyData.status === "not_started" && !relationship) {
     return (
       <IntroScreen
         subjectName={surveyData.project.subjectName}
@@ -114,13 +92,14 @@ export default function SurveyPage() {
   }
 
   // Chat state
-  if (state === "chat" && surveyData && relationship) {
+  if (relationshipId && (surveyData.status === "in_progress" || relationship)) {
     return (
       <ChatInterface
+        uniqueId={uniqueId}
         surveyId={surveyData._id}
         template={surveyData.template}
         project={surveyData.project}
-        relationship={relationship}
+        relationship={relationshipId}
         onComplete={handleComplete}
       />
     );

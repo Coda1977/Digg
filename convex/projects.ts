@@ -1,9 +1,14 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { ConvexError } from "convex/values";
+import { getAuthUserId } from "@convex-dev/auth/server";
 
 export const list = query({
   args: {},
   handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new ConvexError("Unauthorized");
+
     const projects = await ctx.db
       .query("projects")
       .withIndex("by_created")
@@ -48,6 +53,9 @@ export const list = query({
 export const getById = query({
   args: { id: v.id("projects") },
   handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new ConvexError("Unauthorized");
+
     const project = await ctx.db.get(args.id);
     if (!project) return null;
 
@@ -85,6 +93,9 @@ export const create = mutation({
     subjectRole: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new ConvexError("Unauthorized");
+
     const projectId = await ctx.db.insert("projects", {
       templateId: args.templateId,
       name: args.name,
@@ -92,6 +103,7 @@ export const create = mutation({
       subjectRole: args.subjectRole,
       status: "active",
       createdAt: Date.now(),
+      createdBy: userId,
     });
 
     return projectId;
@@ -101,6 +113,9 @@ export const create = mutation({
 export const close = mutation({
   args: { id: v.id("projects") },
   handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new ConvexError("Unauthorized");
+
     await ctx.db.patch(args.id, {
       status: "closed",
       closedAt: Date.now(),
@@ -111,6 +126,9 @@ export const close = mutation({
 export const reopen = mutation({
   args: { id: v.id("projects") },
   handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new ConvexError("Unauthorized");
+
     await ctx.db.patch(args.id, {
       status: "active",
       closedAt: undefined,
@@ -121,6 +139,9 @@ export const reopen = mutation({
 export const remove = mutation({
   args: { id: v.id("projects") },
   handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new ConvexError("Unauthorized");
+
     // Delete all surveys and messages for this project
     const surveys = await ctx.db
       .query("surveys")
