@@ -53,7 +53,7 @@ export default function ProjectShareRedirectPage() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-lg">Starting survey…</CardTitle>
+          <CardTitle className="text-lg">Starting survey...</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <Skeleton className="h-4 w-2/3" />
@@ -63,4 +63,3 @@ export default function ProjectShareRedirectPage() {
     </div>
   );
 }
-

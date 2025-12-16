@@ -50,11 +50,11 @@ export default function ProjectDetailPage() {
   const surveys = useMemo(() => {
     if (!project?.surveys) return null;
     return [...project.surveys].sort(
-      (a, b) => (b.startedAt ?? 0) - (a.startedAt ?? 0)
+      (a, b) => (b.completedAt ?? b.startedAt ?? 0) - (a.completedAt ?? a.startedAt ?? 0)
     );
   }, [project?.surveys]);
 
-  async function onCreateSurvey() {
+  async function onCreateInviteLink() {
     setError(null);
     setBusy(true);
     try {
@@ -63,7 +63,7 @@ export default function ProjectDetailPage() {
       setNewSurveyLink(link);
       await navigator.clipboard.writeText(link).catch(() => undefined);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create survey");
+      setError(err instanceof Error ? err.message : "Failed to create invite link");
     } finally {
       setBusy(false);
     }
@@ -84,7 +84,9 @@ export default function ProjectDetailPage() {
   }
 
   async function onDeleteProject() {
-    if (!confirm("Delete this project and all related surveys/messages?")) return;
+    if (!confirm("Delete this project and all related interviews and messages?")) {
+      return;
+    }
     setError(null);
     setBusy(true);
     try {
@@ -128,6 +130,8 @@ export default function ProjectDetailPage() {
     );
   }
 
+  const relationshipOptions = project.template?.relationshipOptions ?? [];
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -140,7 +144,7 @@ export default function ProjectDetailPage() {
           </div>
           <p className="text-sm text-muted-foreground">
             {project.subjectName}
-            {project.subjectRole ? ` · ${project.subjectRole}` : ""} ·{" "}
+            {project.subjectRole ? ` - ${project.subjectRole}` : ""} -{" "}
             {project.template?.name}
           </p>
         </div>
@@ -157,106 +161,104 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
+      {error && (
+        <div className="text-sm text-destructive" role="alert">
+          {error}
+        </div>
+      )}
+
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Project share link</CardTitle>
+          <CardTitle className="text-lg">Share link (send to everyone)</CardTitle>
           <CardDescription>
-            Send one link to a group. Each visitor gets their own unique survey
-            link.
+            This is the one link you share. Each person who opens it gets their own
+            private interview so answers don&apos;t mix.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <Input readOnly value={projectShareLink} />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => void navigator.clipboard.writeText(projectShareLink)}
-            >
-              Copy
-            </Button>
-            <Button asChild type="button" variant="outline">
-              <a href={projectShareLink} target="_blank" rel="noreferrer">
-                Open
-              </a>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void navigator.clipboard.writeText(projectShareLink)}
+              >
+                Copy
+              </Button>
+              <Button asChild type="button" variant="outline">
+                <a href={projectShareLink} target="_blank" rel="noreferrer">
+                  Open
+                </a>
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Respondent links</CardTitle>
+          <CardTitle className="text-lg">Interviews</CardTitle>
           <CardDescription>
-            Create a unique link for a specific respondent and send it to them.
+            Each interview is one person&apos;s response. Use the links below to resend
+            a specific interview link or open transcripts.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <Button onClick={() => void onCreateSurvey()} disabled={busy}>
-              {busy ? "Working…" : "Create respondent link"}
-            </Button>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              Optional: create an individual invite link (useful for reminders).
+            </p>
             <Button
+              type="button"
               variant="outline"
-              onClick={() => void onToggleStatus()}
+              onClick={() => void onCreateInviteLink()}
               disabled={busy}
             >
-              {project.status === "active" ? "Close project" : "Reopen project"}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => void onDeleteProject()}
-              disabled={busy}
-            >
-              Delete project
+              {busy ? "Working..." : "Create invite link"}
             </Button>
           </div>
 
           {newSurveyLink && (
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Newest link (copied)</p>
-              <div className="flex gap-2">
+            <div className="space-y-2 rounded-md border p-3">
+              <p className="text-sm font-medium">Invite link copied</p>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <Input readOnly value={newSurveyLink} />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => void navigator.clipboard.writeText(newSurveyLink)}
-                >
-                  Copy
-                </Button>
-                <Button asChild type="button" variant="outline">
-                  <a href={newSurveyLink} target="_blank" rel="noreferrer">
-                    Open
-                  </a>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void navigator.clipboard.writeText(newSurveyLink)}
+                  >
+                    Copy
+                  </Button>
+                  <Button asChild type="button" size="sm" variant="outline">
+                    <a href={newSurveyLink} target="_blank" rel="noreferrer">
+                      Open
+                    </a>
+                  </Button>
+                </div>
               </div>
             </div>
           )}
 
-          {error && (
-            <div className="text-sm text-destructive" role="alert">
-              {error}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Surveys</CardTitle>
-          <CardDescription>
-            Track progress, copy links, and open transcripts.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
           {!surveys || surveys.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No surveys created yet.</p>
+            <p className="text-sm text-muted-foreground">
+              No interviews yet. Share the link above to start collecting responses.
+            </p>
           ) : (
             <div className="space-y-2">
               {surveys.map((s) => {
                 const surveyLink = origin
                   ? `${origin}/survey/${s.uniqueId}`
                   : `/survey/${s.uniqueId}`;
+
+                const relationshipLabel = s.relationship
+                  ? relationshipOptions.find((r) => r.id === s.relationship)?.label ??
+                    s.relationship
+                  : null;
+
                 return (
                   <div
                     key={s._id}
@@ -264,18 +266,16 @@ export default function ProjectDetailPage() {
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <Badge variant={statusBadgeVariant(s.status)}>
-                          {s.status}
-                        </Badge>
+                        <Badge variant={statusBadgeVariant(s.status)}>{s.status}</Badge>
                         <p className="text-sm font-medium truncate">
-                          /survey/{s.uniqueId}
+                          {s.respondentName ?? "Anonymous respondent"}
                         </p>
                       </div>
                       <p className="text-xs text-muted-foreground truncate">
-                        {s.respondentName
-                          ? `Respondent: ${s.respondentName}`
-                          : "No respondent name"}
-                        {s.relationship ? ` · Relationship: ${s.relationship}` : ""}
+                        {relationshipLabel
+                          ? `Relationship: ${relationshipLabel}`
+                          : "Relationship not selected yet"}{" "}
+                        | /survey/{s.uniqueId}
                       </p>
                     </div>
 
@@ -286,7 +286,7 @@ export default function ProjectDetailPage() {
                         variant="outline"
                         onClick={() => void navigator.clipboard.writeText(surveyLink)}
                       >
-                        Copy link
+                        Copy interview link
                       </Button>
                       <Button asChild size="sm" variant="outline">
                         <a href={surveyLink} target="_blank" rel="noreferrer">
@@ -302,6 +302,23 @@ export default function ProjectDetailPage() {
               })}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Project actions</CardTitle>
+          <CardDescription>
+            Close the project to stop new interviews. Delete removes everything.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center gap-2">
+          <Button type="button" variant="outline" onClick={() => void onToggleStatus()} disabled={busy}>
+            {project.status === "active" ? "Close project" : "Reopen project"}
+          </Button>
+          <Button type="button" variant="destructive" onClick={() => void onDeleteProject()} disabled={busy}>
+            Delete project
+          </Button>
         </CardContent>
       </Card>
     </div>

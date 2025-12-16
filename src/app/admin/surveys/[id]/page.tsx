@@ -175,13 +175,13 @@ export default function AdminSurveyDetailPage() {
         <div className="space-y-1">
           <h1 className="text-2xl font-bold">Interview</h1>
           <p className="text-sm text-muted-foreground">
-            {survey.project.name} · {survey.project.subjectName}
+            {survey.project.name} - {survey.project.subjectName}
           </p>
           <div className="flex items-center gap-2">
             <Badge variant={statusBadgeVariant(survey.status)}>{survey.status}</Badge>
             <p className="text-xs text-muted-foreground truncate">
               {survey.respondentName ?? "Anonymous respondent"}
-              {relationshipLabel ? ` · ${relationshipLabel}` : ""}
+              {relationshipLabel ? ` - ${relationshipLabel}` : ""}
             </p>
           </div>
         </div>
@@ -194,9 +194,9 @@ export default function AdminSurveyDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Respondent link</CardTitle>
+          <CardTitle className="text-lg">Interview link</CardTitle>
           <CardDescription>
-            This is the public link the respondent used.
+            This is the public link for this specific interview (useful for resending or resuming).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">

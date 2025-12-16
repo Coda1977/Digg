@@ -18,7 +18,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectInsightsPdf } from "@/components/pdf/ProjectInsightsPdf";
 import { cn } from "@/lib/utils";
@@ -107,8 +106,6 @@ export default function ProjectAnalysisPage() {
 
   const [generatingInsights, setGeneratingInsights] = useState(false);
   const [insightsError, setInsightsError] = useState<string | null>(null);
-
-  const projectSharePath = `/p/${projectId}`;
 
   const sortedSurveys = useMemo(() => {
     if (!surveys) return null;
@@ -249,12 +246,12 @@ export default function ProjectAnalysisPage() {
         <div className="space-y-1">
           <h1 className="text-2xl font-bold">Interviews &amp; analysis</h1>
           <p className="text-sm text-muted-foreground">
-            {project.name} · {project.subjectName}
+            {project.name} - {project.subjectName}
           </p>
           {stats && (
             <p className="text-xs text-muted-foreground">
-              {stats.total} surveys · {stats.completed} completed · {stats.inProgress} in
-              progress
+              {stats.total} interviews - {stats.completed} completed - {stats.inProgress}{" "}
+              in progress
             </p>
           )}
         </div>
@@ -262,38 +259,6 @@ export default function ProjectAnalysisPage() {
           <Link href={`/admin/projects/${projectId}`}>Back to project</Link>
         </Button>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Project share link</CardTitle>
-          <CardDescription>
-            Send this one link to a group (each visitor gets a unique survey).
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <Input readOnly value={projectSharePath} />
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() =>
-                  void navigator.clipboard.writeText(
-                    new URL(projectSharePath, window.location.origin).toString()
-                  )
-                }
-              >
-                Copy
-              </Button>
-              <Button asChild type="button" variant="outline">
-                <a href={projectSharePath} target="_blank" rel="noreferrer">
-                  Open
-                </a>
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
@@ -307,7 +272,7 @@ export default function ProjectAnalysisPage() {
             <div className="text-sm text-muted-foreground">
               {analysis ? (
                 <>
-                  Generated from {analysis.basedOnSurveyCount} completed interviews ·{" "}
+                  Generated from {analysis.basedOnSurveyCount} completed interviews -{" "}
                   {formatDateTime(analysis.generatedAt)}
                 </>
               ) : (
@@ -403,16 +368,16 @@ export default function ProjectAnalysisPage() {
         <CardHeader>
           <CardTitle className="text-lg">Interviews</CardTitle>
           <CardDescription>
-            Open transcripts and see (or generate) per-interview AI summaries.
+            Open transcripts and see (or generate) per-interview AI summaries. To invite more
+            people, use the share link on the project page.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {!sortedSurveys || sortedSurveys.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No surveys created yet.</p>
+            <p className="text-sm text-muted-foreground">No interviews yet.</p>
           ) : (
             <div className="space-y-2">
               {sortedSurveys.map((survey) => {
-                const respondentPath = `/survey/${survey.uniqueId}`;
                 const relationshipLabel =
                   project.template?.relationshipOptions.find(
                     (r) => r.id === survey.relationship
@@ -441,20 +406,11 @@ export default function ProjectAnalysisPage() {
                         </p>
                       </div>
                       <p className="text-xs text-muted-foreground truncate">
-                        Relationship: {relationshipLabel} · {summaryLabel}
+                        Relationship: {relationshipLabel} - {summaryLabel}
                       </p>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
-                      <Button asChild size="sm" variant="outline">
-                        <a
-                          href={respondentPath}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Respondent link
-                        </a>
-                      </Button>
                       <Button asChild size="sm">
                         <Link href={`/admin/surveys/${survey._id}`}>
                           Transcript &amp; summary
@@ -471,3 +427,4 @@ export default function ProjectAnalysisPage() {
     </div>
   );
 }
+

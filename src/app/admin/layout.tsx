@@ -139,7 +139,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </Link>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost">
-              <Link href="/">Home</Link>
+              <Link href="/admin">Dashboard</Link>
             </Button>
             <Button variant="outline" onClick={() => void signOut()}>
               Sign out
