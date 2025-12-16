@@ -15,7 +15,10 @@ AI-powered feedback surveys with four built-in protocols (templates), backed by 
 2. Create `.env.local`:
    - `NEXT_PUBLIC_CONVEX_URL=...`
    - `ANTHROPIC_API_KEY=...`
-3. Run Next: `npm run dev`
+3. Set an admin allowlist in Convex (recommended):
+   - `npx convex env set ADMIN_EMAILS "you@example.com"`
+   - If `ADMIN_EMAILS` is unset, the first signed-in user becomes admin.
+4. Run Next: `npm run dev`
 
 ## First run (in the browser)
 
@@ -34,6 +37,7 @@ AI-powered feedback surveys with four built-in protocols (templates), backed by 
   - `AUTH_SECRET`
   - `JWT_PRIVATE_KEY`
   - `JWKS` (must be valid JSON; used by `/.well-known/jwks.json`)
+  - `ADMIN_EMAILS` (comma/space-separated list of admin emails)
 - Redeploy Convex after changing functions in `convex/`: `npx convex deploy --prod`
 
 ## Troubleshooting

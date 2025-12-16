@@ -1,15 +1,16 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useQuery } from "convex/react";
+import { useConvex, useMutation, useQuery } from "convex/react";
+import { PDFDownloadLink } from "@react-pdf/renderer";
 
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -19,24 +20,101 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ProjectInsightsPdf } from "@/components/pdf/ProjectInsightsPdf";
+import { cn } from "@/lib/utils";
+
+type ProjectSummary = {
+  overview: string;
+  keyThemes: string[];
+  sentiment: "positive" | "mixed" | "negative";
+  specificPraise: string[];
+  areasForImprovement: string[];
+};
 
 function statusBadgeVariant(status: string): "default" | "secondary" {
   return status === "completed" ? "default" : "secondary";
+}
+
+async function generateProjectInsights(input: {
+  subjectName: string;
+  subjectRole?: string;
+  projectName?: string;
+  templateName?: string;
+  interviews: Array<{
+    respondentName?: string;
+    relationshipLabel?: string;
+    transcript: string;
+  }>;
+}) {
+  const res = await fetch("/api/projects/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+
+  const body = (await res.json().catch(() => null)) as
+    | ProjectSummary
+    | { error: string }
+    | null;
+
+  if (!res.ok) {
+    const errorMessage =
+      body && "error" in body && typeof body.error === "string"
+        ? body.error
+        : `Request failed (${res.status})`;
+    throw new Error(errorMessage);
+  }
+
+  if (
+    !body ||
+    !("overview" in body) ||
+    typeof body.overview !== "string" ||
+    !("keyThemes" in body) ||
+    !Array.isArray(body.keyThemes)
+  ) {
+    throw new Error("Bad response from server");
+  }
+
+  return body as ProjectSummary;
+}
+
+function formatDateTime(ms: number) {
+  try {
+    return new Date(ms).toLocaleString();
+  } catch {
+    return "";
+  }
+}
+
+function fileSafe(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "digg-report";
+  return trimmed
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
 }
 
 export default function ProjectAnalysisPage() {
   const params = useParams();
   const projectId = params.id as Id<"projects">;
 
+  const convex = useConvex();
+  const saveAnalysis = useMutation(api.projects.saveAnalysis);
+
   const project = useQuery(api.projects.getById, { id: projectId });
   const surveys = useQuery(api.surveys.getByProject, { projectId });
+
+  const [generatingInsights, setGeneratingInsights] = useState(false);
+  const [insightsError, setInsightsError] = useState<string | null>(null);
 
   const projectSharePath = `/p/${projectId}`;
 
   const sortedSurveys = useMemo(() => {
     if (!surveys) return null;
     return [...surveys].sort(
-      (a, b) => (b.completedAt ?? b.startedAt ?? 0) - (a.completedAt ?? a.startedAt ?? 0)
+      (a, b) =>
+        (b.completedAt ?? b.startedAt ?? 0) - (a.completedAt ?? a.startedAt ?? 0)
     );
   }, [surveys]);
 
@@ -46,6 +124,88 @@ export default function ProjectAnalysisPage() {
     const inProgress = surveys.filter((s) => s.status === "in_progress").length;
     return { total: surveys.length, completed, inProgress };
   }, [surveys]);
+
+  const surveysForPdf = useMemo(() => {
+    if (!sortedSurveys) return [];
+    const relationshipOptions = project?.template?.relationshipOptions ?? [];
+    return sortedSurveys.map((survey) => {
+      const relationshipLabel =
+        relationshipOptions.find((r) => r.id === survey.relationship)?.label ??
+        survey.relationship ??
+        "Unknown";
+      return {
+        respondentName: survey.respondentName ?? "Anonymous respondent",
+        relationshipLabel,
+        status: survey.status,
+        completedAt: survey.completedAt ?? undefined,
+        summary: survey.summary ?? undefined,
+      };
+    });
+  }, [project?.template?.relationshipOptions, sortedSurveys]);
+
+  async function onGenerateInsights() {
+    setInsightsError(null);
+    setGeneratingInsights(true);
+    try {
+      const input = await convex.query(api.projects.getInsightsInput, {
+        projectId,
+      });
+      if (!input) throw new Error("Project not found");
+      if (!input.template) throw new Error("Template not found");
+
+      if (input.interviews.length === 0) {
+        throw new Error("No completed interviews yet.");
+      }
+
+      const interviews = input.interviews.map(({ survey, messages }) => {
+        const relationshipLabel =
+          input.template.relationshipOptions.find((r) => r.id === survey.relationship)
+            ?.label ??
+          survey.relationship ??
+          undefined;
+
+        const transcript = messages
+          .map(
+            (m) =>
+              `${m.role === "assistant" ? "Interviewer" : "Respondent"}: ${m.content}`
+          )
+          .join("\n");
+
+        const truncated =
+          transcript.length > 8000
+            ? `${transcript.slice(0, 8000)}\n...[truncated]`
+            : transcript;
+
+        return {
+          respondentName: survey.respondentName ?? undefined,
+          relationshipLabel,
+          transcript: truncated,
+        };
+      });
+
+      const analysis = await generateProjectInsights({
+        subjectName: input.project.subjectName,
+        subjectRole: input.project.subjectRole ?? undefined,
+        projectName: input.project.name,
+        templateName: input.template.name,
+        interviews,
+      });
+
+      await saveAnalysis({
+        projectId,
+        analysis: {
+          ...analysis,
+          basedOnSurveyCount: interviews.length,
+        },
+      });
+    } catch (err) {
+      setInsightsError(
+        err instanceof Error ? err.message : "Failed to generate insights"
+      );
+    } finally {
+      setGeneratingInsights(false);
+    }
+  }
 
   if (project === undefined || surveys === undefined) {
     return (
@@ -78,6 +238,11 @@ export default function ProjectAnalysisPage() {
     );
   }
 
+  const analysis = project.analysis ?? null;
+  const pdfFileName = `digg-${fileSafe(project.subjectName)}-${fileSafe(
+    project.name
+  )}.pdf`;
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -88,8 +253,8 @@ export default function ProjectAnalysisPage() {
           </p>
           {stats && (
             <p className="text-xs text-muted-foreground">
-              {stats.total} surveys · {stats.completed} completed ·{" "}
-              {stats.inProgress} in progress
+              {stats.total} surveys · {stats.completed} completed · {stats.inProgress} in
+              progress
             </p>
           )}
         </div>
@@ -105,26 +270,132 @@ export default function ProjectAnalysisPage() {
             Send this one link to a group (each visitor gets a unique survey).
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex gap-2">
+        <CardContent>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <Input readOnly value={projectSharePath} />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() =>
-                    void navigator.clipboard.writeText(
-                      new URL(projectSharePath, window.location.origin).toString()
-                    )
-                  }
-                >
-                  Copy
-                </Button>
-                <Button asChild type="button" variant="outline">
-                  <a href={projectSharePath} target="_blank" rel="noreferrer">
-                    Open
-                  </a>
-                </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  void navigator.clipboard.writeText(
+                    new URL(projectSharePath, window.location.origin).toString()
+                  )
+                }
+              >
+                Copy
+              </Button>
+              <Button asChild type="button" variant="outline">
+                <a href={projectSharePath} target="_blank" rel="noreferrer">
+                  Open
+                </a>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Project insights</CardTitle>
+          <CardDescription>
+            Aggregate analysis across completed interviews for this project.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm text-muted-foreground">
+              {analysis ? (
+                <>
+                  Generated from {analysis.basedOnSurveyCount} completed interviews ·{" "}
+                  {formatDateTime(analysis.generatedAt)}
+                </>
+              ) : (
+                <>No insights generated yet.</>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <PDFDownloadLink
+                document={
+                  <ProjectInsightsPdf
+                    projectName={project.name}
+                    subjectName={project.subjectName}
+                    subjectRole={project.subjectRole ?? undefined}
+                    templateName={project.template?.name ?? undefined}
+                    analysis={analysis ?? undefined}
+                    surveys={surveysForPdf}
+                  />
+                }
+                fileName={pdfFileName}
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+              >
+                {({ loading }) => (loading ? "Preparing PDF..." : "Download PDF")}
+              </PDFDownloadLink>
+
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => void onGenerateInsights()}
+                disabled={generatingInsights}
+              >
+                {generatingInsights
+                  ? "Generating..."
+                  : analysis
+                  ? "Regenerate insights"
+                  : "Generate insights"}
+              </Button>
+            </div>
+          </div>
+
+          {insightsError && (
+            <p className="text-sm text-destructive" role="alert">
+              {insightsError}
+            </p>
+          )}
+
+          {analysis && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">Sentiment: {analysis.sentiment}</Badge>
               </div>
+
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">Overview</h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {analysis.overview}
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Key themes</h3>
+                  <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+                    {analysis.keyThemes.map((t, idx) => (
+                      <li key={idx}>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Specific praise</h3>
+                  <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+                    {analysis.specificPraise.map((t, idx) => (
+                      <li key={idx}>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <h3 className="text-sm font-medium">Areas for improvement</h3>
+                  <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+                    {analysis.areasForImprovement.map((t, idx) => (
+                      <li key={idx}>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -137,9 +408,7 @@ export default function ProjectAnalysisPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           {!sortedSurveys || sortedSurveys.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No surveys created yet.
-            </p>
+            <p className="text-sm text-muted-foreground">No surveys created yet.</p>
           ) : (
             <div className="space-y-2">
               {sortedSurveys.map((survey) => {
@@ -149,7 +418,8 @@ export default function ProjectAnalysisPage() {
                     (r) => r.id === survey.relationship
                   )?.label ??
                   survey.relationship ??
-                  "—";
+                  "Unknown";
+
                 const summaryLabel = survey.summary
                   ? `Summary ready`
                   : survey.status === "completed"
@@ -177,7 +447,11 @@ export default function ProjectAnalysisPage() {
 
                     <div className="flex flex-wrap items-center gap-2">
                       <Button asChild size="sm" variant="outline">
-                        <a href={respondentPath} target="_blank" rel="noreferrer">
+                        <a
+                          href={respondentPath}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
                           Respondent link
                         </a>
                       </Button>

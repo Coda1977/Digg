@@ -1,13 +1,11 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
-import { ConvexError } from "convex/values";
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { requireAdmin } from "./lib/authorization";
 
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new ConvexError("Unauthorized");
+    await requireAdmin(ctx);
     return await ctx.db.query("templates").collect();
   },
 });
@@ -15,8 +13,7 @@ export const list = query({
 export const getById = query({
   args: { id: v.id("templates") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new ConvexError("Unauthorized");
+    await requireAdmin(ctx);
     return await ctx.db.get(args.id);
   },
 });
@@ -32,8 +29,7 @@ export const getByType = query({
     ),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new ConvexError("Unauthorized");
+    await requireAdmin(ctx);
     return await ctx.db
       .query("templates")
       .withIndex("by_type", (q) => q.eq("type", args.type))

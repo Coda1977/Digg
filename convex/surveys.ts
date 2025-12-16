@@ -2,7 +2,7 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { nanoid } from "nanoid";
 import { ConvexError } from "convex/values";
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { requireAdmin } from "./lib/authorization";
 
 export const getByUniqueId = query({
   args: { uniqueId: v.string() },
@@ -31,8 +31,7 @@ export const getByUniqueId = query({
 export const getByProject = query({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new ConvexError("Unauthorized");
+    await requireAdmin(ctx);
     return await ctx.db
       .query("surveys")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -43,8 +42,7 @@ export const getByProject = query({
 export const getCompletedByProject = query({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new ConvexError("Unauthorized");
+    await requireAdmin(ctx);
     return await ctx.db
       .query("surveys")
       .withIndex("by_project_status", (q) =>
@@ -57,8 +55,7 @@ export const getCompletedByProject = query({
 export const createFromProject = mutation({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new ConvexError("Unauthorized");
+    await requireAdmin(ctx);
 
     const uniqueId = nanoid(10);
 
@@ -123,6 +120,7 @@ export const flagSensitive = mutation({
     reason: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.surveyId, {
       isFlagged: true,
       flagReason: args.reason,
@@ -133,6 +131,7 @@ export const flagSensitive = mutation({
 export const clearFlag = mutation({
   args: { surveyId: v.id("surveys") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.surveyId, {
       isFlagged: false,
       flagReason: undefined,
@@ -156,8 +155,7 @@ export const saveSummary = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new ConvexError("Unauthorized");
+    await requireAdmin(ctx);
     await ctx.db.patch(args.surveyId, {
       summary: {
         ...args.summary,
@@ -170,8 +168,7 @@ export const saveSummary = mutation({
 export const getById = query({
   args: { id: v.id("surveys") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new ConvexError("Unauthorized");
+    await requireAdmin(ctx);
     const survey = await ctx.db.get(args.id);
     if (!survey) return null;
 

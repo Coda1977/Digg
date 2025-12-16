@@ -4,11 +4,6 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 
 export const runtime = "nodejs";
 
-type ChatMessage = {
-  role: "user" | "assistant";
-  content: string;
-};
-
 type Summary = {
   overview: string;
   keyThemes: string[];
@@ -17,14 +12,11 @@ type Summary = {
   areasForImprovement: string[];
 };
 
-function isMessage(value: unknown): value is ChatMessage {
-  if (!value || typeof value !== "object") return false;
-  const v = value as Partial<ChatMessage>;
-  return (
-    (v.role === "user" || v.role === "assistant") &&
-    typeof v.content === "string"
-  );
-}
+type InterviewInput = {
+  respondentName?: string;
+  relationshipLabel?: string;
+  transcript: string;
+};
 
 function parseJsonObject(text: string) {
   const trimmed = text.trim();
@@ -58,19 +50,11 @@ function validateSummary(value: unknown): Summary {
   const specificPraise = asStringArray(v.specificPraise);
   const areasForImprovement = asStringArray(v.areasForImprovement);
   const sentiment =
-    v.sentiment === "positive" ||
-    v.sentiment === "mixed" ||
-    v.sentiment === "negative"
+    v.sentiment === "positive" || v.sentiment === "mixed" || v.sentiment === "negative"
       ? v.sentiment
       : null;
 
-  if (
-    !overview ||
-    !keyThemes ||
-    !specificPraise ||
-    !areasForImprovement ||
-    !sentiment
-  ) {
+  if (!overview || !keyThemes || !specificPraise || !areasForImprovement || !sentiment) {
     throw new Error("Summary JSON missing required fields");
   }
 
@@ -92,24 +76,42 @@ export async function POST(req: Request) {
   const body = json as {
     subjectName?: unknown;
     subjectRole?: unknown;
-    relationshipLabel?: unknown;
-    messages?: unknown;
+    projectName?: unknown;
+    templateName?: unknown;
+    interviews?: unknown;
   };
 
   const subjectName =
     typeof body.subjectName === "string" ? body.subjectName.trim() : null;
   const subjectRole =
     typeof body.subjectRole === "string" ? body.subjectRole.trim() : null;
-  const relationshipLabel =
-    typeof body.relationshipLabel === "string"
-      ? body.relationshipLabel.trim()
-      : null;
+  const projectName =
+    typeof body.projectName === "string" ? body.projectName.trim() : null;
+  const templateName =
+    typeof body.templateName === "string" ? body.templateName.trim() : null;
 
-  const messages = Array.isArray(body.messages)
-    ? body.messages.filter(isMessage)
+  const interviews: InterviewInput[] | null = Array.isArray(body.interviews)
+    ? (body.interviews
+        .map((i): InterviewInput | null => {
+          if (!i || typeof i !== "object") return null;
+          const v = i as Partial<InterviewInput>;
+          const transcript =
+            typeof v.transcript === "string" ? v.transcript.trim() : null;
+          if (!transcript) return null;
+          return {
+            transcript,
+            respondentName:
+              typeof v.respondentName === "string" ? v.respondentName.trim() : undefined,
+            relationshipLabel:
+              typeof v.relationshipLabel === "string"
+                ? v.relationshipLabel.trim()
+                : undefined,
+          };
+        })
+        .filter((i): i is InterviewInput => i !== null))
     : null;
 
-  if (!subjectName || !messages || messages.length === 0) {
+  if (!subjectName || !interviews || interviews.length === 0) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
@@ -124,7 +126,7 @@ export async function POST(req: Request) {
   const anthropic = createAnthropic({ apiKey });
   const model = anthropic("claude-3-5-haiku-latest");
 
-  const system = `You are an expert feedback analyst.
+  const system = `You are an expert 360-feedback analyst.
 Return ONLY valid JSON (no markdown, no extra text).
 
 Schema:
@@ -137,24 +139,31 @@ Schema:
 }
 
 Guidelines:
+- Aggregate across all interviews; focus on patterns and repeated signals.
 - Be specific and actionable.
 - Keep each array 3-7 items max.
-- Don't include personally identifying details about the respondent.`;
+- Do not include personally identifying details about respondents.`;
 
   const roleText = subjectRole ? ` (${subjectRole})` : "";
-  const relText = relationshipLabel ? relationshipLabel : "unknown relationship";
-  const transcript = messages
-    .map(
-      (m) =>
-        `${m.role === "assistant" ? "Interviewer" : "Respondent"}: ${m.content}`
-    )
-    .join("\n");
+  const headerParts = [
+    `Subject: ${subjectName}${roleText}`,
+    projectName ? `Project: ${projectName}` : null,
+    templateName ? `Protocol: ${templateName}` : null,
+    `Interviews: ${interviews.length}`,
+  ].filter(Boolean);
 
-  const prompt = `Subject: ${subjectName}${roleText}
-Relationship: ${relText}
+  const interviewText = interviews
+    .map((i, idx) => {
+      const who = i.respondentName ? i.respondentName : `Respondent ${idx + 1}`;
+      const rel = i.relationshipLabel ? ` (${i.relationshipLabel})` : "";
+      return `--- Interview ${idx + 1}: ${who}${rel} ---\n${i.transcript}`;
+    })
+    .join("\n\n");
 
-Transcript:
-${transcript}
+  const prompt = `${headerParts.join("\n")}
+
+Interviews:
+${interviewText}
 `;
 
   try {
@@ -164,10 +173,7 @@ ${transcript}
     return NextResponse.json(summary);
   } catch (err) {
     return NextResponse.json(
-      {
-        error:
-          err instanceof Error ? err.message : "Summary generation failed",
-      },
+      { error: err instanceof Error ? err.message : "Project analysis failed" },
       { status: 500 }
     );
   }

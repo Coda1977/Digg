@@ -4,6 +4,14 @@ import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
   ...authTables,
+  userRoles: defineTable({
+    userId: v.id("users"),
+    role: v.union(v.literal("admin"), v.literal("user")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_role", ["role"]),
 
   // Survey templates (system and custom)
   templates: defineTable({
@@ -46,6 +54,21 @@ export default defineSchema({
     createdAt: v.number(),
     closedAt: v.optional(v.number()),
     createdBy: v.optional(v.id("users")),
+    analysis: v.optional(
+      v.object({
+        overview: v.string(),
+        keyThemes: v.array(v.string()),
+        sentiment: v.union(
+          v.literal("positive"),
+          v.literal("mixed"),
+          v.literal("negative")
+        ),
+        specificPraise: v.array(v.string()),
+        areasForImprovement: v.array(v.string()),
+        basedOnSurveyCount: v.number(),
+        generatedAt: v.number(),
+      })
+    ),
   })
     .index("by_status", ["status"])
     .index("by_created", ["createdAt"]),

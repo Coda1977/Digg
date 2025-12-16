@@ -1,6 +1,5 @@
 import { mutation } from "./_generated/server";
-import { ConvexError } from "convex/values";
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { requireAdmin } from "./lib/authorization";
 
 const BASE_SYSTEM_PROMPT = `CONVERSATION FLOW:
 1. Brief intro (1 sentence)
@@ -91,8 +90,7 @@ START by introducing yourself briefly and asking the first question about the cu
 export const seedTemplates = mutation({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new ConvexError("Unauthorized");
+    await requireAdmin(ctx);
 
     // Check if templates already exist
     const existingTemplates = await ctx.db.query("templates").collect();
