@@ -72,6 +72,25 @@ export const createFromProject = mutation({
   },
 });
 
+export const createPublicFromProject = mutation({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new ConvexError("Project not found");
+    if (project.status !== "active") throw new ConvexError("Project is closed");
+
+    const uniqueId = nanoid(10);
+
+    const surveyId = await ctx.db.insert("surveys", {
+      projectId: args.projectId,
+      uniqueId,
+      status: "not_started",
+    });
+
+    return { surveyId, uniqueId };
+  },
+});
+
 export const start = mutation({
   args: {
     surveyId: v.id("surveys"),
