@@ -3,6 +3,7 @@
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
+import { Mic, MicOff } from "lucide-react";
 
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
@@ -15,6 +16,53 @@ type UiMessage = {
   role: "assistant" | "user";
   content: string;
 };
+
+type WebSpeechRecognitionAlternative = { transcript: string };
+
+type WebSpeechRecognitionResult = {
+  isFinal: boolean;
+  length: number;
+  [index: number]: WebSpeechRecognitionAlternative | undefined;
+};
+
+type WebSpeechRecognitionEvent = {
+  resultIndex: number;
+  results: ArrayLike<WebSpeechRecognitionResult>;
+};
+
+type WebSpeechRecognitionErrorEvent = { error: string };
+
+type WebSpeechRecognition = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start: () => void;
+  stop: () => void;
+  onresult: ((event: WebSpeechRecognitionEvent) => void) | null;
+  onerror: ((event: WebSpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+};
+
+type WebSpeechRecognitionConstructor = new () => WebSpeechRecognition;
+
+function getSpeechRecognitionConstructor(): WebSpeechRecognitionConstructor | null {
+  const w = window as unknown as {
+    SpeechRecognition?: WebSpeechRecognitionConstructor;
+    webkitSpeechRecognition?: WebSpeechRecognitionConstructor;
+  };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+
+function normalizeTranscript(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function appendTranscript(acc: string, chunk: string) {
+  const normalized = normalizeTranscript(chunk);
+  if (!normalized) return acc;
+  if (!acc) return normalized;
+  return `${acc} ${normalized}`;
+}
 
 async function generateAssistantMessage(input: {
   uniqueId: string;
@@ -69,14 +117,20 @@ export function ChatInterface({
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef<WebSpeechRecognition | null>(null);
+  const voiceBaseRef = useRef<string>("");
+  const voiceTranscriptRef = useRef<string>("");
+
   const relationshipLabel = useMemo(() => {
     return (
       template.relationshipOptions.find((r) => r.id === relationship)?.label ??
       relationship
     );
   }, [relationship, template.relationshipOptions]);
-
-  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const uiMessages = useMemo<UiMessage[] | null>(() => {
     if (messages === undefined) return null;
@@ -87,6 +141,21 @@ export function ChatInterface({
     if (!scrollRef.current) return;
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [uiMessages?.length, generating]);
+
+  useEffect(() => {
+    return () => {
+      const recognition = recognitionRef.current;
+      if (!recognition) return;
+      recognition.onend = null;
+      recognition.onerror = null;
+      recognition.onresult = null;
+      try {
+        recognition.stop?.();
+      } catch {
+        // ignore
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!uiMessages) return;
@@ -112,6 +181,97 @@ export function ChatInterface({
     })();
   }, [generating, saveMessage, surveyId, uiMessages, uniqueId]);
 
+  function stopVoice() {
+    const recognition = recognitionRef.current;
+    if (!recognition) return;
+    try {
+      recognition.stop();
+    } catch {
+      // ignore
+    } finally {
+      setListening(false);
+    }
+  }
+
+  function onToggleVoice() {
+    if (listening) {
+      stopVoice();
+      return;
+    }
+
+    const SpeechRecognition = getSpeechRecognitionConstructor();
+
+    if (!SpeechRecognition) {
+      setError(
+        "Voice input is not supported in this browser. Try Chrome or Edge, or use your device keyboard dictation."
+      );
+      return;
+    }
+
+    setError(null);
+    voiceBaseRef.current = draft.trimEnd();
+    voiceTranscriptRef.current = "";
+
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = (navigator.language || "en-US") as string;
+
+    recognition.onresult = (event: WebSpeechRecognitionEvent) => {
+      let finalChunk = "";
+      let interimChunk = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        const transcript = result?.[0]?.transcript ?? "";
+        if (result?.isFinal) finalChunk += transcript;
+        else interimChunk += transcript;
+      }
+
+      voiceTranscriptRef.current = appendTranscript(
+        voiceTranscriptRef.current,
+        finalChunk
+      );
+      const interim = normalizeTranscript(interimChunk);
+      const spoken = [voiceTranscriptRef.current, interim]
+        .filter(Boolean)
+        .join(" ");
+      const base = voiceBaseRef.current;
+
+      setDraft(spoken ? (base ? `${base} ${spoken}` : spoken) : base);
+    };
+
+    recognition.onerror = (event: WebSpeechRecognitionErrorEvent) => {
+      const code = typeof event.error === "string" ? event.error : "unknown";
+      const message =
+        code === "not-allowed"
+          ? "Microphone permission denied."
+        : code === "no-speech"
+          ? "No speech detected."
+          : code === "audio-capture"
+          ? "No microphone found."
+          : "Voice input failed.";
+      setError(message);
+      setListening(false);
+    };
+
+    recognition.onend = () => {
+      setListening(false);
+      recognitionRef.current = null;
+    };
+
+    try {
+      recognition.start();
+      setListening(true);
+    } catch {
+      recognitionRef.current = null;
+      setError("Voice input failed to start.");
+      setListening(false);
+    }
+  }
+
   async function onSend(e: FormEvent) {
     e.preventDefault();
     if (!uiMessages) return;
@@ -120,6 +280,7 @@ export function ChatInterface({
     if (!userText) return;
     if (generating) return;
 
+    stopVoice();
     setDraft("");
     setError(null);
     setGenerating(true);
@@ -148,6 +309,7 @@ export function ChatInterface({
   async function onFinish() {
     setError(null);
     setGenerating(true);
+    stopVoice();
     try {
       await completeSurvey({ surveyId });
       onComplete();
@@ -170,34 +332,20 @@ export function ChatInterface({
               {template.name} · {relationshipLabel}
             </p>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => void onFinish()}
-            disabled={generating}
-          >
-            Finish
-          </Button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl w-full flex-1 p-4 space-y-4">
-        <Card className="h-[60vh]">
+      <main className="mx-auto max-w-3xl w-full flex-1 p-4 flex flex-col min-h-0">
+        <Card className="flex-1 min-h-0">
           <CardHeader className="py-4">
             <CardTitle className="text-base">Conversation</CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div
-              ref={scrollRef}
-              className="h-[48vh] overflow-y-auto pr-2 space-y-3"
-            >
+          <CardContent className="pt-0 flex flex-col min-h-0">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto pr-2 space-y-3">
               {!uiMessages ? (
                 <p className="text-sm text-muted-foreground">Loading…</p>
               ) : uiMessages.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Starting interview…
-                </p>
+                <p className="text-sm text-muted-foreground">Starting interview…</p>
               ) : (
                 uiMessages.map((m, idx) => (
                   <div
@@ -223,31 +371,78 @@ export function ChatInterface({
             </div>
           </CardContent>
         </Card>
-
-        <form className="space-y-2" onSubmit={onSend}>
-          <Textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="Type your answer…"
-            rows={3}
-            disabled={generating || !uiMessages}
-          />
-          <div className="flex items-center justify-between gap-2">
-            {error ? (
-              <p className="text-sm text-destructive" role="alert">
-                {error}
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                Keep answers specific; examples help.
-              </p>
-            )}
-            <Button type="submit" disabled={generating || !draft.trim()}>
-              {generating ? "…" : "Send"}
-            </Button>
-          </div>
-        </form>
       </main>
+
+      <footer className="border-t bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
+        <div className="mx-auto max-w-3xl p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] space-y-2">
+          <form ref={formRef} className="space-y-2" onSubmit={onSend}>
+            <Textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.nativeEvent.isComposing) return;
+                if (e.key !== "Enter") return;
+                if (e.shiftKey) return;
+                e.preventDefault();
+                formRef.current?.requestSubmit();
+              }}
+              placeholder={
+                listening ? "Listening… (press mic to stop)" : "Type your answer…"
+              }
+              rows={3}
+              disabled={generating || !uiMessages || listening}
+            />
+
+            <div className="flex items-center justify-between gap-3">
+              {error ? (
+                <p className="text-sm text-destructive" role="alert">
+                  {error}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Enter to send · Shift+Enter for a new line
+                </p>
+              )}
+
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onToggleVoice}
+                  disabled={generating || !uiMessages}
+                  aria-pressed={listening}
+                  aria-label={listening ? "Stop voice input" : "Start voice input"}
+                >
+                  {listening ? (
+                    <>
+                      <MicOff className="h-4 w-4 mr-2" />
+                      Stop
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="h-4 w-4 mr-2" />
+                      Voice
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void onFinish()}
+                  disabled={generating}
+                >
+                  Finish conversation
+                </Button>
+
+                <Button type="submit" disabled={generating || !draft.trim()}>
+                  {generating ? "…" : "Send"}
+                </Button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </footer>
     </div>
   );
 }
