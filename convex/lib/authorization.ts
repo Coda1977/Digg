@@ -26,20 +26,21 @@ export async function requireAdmin(ctx: Ctx) {
   const user = await ctx.db.get(userId);
   if (!user) throw new ConvexError("Unauthorized");
 
-  const roleDoc = await ctx.db
-    .query("userRoles")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .first();
-
-  if (roleDoc?.role === "admin") return { userId, user };
-
   const adminEmails = parseAdminEmails(
     process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL
   );
   if (adminEmails.size > 0) {
     const email = normalizeEmail(user.email);
     if (email && adminEmails.has(email)) return { userId, user };
+    throw new ConvexError("Forbidden");
   }
+
+  const roleDoc = await ctx.db
+    .query("userRoles")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .first();
+
+  if (roleDoc?.role === "admin") return { userId, user };
 
   throw new ConvexError("Forbidden");
 }

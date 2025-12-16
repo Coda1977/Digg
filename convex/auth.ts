@@ -97,6 +97,14 @@ export const currentUser = query({
     if (!userId) return null;
     const user = await ctx.db.get(userId);
     if (!user) return null;
+    const adminEmails = parseAdminEmails(
+      process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL
+    );
+    if (adminEmails.size > 0) {
+      const email = normalizeEmail(user.email);
+      const role: Role = email && adminEmails.has(email) ? "admin" : "user";
+      return { ...user, role };
+    }
     const roleDoc = await getRoleDoc(ctx, userId);
     return { ...user, role: roleDoc?.role ?? null };
   },
@@ -125,4 +133,3 @@ export const ensureRole = mutation({
     return { role };
   },
 });
-
