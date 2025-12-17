@@ -22,6 +22,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectInsightsPdf } from "@/components/pdf/ProjectInsightsPdf";
 import { cn } from "@/lib/utils";
 
+type AnalysisSegment = {
+  relationshipType: string;
+  relationshipLabel: string;
+  overview: string;
+  keyThemes: string[];
+  sentiment: "positive" | "mixed" | "negative";
+  specificPraise: string[];
+  areasForImprovement: string[];
+  basedOnSurveyCount: number;
+  generatedAt: number;
+};
+
 type ProjectSummary = {
   overview: string;
   keyThemes: string[];
@@ -106,6 +118,7 @@ export default function ProjectAnalysisPage() {
 
   const [generatingInsights, setGeneratingInsights] = useState(false);
   const [insightsError, setInsightsError] = useState<string | null>(null);
+  const [activeSegment, setActiveSegment] = useState<string | null>(null); // null = overall view
 
   const sortedSurveys = useMemo(() => {
     if (!surveys) return null;
@@ -156,7 +169,7 @@ export default function ProjectAnalysisPage() {
 
       const interviews = input.interviews.map(({ survey, messages }) => {
         const relationshipLabel =
-          input.template.relationshipOptions.find((r) => r.id === survey.relationship)
+          input.template?.relationshipOptions.find((r) => r.id === survey.relationship)
             ?.label ??
           survey.relationship ??
           undefined;
@@ -176,10 +189,12 @@ export default function ProjectAnalysisPage() {
         return {
           respondentName: survey.respondentName ?? undefined,
           relationshipLabel,
+          relationshipType: survey.relationship ?? "unknown",
           transcript: truncated,
         };
       });
 
+      // Generate overall analysis
       const analysis = await generateProjectInsights({
         subjectName: input.project.subjectName,
         subjectRole: input.project.subjectRole ?? undefined,
@@ -188,12 +203,52 @@ export default function ProjectAnalysisPage() {
         interviews,
       });
 
+      // Generate segmented analysis by relationship type
+      const relationshipGroups = new Map<
+        string,
+        Array<{ respondentName?: string; relationshipLabel?: string; transcript: string }>
+      >();
+
+      interviews.forEach((interview) => {
+        const type = interview.relationshipType;
+        if (!relationshipGroups.has(type)) {
+          relationshipGroups.set(type, []);
+        }
+        relationshipGroups.get(type)!.push(interview);
+      });
+
+      const segmentedAnalysis = await Promise.all(
+        Array.from(relationshipGroups.entries())
+          .filter(([, group]) => group.length >= 2) // Only analyze groups with 2+ interviews
+          .map(async ([relationshipType, group]) => {
+            const label =
+              input.template?.relationshipOptions.find((r) => r.id === relationshipType)
+                ?.label ?? relationshipType;
+
+            const segmentAnalysis = await generateProjectInsights({
+              subjectName: input.project.subjectName,
+              subjectRole: input.project.subjectRole ?? undefined,
+              projectName: `${input.project.name} (${label})`,
+              templateName: input.template!.name,
+              interviews: group,
+            });
+
+            return {
+              relationshipType,
+              relationshipLabel: label,
+              ...segmentAnalysis,
+              basedOnSurveyCount: group.length,
+            };
+          })
+      );
+
       await saveAnalysis({
         projectId,
         analysis: {
           ...analysis,
           basedOnSurveyCount: interviews.length,
         },
+        segmentedAnalysis: segmentedAnalysis.length > 0 ? segmentedAnalysis : undefined,
       });
     } catch (err) {
       setInsightsError(
@@ -320,45 +375,83 @@ export default function ProjectAnalysisPage() {
 
           {analysis && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">Sentiment: {analysis.sentiment}</Badge>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">Overview</h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {analysis.overview}
-                </p>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium">Key themes</h3>
-                  <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-                    {analysis.keyThemes.map((t, idx) => (
-                      <li key={idx}>{t}</li>
-                    ))}
-                  </ul>
+              {/* Segment Tabs */}
+              {project.segmentedAnalysis && project.segmentedAnalysis.length > 0 && (
+                <div className="flex flex-wrap gap-2 border-b pb-3">
+                  <Button
+                    variant={activeSegment === null ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setActiveSegment(null)}
+                  >
+                    Overall ({analysis.basedOnSurveyCount})
+                  </Button>
+                  {project.segmentedAnalysis.map((segment) => (
+                    <Button
+                      key={segment.relationshipType}
+                      variant={activeSegment === segment.relationshipType ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setActiveSegment(segment.relationshipType)}
+                    >
+                      {segment.relationshipLabel} ({segment.basedOnSurveyCount})
+                    </Button>
+                  ))}
                 </div>
+              )}
 
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium">Specific praise</h3>
-                  <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-                    {analysis.specificPraise.map((t, idx) => (
-                      <li key={idx}>{t}</li>
-                    ))}
-                  </ul>
-                </div>
+              {/* Display active analysis */}
+              {(() => {
+                const activeAnalysis = activeSegment
+                  ? project.segmentedAnalysis?.find(
+                      (s) => s.relationshipType === activeSegment
+                    )
+                  : analysis;
 
-                <div className="space-y-2 md:col-span-2">
-                  <h3 className="text-sm font-medium">Areas for improvement</h3>
-                  <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-                    {analysis.areasForImprovement.map((t, idx) => (
-                      <li key={idx}>{t}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+                if (!activeAnalysis) return null;
+
+                return (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">Sentiment: {activeAnalysis.sentiment}</Badge>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-medium">Overview</h3>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {activeAnalysis.overview}
+                      </p>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-medium">Key themes</h3>
+                        <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+                          {activeAnalysis.keyThemes.map((t, idx) => (
+                            <li key={idx}>{t}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-medium">Specific praise</h3>
+                        <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+                          {activeAnalysis.specificPraise.map((t, idx) => (
+                            <li key={idx}>{t}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <h3 className="text-sm font-medium">Areas for improvement</h3>
+                        <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+                          {activeAnalysis.areasForImprovement.map((t, idx) => (
+                            <li key={idx}>{t}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           )}
         </CardContent>

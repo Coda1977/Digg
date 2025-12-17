@@ -125,6 +125,7 @@ export function ChatInterface({
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
 
   const formRef = useRef<HTMLFormElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -198,6 +199,40 @@ export function ChatInterface({
       }
     })();
   }, [generating, saveMessage, surveyId, uiMessages, uniqueId]);
+
+  // Restore draft from localStorage on mount
+  useEffect(() => {
+    const storageKey = `digg_draft_${surveyId}`;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        setDraft(saved);
+      }
+    } catch {
+      // localStorage may be disabled
+    }
+  }, [surveyId]);
+
+  // Auto-save draft to localStorage when it changes
+  useEffect(() => {
+    const storageKey = `digg_draft_${surveyId}`;
+    const timeoutId = setTimeout(() => {
+      try {
+        if (draft.trim()) {
+          localStorage.setItem(storageKey, draft);
+          setDraftSaved(true);
+          setTimeout(() => setDraftSaved(false), 2000);
+        } else {
+          localStorage.removeItem(storageKey);
+          setDraftSaved(false);
+        }
+      } catch {
+        // localStorage may be disabled
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [draft, surveyId]);
 
   function stopVoice() {
     const recognition = recognitionRef.current;
@@ -303,6 +338,14 @@ export function ChatInterface({
     setError(null);
     setGenerating(true);
 
+    // Clear draft from localStorage when sending
+    const storageKey = `digg_draft_${surveyId}`;
+    try {
+      localStorage.removeItem(storageKey);
+    } catch {
+      // localStorage may be disabled
+    }
+
     const nextMessages: UiMessage[] = [
       ...uiMessages.slice(-40),
       { role: "user", content: userText },
@@ -328,6 +371,15 @@ export function ChatInterface({
     setError(null);
     setGenerating(true);
     stopVoice();
+
+    // Clear draft from localStorage when completing survey
+    const storageKey = `digg_draft_${surveyId}`;
+    try {
+      localStorage.removeItem(storageKey);
+    } catch {
+      // localStorage may be disabled
+    }
+
     try {
       await completeSurvey({ surveyId });
       onComplete();
@@ -434,9 +486,14 @@ export function ChatInterface({
 
             {/* Mobile: Stack buttons vertically */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <p className="text-xs text-muted-foreground hidden sm:block">
-                Enter to send · Shift+Enter for a new line
-              </p>
+              <div className="hidden sm:flex sm:items-center sm:gap-3">
+                <p className="text-xs text-muted-foreground">
+                  Enter to send · Shift+Enter for a new line
+                </p>
+                {draftSaved && (
+                  <p className="text-xs text-muted-foreground">· Draft saved</p>
+                )}
+              </div>
 
               <div className="flex items-stretch gap-2 sm:gap-2">
                 <Button

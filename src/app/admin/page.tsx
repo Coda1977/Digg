@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import Link from "next/link";
@@ -7,10 +8,37 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, FolderOpen, Users, CheckCircle2, Clock } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, FolderOpen, Users, CheckCircle2, Clock, Search } from "lucide-react";
 
 export default function AdminDashboard() {
   const projects = useQuery(api.projects.list);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
+
+  const filteredProjects = useMemo(() => {
+    if (!projects) return null;
+
+    let filtered = projects;
+
+    // Filter by status
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((p) => p.status === statusFilter);
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.subjectName.toLowerCase().includes(query) ||
+          p.name.toLowerCase().includes(query) ||
+          p.subjectRole?.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [projects, statusFilter, searchQuery]);
 
   if (projects === undefined) {
     return (
@@ -53,6 +81,60 @@ export default function AdminDashboard() {
         </Button>
       </div>
 
+      {/* Search and Filters */}
+      <Card>
+        <CardContent className="pt-6 pb-6 space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search projects by name, subject, or role..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+
+            {/* Status Filter */}
+            <div className="flex gap-2">
+              <Button
+                variant={statusFilter === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("all")}
+                className="flex-1 sm:flex-initial"
+              >
+                All
+              </Button>
+              <Button
+                variant={statusFilter === "active" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("active")}
+                className="flex-1 sm:flex-initial"
+              >
+                Active
+              </Button>
+              <Button
+                variant={statusFilter === "closed" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("closed")}
+                className="flex-1 sm:flex-initial"
+              >
+                Closed
+              </Button>
+            </div>
+          </div>
+
+          {/* Filter Results */}
+          {filteredProjects && filteredProjects.length !== projects.length && (
+            <p className="text-xs text-muted-foreground">
+              Showing {filteredProjects.length} of {projects.length} projects
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Stats */}
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
         <Card>
@@ -88,24 +170,34 @@ export default function AdminDashboard() {
 
       {/* Recent Projects */}
       <div>
-        <h2 className="text-xl sm:text-lg font-semibold mb-4">Recent Projects</h2>
-        {projects.length === 0 ? (
+        <h2 className="text-xl sm:text-lg font-semibold mb-4">
+          {searchQuery || statusFilter !== "all" ? "Filtered Projects" : "Recent Projects"}
+        </h2>
+        {!filteredProjects || filteredProjects.length === 0 ? (
           <Card>
             <CardContent className="py-8 sm:py-12 text-center">
-              <p className="text-base sm:text-sm text-muted-foreground mb-6 sm:mb-4">
-                No projects yet. Create your first feedback project!
-              </p>
-              <Button asChild className="w-full sm:w-auto">
-                <Link href="/admin/projects/new">
-                  <Plus className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-2" />
-                  Create Project
-                </Link>
-              </Button>
+              {projects.length === 0 ? (
+                <>
+                  <p className="text-base sm:text-sm text-muted-foreground mb-6 sm:mb-4">
+                    No projects yet. Create your first feedback project!
+                  </p>
+                  <Button asChild className="w-full sm:w-auto">
+                    <Link href="/admin/projects/new">
+                      <Plus className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-2" />
+                      Create Project
+                    </Link>
+                  </Button>
+                </>
+              ) : (
+                <p className="text-base sm:text-sm text-muted-foreground">
+                  No projects match your search criteria.
+                </p>
+              )}
             </CardContent>
           </Card>
         ) : (
           <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.slice(0, 6).map((project) => (
+            {filteredProjects.map((project) => (
               <Link key={project._id} href={`/admin/projects/${project._id}`}>
                 <Card className="hover:border-primary/50 active:scale-[0.98] transition-all cursor-pointer h-full">
                   <CardHeader className="pb-3 sm:pb-2">

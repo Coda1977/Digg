@@ -69,6 +69,25 @@ export default defineSchema({
         generatedAt: v.number(),
       })
     ),
+    segmentedAnalysis: v.optional(
+      v.array(
+        v.object({
+          relationshipType: v.string(),
+          relationshipLabel: v.string(),
+          overview: v.string(),
+          keyThemes: v.array(v.string()),
+          sentiment: v.union(
+            v.literal("positive"),
+            v.literal("mixed"),
+            v.literal("negative")
+          ),
+          specificPraise: v.array(v.string()),
+          areasForImprovement: v.array(v.string()),
+          basedOnSurveyCount: v.number(),
+          generatedAt: v.number(),
+        })
+      )
+    ),
   })
     .index("by_status", ["status"])
     .index("by_created", ["createdAt"]),

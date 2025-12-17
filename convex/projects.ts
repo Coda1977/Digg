@@ -206,14 +206,62 @@ export const saveAnalysis = mutation({
       areasForImprovement: v.array(v.string()),
       basedOnSurveyCount: v.number(),
     }),
+    segmentedAnalysis: v.optional(
+      v.array(
+        v.object({
+          relationshipType: v.string(),
+          relationshipLabel: v.string(),
+          overview: v.string(),
+          keyThemes: v.array(v.string()),
+          sentiment: v.union(
+            v.literal("positive"),
+            v.literal("mixed"),
+            v.literal("negative")
+          ),
+          specificPraise: v.array(v.string()),
+          areasForImprovement: v.array(v.string()),
+          basedOnSurveyCount: v.number(),
+        })
+      )
+    ),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
-    await ctx.db.patch(args.projectId, {
+    const updateData: {
+      analysis: {
+        overview: string;
+        keyThemes: string[];
+        sentiment: "positive" | "mixed" | "negative";
+        specificPraise: string[];
+        areasForImprovement: string[];
+        basedOnSurveyCount: number;
+        generatedAt: number;
+      };
+      segmentedAnalysis?: Array<{
+        relationshipType: string;
+        relationshipLabel: string;
+        overview: string;
+        keyThemes: string[];
+        sentiment: "positive" | "mixed" | "negative";
+        specificPraise: string[];
+        areasForImprovement: string[];
+        basedOnSurveyCount: number;
+        generatedAt: number;
+      }>;
+    } = {
       analysis: {
         ...args.analysis,
         generatedAt: Date.now(),
       },
-    });
+    };
+
+    if (args.segmentedAnalysis) {
+      updateData.segmentedAnalysis = args.segmentedAnalysis.map((segment) => ({
+        ...segment,
+        generatedAt: Date.now(),
+      }));
+    }
+
+    await ctx.db.patch(args.projectId, updateData);
   },
 });
