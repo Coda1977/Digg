@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "convex/react";
+import { useRouter } from "next/navigation";
 import { api } from "../../../convex/_generated/api";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import {
 } from "@/components/editorial";
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const projects = useQuery(api.projects.list);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
@@ -212,6 +214,7 @@ export default function AdminDashboard() {
                   key={project._id}
                   eyebrow={project.status.toUpperCase()}
                   headline={project.subjectName}
+                  onClick={() => router.push(`/admin/projects/${project._id}`)}
                   description={
                     <>
                       {project.subjectRole && (
@@ -239,13 +242,10 @@ export default function AdminDashboard() {
                     </>
                   }
                   action={
-                    <Link
-                      href={`/admin/projects/${project._id}`}
-                      className="inline-flex items-center gap-2 text-ink font-medium hover:gap-3 transition-all"
-                    >
+                    <span className="inline-flex items-center gap-2 text-ink font-medium">
                       View Project
                       <ArrowRight className="h-4 w-4" />
-                    </Link>
+                    </span>
                   }
                 />
               ))}
