@@ -1,0 +1,247 @@
+================================================================================
+                         DIGG APPLICATION MODIFICATIONS
+                              Comprehensive Roadmap
+================================================================================
+
+Generated: December 2025
+Status: Planning Phase
+
+================================================================================
+                            CRITICAL - IMMEDIATE
+================================================================================
+
+1. SECURITY: Upgrade Next.js
+   - Current: 16.0.8 (has CVE security vulnerability)
+   - Action: Upgrade to latest patched version
+   - Files: package.json
+   - Risk: HIGH - Production vulnerability
+
+2. SECURITY: Add Rate Limiting on AI Endpoints
+   - Problem: AI endpoints can be hammered (expensive, abuse vector)
+   - Action: Implement rate limiting middleware
+   - Files: src/app/api/chat/route.ts
+           src/app/api/surveys/summarize/route.ts
+           src/app/api/projects/analyze/route.ts
+   - Consider: Upstash rate limiting or similar
+
+3. UX: Add Progress Indicator for Survey Respondents
+   - Problem: Users don't know how long the survey will take
+   - Action: Show estimated progress 
+   - Files: src/components/chat/ChatInterface.tsx
+   - Design: progress bar
+
+4. UX: Add Confirmation Dialog Before Ending Survey
+   - Problem: One click ends everything, no way back
+   - Action: Add confirmation modal before survey.complete()
+   - Files: src/components/chat/ChatInterface.tsx
+   - Copy: "Are you ready to finish? (You won't be able to add more responses)."
+
+================================================================================
+                          HIGH PRIORITY 
+================================================================================
+
+5. CODE QUALITY: Enable TypeScript Strict Mode
+   - Problem: strict: false defeats TypeScript's value
+   - Action: Set strict: true, fix all errors
+   - Files: tsconfig.json, then fix errors across codebase
+   - Estimate: May surface 50-200 type errors
+
+6. MONITORING: Add Error Tracking (Sentry)
+   - Problem: Production errors are invisible
+   - Action: Install @sentry/nextjs, configure DSN
+   - Files: sentry.client.config.ts, sentry.server.config.ts, next.config.js
+   - Also track: AI API failures, Convex errors
+
+
+
+9. UX: Implement Save-and-Continue for Surveys
+   - Problem: If browser closes, all progress is lost
+   - Action: Auto-save survey state, allow resume via uniqueId
+   - Files: src/components/chat/ChatInterface.tsx
+           convex/surveys.ts (add lastMessageId or similar)
+   - Consider: localStorage backup + server sync
+
+================================================================================
+                        MOBILE-FIRST 
+================================================================================
+
+10. MOBILE: Responsive Survey Interface Overhaul
+    - Problem: Chat interface cramped on mobile, poor touch targets
+    - Action:
+      * Increase touch target sizes (min 44x44px)
+      * Full-width message bubbles on mobile
+      * Larger font sizes for readability (min 16px inputs to prevent zoom)
+      * Sticky input area at bottom of viewport
+      * Swipe gestures for common actions
+    - Files: src/components/chat/ChatInterface.tsx
+            src/app/survey/[id]/page.tsx
+            tailwind.config.ts (add mobile-specific utilities)
+
+11. MOBILE: Bottom Navigation for Admin Dashboard
+    - Problem: Header navigation not thumb-friendly on mobile
+    - Action: Add bottom tab bar on mobile:
+      * Dashboard
+      * Projects
+      * Settings
+      * Profile
+    - Files: src/app/admin/layout.tsx
+            New: src/components/admin/BottomNav.tsx
+
+12. MOBILE: Optimize Admin Project Views
+    - Problem: Project cards and tables don't work well on small screens
+    - Action:
+      * Stack cards vertically (already done, verify)
+      * Convert survey tables to card lists on mobile
+      * Collapse metadata, show on tap
+      * Pull-to-refresh for data updates
+    - Files: src/app/admin/page.tsx
+            src/app/admin/projects/[id]/page.tsx
+
+13. MOBILE: Touch-Optimized Buttons and Forms
+    - Problem: Buttons too small, forms not optimized for touch
+    - Action:
+      * Minimum button height 48px on mobile
+      * Input fields full-width with adequate padding
+      * Increase spacing between interactive elements
+      * Add haptic feedback where supported
+    - Files: src/components/ui/button.tsx
+            src/components/ui/input.tsx
+            All form pages
+
+
+15. MOBILE: Viewport and Safe Areas
+    - Problem: Content may be hidden by notches, home indicators
+    - Action:
+      * Use env(safe-area-inset-*) for padding
+      * Test on iPhone notch, Android gesture nav
+      * Ensure chat input doesn't hide behind keyboard
+    - Files: src/app/globals.css
+            src/components/chat/ChatInterface.tsx
+
+16. MOBILE: Performance Optimization
+    - Problem: Heavy JS bundle, slow on mobile networks
+    - Action:
+      * Implement code splitting
+      * Lazy load admin components
+      * Optimize images (next/image)
+      * Add loading skeletons for perceived performance
+      * Consider reducing react-pdf bundle (heavy)
+    - Files: next.config.js
+            Various page components
+
+================================================================================
+                   
+
+18. VOICE: Add Audio Waveform Visualization
+    - Problem: Users can't see if audio is being captured
+    - Action: Show real-time waveform while recording
+    - Files: src/components/chat/ChatInterface.tsx
+            New: src/components/chat/AudioWaveform.tsx
+
+
+20. VOICE: Add Transcript Editing Before Send
+    - Problem: Users can't correct speech recognition errors
+    - Action:
+      * Show transcript in editable textarea
+      * Highlight uncertain words
+      * Allow correction before sending
+    - Files: src/components/chat/ChatInterface.tsx
+
+================================================================================
+                        MEDIUM PRIORITY - THIS QUARTER
+================================================================================
+
+21. ADMIN: Add Search and Filters for Dashboard
+    - Problem: With many projects, finding one is painful
+    - Action: Add search bar + status filter + date range
+    - Files: src/app/admin/page.tsx
+
+22. ANALYSIS: Implement Segmented Analysis
+    - Problem: Single aggregate analysis, no breakdown
+    - Action: Show analysis by relationship type (manager/peer/report)
+    - Files: src/app/api/projects/analyze/route.ts
+            src/app/admin/projects/[id]/analysis/page.tsx
+
+
+24. ADMIN: Create Custom Template Builder in UI
+    - Problem: Admins can't create custom templates
+    - Action: Add template editor with:
+      * Question builder
+      * Relationship options
+      * System prompt customization
+    - Files: New page: src/app/admin/templates/new/page.tsx
+            convex/templates.ts (add create mutation)
+
+
+
+================================================================================
+                        
+================================================================================
+
+
+
+
+
+34. CODE: Component Refactoring
+    - Break up ChatInterface.tsx (449 lines)
+    - Break up analysis/page.tsx (430 lines)
+    - Create AdminPageLayout component
+    - Extract shared patterns
+
+35. CODE: Add Testing Framework
+    - Install Vitest or Jest
+    - Add unit tests for utilities
+    - Add integration tests for Convex functions
+    - Add E2E tests with Playwright
+
+
+
+================================================================================
+                              TECHNICAL DEBT
+================================================================================
+
+- Fix deprecated Lucia auth package warnings
+- Remove unused dependencies
+- Add proper TypeScript types (enable strict mode)
+- Add JSDoc comments to complex functions
+- Create proper error boundary components
+- Implement proper logging strategy
+- Add environment variable validation at startup
+- Fix CORS configuration (currently wide open)
+- Add API versioning strategy
+- Document Convex schema migrations approach
+
+================================================================================
+                            FILE REFERENCE
+================================================================================
+
+Key files to modify for mobile-first:
+- src/components/chat/ChatInterface.tsx
+- src/app/survey/[id]/page.tsx
+- src/app/admin/layout.tsx
+- src/app/admin/page.tsx
+- src/components/ui/*.tsx
+- tailwind.config.ts
+- src/app/globals.css
+
+Key files for speech-to-text replacement:
+- src/components/chat/ChatInterface.tsx
+- src/app/api/speech/route.ts (new)
+- src/components/survey/IntroScreen.tsx
+- .env.local
+
+================================================================================
+                               NOTES
+================================================================================
+
+Priority Order:
+1. Security fixes (Next.js upgrade, rate limiting)
+2. Mobile-first redesign (biggest UX impact)
+3. Speech-to-text replacement (reliability)
+4. UX improvements (progress, save-continue)
+5. Admin features (search, templates)
+6. Enterprise features (SSO, compliance)
+
+
+
+================================================================================

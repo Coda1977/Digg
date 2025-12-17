@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateText } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
+import { checkRateLimit, createRateLimitResponse } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -68,6 +69,13 @@ function validateSummary(value: unknown): Summary {
 }
 
 export async function POST(req: Request) {
+  // Rate limiting: 5 requests per hour
+  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "global";
+  const rateLimit = checkRateLimit(`analyze:${ip}`, "analyze");
+  if (!rateLimit.success) {
+    return createRateLimitResponse(Math.ceil(rateLimit.resetMs / 1000));
+  }
+
   const json = await req.json().catch(() => null);
   if (!json || typeof json !== "object") {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });

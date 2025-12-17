@@ -11,6 +11,7 @@ import { api } from "../../../convex/_generated/api";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BottomNav } from "@/components/admin/BottomNav";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -131,23 +132,24 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20 sm:pb-0">
       <header className="border-b bg-background">
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between gap-4">
-          <Link href="/admin" className="font-semibold">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+          <Link href="/admin" className="font-semibold text-base sm:text-sm">
             Digg Admin
           </Link>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost">
+          <div className="hidden sm:flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm">
               <Link href="/admin">Dashboard</Link>
             </Button>
-            <Button variant="outline" onClick={() => void signOut()}>
+            <Button variant="outline" size="sm" onClick={() => void signOut()}>
               Sign out
             </Button>
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl p-4">{children}</main>
+      <main className="mx-auto max-w-6xl px-3 sm:px-4 py-4 sm:py-6">{children}</main>
+      <BottomNav onSignOut={() => void signOut()} />
     </div>
   );
 }

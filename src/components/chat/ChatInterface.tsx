@@ -11,6 +11,14 @@ import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type UiMessage = {
   role: "assistant" | "user";
@@ -116,6 +124,7 @@ export function ChatInterface({
   const [draft, setDraft] = useState("");
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const formRef = useRef<HTMLFormElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -136,6 +145,15 @@ export function ChatInterface({
     if (messages === undefined) return null;
     return messages.map((m) => ({ role: m.role, content: m.content }));
   }, [messages]);
+
+  const progress = useMemo(() => {
+    if (!uiMessages) return 0;
+    const userMessageCount = uiMessages.filter((m) => m.role === "user").length;
+    const totalQuestions = template.questions.length || 5; // Fallback to 5 if no questions
+    const calculated = (userMessageCount / totalQuestions) * 100;
+    // Cap at 95% until survey is actually completed
+    return Math.min(95, calculated);
+  }, [uiMessages, template.questions.length]);
 
   useEffect(() => {
     if (!scrollRef.current) return;
@@ -323,29 +341,43 @@ export function ChatInterface({
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b bg-background">
-        <div className="mx-auto max-w-3xl px-4 py-3 flex items-center justify-between gap-4">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-sm font-medium truncate">
+            <p className="text-base sm:text-sm font-medium truncate">
               Feedback about {project.subjectName}
             </p>
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-sm sm:text-xs text-muted-foreground truncate">
               {template.name} · {relationshipLabel}
             </p>
           </div>
         </div>
+        {/* Progress Bar */}
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-2.5 sm:h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary transition-all duration-300 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <span className="text-sm sm:text-xs font-medium text-muted-foreground min-w-[3rem] text-right">
+              {Math.round(progress)}%
+            </span>
+          </div>
+        </div>
       </header>
 
-      <main className="mx-auto max-w-3xl w-full flex-1 p-4 flex flex-col min-h-0">
+      <main className="mx-auto max-w-3xl w-full flex-1 px-3 sm:px-4 py-3 sm:py-4 flex flex-col min-h-0">
         <Card className="flex-1 min-h-0">
-          <CardHeader className="py-4">
-            <CardTitle className="text-base">Conversation</CardTitle>
+          <CardHeader className="py-3 sm:py-4">
+            <CardTitle className="text-base sm:text-base">Conversation</CardTitle>
           </CardHeader>
           <CardContent className="pt-0 flex flex-col min-h-0">
-            <div ref={scrollRef} className="flex-1 overflow-y-auto pr-2 space-y-3">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto pr-1 sm:pr-2 space-y-3 sm:space-y-3">
               {!uiMessages ? (
-                <p className="text-sm text-muted-foreground">Loading…</p>
+                <p className="text-base sm:text-sm text-muted-foreground">Loading…</p>
               ) : uiMessages.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Starting interview…</p>
+                <p className="text-base sm:text-sm text-muted-foreground">Starting interview…</p>
               ) : (
                 uiMessages.map((m, idx) => (
                   <div
@@ -359,8 +391,8 @@ export function ChatInterface({
                     <div
                       className={
                         m.role === "assistant"
-                          ? "max-w-[85%] rounded-lg bg-muted px-3 py-2 text-sm whitespace-pre-wrap"
-                          : "max-w-[85%] rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground whitespace-pre-wrap"
+                          ? "w-full sm:max-w-[85%] rounded-lg bg-muted px-4 py-3 text-base sm:text-sm whitespace-pre-wrap leading-relaxed"
+                          : "w-full sm:max-w-[85%] rounded-lg bg-primary px-4 py-3 text-base sm:text-sm text-primary-foreground whitespace-pre-wrap leading-relaxed"
                       }
                     >
                       {m.content}
@@ -373,9 +405,9 @@ export function ChatInterface({
         </Card>
       </main>
 
-      <footer className="border-t bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur">
-        <div className="mx-auto max-w-3xl p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] space-y-2">
-          <form ref={formRef} className="space-y-2" onSubmit={onSend}>
+      <footer className="border-t bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur sticky bottom-0">
+        <div className="mx-auto max-w-3xl px-3 sm:px-4 py-3 sm:py-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-[calc(1rem+env(safe-area-inset-bottom))] space-y-3">
+          <form ref={formRef} className="space-y-3" onSubmit={onSend}>
             <Textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -391,20 +423,22 @@ export function ChatInterface({
               }
               rows={3}
               disabled={generating || !uiMessages || listening}
+              className="text-base resize-none"
             />
 
-            <div className="flex items-center justify-between gap-3">
-              {error ? (
-                <p className="text-sm text-destructive" role="alert">
-                  {error}
-                </p>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  Enter to send · Shift+Enter for a new line
-                </p>
-              )}
+            {error && (
+              <p className="text-sm text-destructive" role="alert">
+                {error}
+              </p>
+            )}
 
-              <div className="flex items-center gap-2">
+            {/* Mobile: Stack buttons vertically */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <p className="text-xs text-muted-foreground hidden sm:block">
+                Enter to send · Shift+Enter for a new line
+              </p>
+
+              <div className="flex items-stretch gap-2 sm:gap-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -412,16 +446,17 @@ export function ChatInterface({
                   disabled={generating || !uiMessages}
                   aria-pressed={listening}
                   aria-label={listening ? "Stop voice input" : "Start voice input"}
+                  className="flex-1 sm:flex-initial min-h-[44px]"
                 >
                   {listening ? (
                     <>
-                      <MicOff className="h-4 w-4 mr-2" />
-                      Stop
+                      <MicOff className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Stop</span>
                     </>
                   ) : (
                     <>
-                      <Mic className="h-4 w-4 mr-2" />
-                      Voice
+                      <Mic className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Voice</span>
                     </>
                   )}
                 </Button>
@@ -429,13 +464,19 @@ export function ChatInterface({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => void onFinish()}
+                  onClick={() => setShowConfirmDialog(true)}
                   disabled={generating}
+                  className="flex-1 sm:flex-initial min-h-[44px] text-base sm:text-sm"
                 >
-                  Finish conversation
+                  <span className="sm:hidden">Finish</span>
+                  <span className="hidden sm:inline">Finish conversation</span>
                 </Button>
 
-                <Button type="submit" disabled={generating || !draft.trim()}>
+                <Button
+                  type="submit"
+                  disabled={generating || !draft.trim()}
+                  className="flex-1 sm:flex-initial min-h-[44px] text-base sm:text-sm font-semibold"
+                >
                   {generating ? "…" : "Send"}
                 </Button>
               </div>
@@ -443,6 +484,36 @@ export function ChatInterface({
           </form>
         </div>
       </footer>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you ready to finish?</DialogTitle>
+            <DialogDescription>
+              You won't be able to add more responses after submitting.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+              disabled={generating}
+            >
+              Continue Editing
+            </Button>
+            <Button
+              onClick={() => {
+                setShowConfirmDialog(false);
+                void onFinish();
+              }}
+              disabled={generating}
+            >
+              Finish Survey
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

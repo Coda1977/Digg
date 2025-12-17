@@ -5,6 +5,7 @@ import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../../../convex/_generated/api";
 import type { Doc } from "../../../../convex/_generated/dataModel";
+import { checkRateLimit, createRateLimitResponse } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -42,6 +43,12 @@ export async function POST(req: Request) {
 
   if (!uniqueId || messages === null) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  // Rate limiting: 60 requests per minute per survey
+  const rateLimit = checkRateLimit(uniqueId, "chat");
+  if (!rateLimit.success) {
+    return createRateLimitResponse(Math.ceil(rateLimit.resetMs / 1000));
   }
 
   const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
