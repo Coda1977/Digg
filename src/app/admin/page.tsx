@@ -73,12 +73,20 @@ export default function AdminDashboard() {
             Manage your feedback projects
           </p>
         </div>
-        <Button asChild className="w-full sm:w-auto">
-          <Link href="/admin/projects/new">
-            <Plus className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-2" />
-            <span className="sm:inline">New Project</span>
-          </Link>
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button asChild variant="outline" className="w-full sm:w-auto">
+            <Link href="/admin/templates/new">
+              <Plus className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-2" />
+              <span className="sm:inline">New Template</span>
+            </Link>
+          </Button>
+          <Button asChild className="w-full sm:w-auto">
+            <Link href="/admin/projects/new">
+              <Plus className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-2" />
+              <span className="sm:inline">New Project</span>
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filters */}
