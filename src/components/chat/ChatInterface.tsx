@@ -9,7 +9,6 @@ import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -19,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { EditorialLabel } from "@/components/editorial";
 
 type UiMessage = {
   role: "assistant" | "user";
@@ -391,75 +391,77 @@ export function ChatInterface({
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b bg-background">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-base sm:text-sm font-medium truncate">
-              Feedback about {project.subjectName}
-            </p>
-            <p className="text-sm sm:text-xs text-muted-foreground truncate">
-              {template.name} · {relationshipLabel}
-            </p>
-          </div>
-        </div>
-        {/* Progress Bar */}
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-2.5 sm:h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all duration-300 ease-out"
-                style={{ width: `${progress}%` }}
-              />
+    <div className="min-h-screen flex flex-col bg-paper">
+      <header className="border-b-3 border-ink/20 bg-paper">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-6">
+          <div className="space-y-4">
+            <div>
+              <EditorialLabel>Interview in Progress</EditorialLabel>
+              <h1 className="text-headline-xs font-serif font-bold text-ink mt-2">
+                {project.subjectName}
+              </h1>
+              {project.subjectRole && (
+                <p className="text-body text-ink-soft mt-1">{project.subjectRole}</p>
+              )}
+              <p className="text-label text-ink-soft uppercase mt-2">
+                {template.name} · {relationshipLabel}
+              </p>
             </div>
-            <span className="text-sm sm:text-xs font-medium text-muted-foreground min-w-[3rem] text-right">
-              {Math.round(progress)}%
-            </span>
+            {/* Progress Bar */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-1 bg-ink/10 overflow-hidden">
+                <div
+                  className="h-full bg-ink transition-all duration-300 ease-out"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <span className="text-label text-ink font-semibold min-w-[3rem] text-right">
+                {Math.round(progress)}%
+              </span>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl w-full flex-1 px-3 sm:px-4 py-3 sm:py-4 flex flex-col min-h-0">
-        <Card className="flex-1 min-h-0">
-          <CardHeader className="py-3 sm:py-4">
-            <CardTitle className="text-base sm:text-base">Conversation</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0 flex flex-col min-h-0">
-            <div ref={scrollRef} className="flex-1 overflow-y-auto pr-1 sm:pr-2 space-y-3 sm:space-y-3">
-              {!uiMessages ? (
-                <p className="text-base sm:text-sm text-muted-foreground">Loading…</p>
-              ) : uiMessages.length === 0 ? (
-                <p className="text-base sm:text-sm text-muted-foreground">Starting interview…</p>
-              ) : (
-                uiMessages.map((m, idx) => (
+      <main className="mx-auto max-w-4xl w-full flex-1 px-4 sm:px-6 py-6 flex flex-col min-h-0">
+        <div className="flex-1 min-h-0 flex flex-col">
+          <div className="border-b-3 border-ink/10 pb-4 mb-6">
+            <EditorialLabel>Conversation</EditorialLabel>
+          </div>
+          <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-6">
+            {!uiMessages ? (
+              <p className="text-body-lg text-ink-soft">Loading conversation…</p>
+            ) : uiMessages.length === 0 ? (
+              <p className="text-body-lg text-ink-soft">Starting interview…</p>
+            ) : (
+              uiMessages.map((m, idx) => (
+                <div
+                  key={idx}
+                  className={
+                    m.role === "assistant"
+                      ? "flex justify-start"
+                      : "flex justify-end"
+                  }
+                >
                   <div
-                    key={idx}
                     className={
                       m.role === "assistant"
-                        ? "flex justify-start"
-                        : "flex justify-end"
+                        ? "w-full sm:max-w-[85%] border-l-4 border-ink pl-6 py-2 text-body-lg text-ink whitespace-pre-wrap leading-relaxed"
+                        : "w-full sm:max-w-[85%] bg-ink px-6 py-4 text-body-lg text-paper whitespace-pre-wrap leading-relaxed"
                     }
                   >
-                    <div
-                      className={
-                        m.role === "assistant"
-                          ? "w-full sm:max-w-[85%] rounded-lg bg-muted px-4 py-3 text-base sm:text-sm whitespace-pre-wrap leading-relaxed"
-                          : "w-full sm:max-w-[85%] rounded-lg bg-primary px-4 py-3 text-base sm:text-sm text-primary-foreground whitespace-pre-wrap leading-relaxed"
-                      }
-                    >
-                      {m.content}
-                    </div>
+                    {m.content}
                   </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </main>
 
-      <footer className="border-t bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur sticky bottom-0">
-        <div className="mx-auto max-w-3xl px-3 sm:px-4 py-3 sm:py-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-[calc(1rem+env(safe-area-inset-bottom))] space-y-3">
-          <form ref={formRef} className="space-y-3" onSubmit={onSend}>
+      <footer className="border-t-3 border-ink/20 bg-paper sticky bottom-0">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] space-y-4">
+          <form ref={formRef} className="space-y-4" onSubmit={onSend}>
             <Textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -473,29 +475,28 @@ export function ChatInterface({
               placeholder={
                 listening ? "Listening… (press mic to stop)" : "Type your answer…"
               }
-              rows={3}
+              rows={4}
               disabled={generating || !uiMessages || listening}
-              className="text-base resize-none"
+              className="text-base resize-none border-3 border-ink/20 focus:border-ink bg-paper text-ink min-h-[120px]"
             />
 
             {error && (
-              <p className="text-sm text-destructive" role="alert">
+              <p className="text-body text-accent-red" role="alert">
                 {error}
               </p>
             )}
 
-            {/* Mobile: Stack buttons vertically */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="hidden sm:flex sm:items-center sm:gap-3">
-                <p className="text-xs text-muted-foreground">
-                  Enter to send · Shift+Enter for a new line
+                <p className="text-label text-ink-soft">
+                  ENTER TO SEND · SHIFT+ENTER FOR NEW LINE
                 </p>
                 {draftSaved && (
-                  <p className="text-xs text-muted-foreground">· Draft saved</p>
+                  <p className="text-label text-ink-soft">· DRAFT SAVED</p>
                 )}
               </div>
 
-              <div className="flex items-stretch gap-2 sm:gap-2">
+              <div className="flex items-stretch gap-3">
                 <Button
                   type="button"
                   variant="outline"
@@ -503,16 +504,16 @@ export function ChatInterface({
                   disabled={generating || !uiMessages}
                   aria-pressed={listening}
                   aria-label={listening ? "Stop voice input" : "Start voice input"}
-                  className="flex-1 sm:flex-initial min-h-[44px]"
+                  className="flex-1 sm:flex-initial min-h-[48px] border-ink text-ink hover:bg-ink/5"
                 >
                   {listening ? (
                     <>
-                      <MicOff className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-2" />
+                      <MicOff className="h-5 w-5 sm:mr-2" />
                       <span className="hidden sm:inline">Stop</span>
                     </>
                   ) : (
                     <>
-                      <Mic className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-2" />
+                      <Mic className="h-5 w-5 sm:mr-2" />
                       <span className="hidden sm:inline">Voice</span>
                     </>
                   )}
@@ -523,16 +524,16 @@ export function ChatInterface({
                   variant="outline"
                   onClick={() => setShowConfirmDialog(true)}
                   disabled={generating}
-                  className="flex-1 sm:flex-initial min-h-[44px] text-base sm:text-sm"
+                  className="flex-1 sm:flex-initial min-h-[48px] border-ink text-ink hover:bg-ink/5"
                 >
                   <span className="sm:hidden">Finish</span>
-                  <span className="hidden sm:inline">Finish conversation</span>
+                  <span className="hidden sm:inline">Finish</span>
                 </Button>
 
                 <Button
                   type="submit"
                   disabled={generating || !draft.trim()}
-                  className="flex-1 sm:flex-initial min-h-[44px] text-base sm:text-sm font-semibold"
+                  className="flex-1 sm:flex-initial min-h-[48px] bg-ink hover:bg-ink/90 text-paper font-semibold"
                 >
                   {generating ? "…" : "Send"}
                 </Button>

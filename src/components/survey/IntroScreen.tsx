@@ -4,15 +4,14 @@ import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  EditorialSection,
+  EditorialHeadline,
+  EditorialLabel,
+  RuledDivider,
+} from "@/components/editorial";
 
 type RelationshipOption = { id: string; label: string };
 
@@ -48,61 +47,85 @@ export function IntroScreen({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-muted/30">
-      <Card className="w-full max-w-lg">
-        <CardHeader className="space-y-2">
-          <CardTitle className="text-xl">
-            Feedback about {subjectName}
-            {subjectRole ? ` (${subjectRole})` : ""}
-          </CardTitle>
-          <CardDescription>
-            This is an AI-guided interview. Please answer as honestly as you can.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-4" onSubmit={onSubmit}>
-            <div className="space-y-2">
-              <Label htmlFor="relationship">Your relationship</Label>
-              <select
-                id="relationship"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={relationshipId}
-                onChange={(e) => setRelationshipId(e.target.value)}
-                required
-              >
-                {relationshipOptions.map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              {relationshipLabel && (
-                <p className="text-xs text-muted-foreground">
-                  Selected: {relationshipLabel}
+    <div className="min-h-screen flex items-center justify-center p-4 bg-paper">
+      <div className="w-full max-w-2xl">
+        <EditorialSection spacing="lg">
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <EditorialLabel accent>Feedback Survey</EditorialLabel>
+              <EditorialHeadline as="h1" size="md">
+                Share your thoughts about {subjectName}
+              </EditorialHeadline>
+              {subjectRole && (
+                <p className="text-body-lg text-ink-soft">
+                  {subjectRole}
                 </p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="respondentName">Your name (optional)</Label>
-              <Input
-                id="respondentName"
-                value={respondentName}
-                onChange={(e) => setRespondentName(e.target.value)}
-                placeholder="e.g. Alex"
-              />
-            </div>
+            <RuledDivider spacing="sm" />
 
-            <Button className="w-full" disabled={!relationshipId}>
-              Start
-            </Button>
-
-            <p className="text-xs text-muted-foreground">
-              Tip: specific examples are most helpful.
+            <p className="text-body-lg text-ink-soft max-w-xl">
+              This is an AI-guided interview. Your honest feedback will help create
+              a comprehensive 360-degree review. The conversation typically takes 5-10 minutes.
             </p>
-          </form>
-        </CardContent>
-      </Card>
+
+            <RuledDivider spacing="sm" />
+
+            <form className="space-y-6" onSubmit={onSubmit}>
+              <div className="space-y-3">
+                <Label
+                  htmlFor="relationship"
+                  className="text-label uppercase tracking-label text-ink font-semibold"
+                >
+                  Your Relationship
+                </Label>
+                <select
+                  id="relationship"
+                  className="flex h-14 w-full border-3 border-ink bg-paper px-4 py-3 text-base text-ink focus:outline-none focus:ring-4 focus:ring-ink/10 transition-all"
+                  value={relationshipId}
+                  onChange={(e) => setRelationshipId(e.target.value)}
+                  required
+                >
+                  {relationshipOptions.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-3">
+                <Label
+                  htmlFor="respondentName"
+                  className="text-label uppercase tracking-label text-ink font-semibold"
+                >
+                  Your Name (Optional)
+                </Label>
+                <Input
+                  id="respondentName"
+                  value={respondentName}
+                  onChange={(e) => setRespondentName(e.target.value)}
+                  placeholder="e.g. Alex"
+                  className="h-14 text-base border-3 border-ink/20 focus:border-ink bg-paper text-ink"
+                />
+              </div>
+
+              <Button
+                size="lg"
+                className="w-full h-14 bg-ink hover:bg-ink/90 text-paper text-body-lg font-semibold"
+                disabled={!relationshipId}
+              >
+                Begin Interview
+              </Button>
+
+              <p className="text-label text-ink-soft text-center pt-2">
+                TIP: SPECIFIC EXAMPLES ARE MOST HELPFUL
+              </p>
+            </form>
+          </div>
+        </EditorialSection>
+      </div>
     </div>
   );
 }

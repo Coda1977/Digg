@@ -1,0 +1,125 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  EditorialSection,
+  EditorialHeadline,
+  EditorialLabel,
+  RuledDivider,
+} from "@/components/editorial";
+
+interface EditorialNavProps {
+  onSignOut: () => void;
+}
+
+/**
+ * Editorial Navigation Overlay
+ * Full-screen navigation for mobile following editorial design principles
+ */
+export function EditorialNav({ onSignOut }: EditorialNavProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+
+  const navItems = [
+    { label: "Dashboard", href: "/admin" },
+    { label: "New Project", href: "/admin/projects/new" },
+    { label: "New Template", href: "/admin/templates/new" },
+  ];
+
+  const isActive = (href: string) => {
+    if (href === "/admin") return pathname === "/admin";
+    return pathname.startsWith(href);
+  };
+
+  return (
+    <>
+      {/* Mobile Menu Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setIsOpen(true)}
+        className="sm:hidden"
+        aria-label="Open menu"
+      >
+        <Menu className="h-6 w-6" />
+      </Button>
+
+      {/* Full-Screen Editorial Overlay */}
+      {isOpen && (
+        <div className="sm:hidden fixed inset-0 z-50 bg-paper overflow-y-auto">
+          <EditorialSection spacing="lg">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-editorial-sm">
+              <EditorialLabel>Navigation</EditorialLabel>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsOpen(false)}
+                aria-label="Close menu"
+              >
+                <X className="h-6 w-6" />
+              </Button>
+            </div>
+
+            <EditorialHeadline as="h2" size="md" className="mb-editorial-sm">
+              Digg Admin
+            </EditorialHeadline>
+
+            <RuledDivider spacing="md" />
+
+            {/* Navigation Links */}
+            <nav className="space-y-editorial-xs">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className="group block"
+                >
+                  <div
+                    className={`border-t-3 pt-6 transition-colors ${
+                      isActive(item.href)
+                        ? "border-accent-red"
+                        : "border-ink/20 hover:border-ink"
+                    }`}
+                  >
+                    <h3
+                      className={`text-headline-xs font-serif font-bold ${
+                        isActive(item.href)
+                          ? "text-accent-red"
+                          : "text-ink group-hover:text-accent-red"
+                      } transition-colors`}
+                    >
+                      {item.label}
+                    </h3>
+                  </div>
+                </Link>
+              ))}
+            </nav>
+
+            <RuledDivider spacing="lg" />
+
+            {/* Sign Out */}
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                onSignOut();
+              }}
+              className="group block w-full text-left"
+            >
+              <div className="border-t-3 border-ink/20 hover:border-ink pt-6 transition-colors">
+                <h3 className="text-headline-xs font-serif font-bold text-ink group-hover:text-accent-red transition-colors">
+                  Sign out
+                </h3>
+              </div>
+            </button>
+          </EditorialSection>
+        </div>
+      )}
+    </>
+  );
+}

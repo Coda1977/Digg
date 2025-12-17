@@ -11,7 +11,8 @@ import { api } from "../../../convex/_generated/api";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BottomNav } from "@/components/admin/BottomNav";
+import { EditorialNav } from "@/components/admin/EditorialNav";
+import { EditorialLabel } from "@/components/editorial";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -132,24 +133,31 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen pb-20 sm:pb-0">
-      <header className="border-b bg-background">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
-          <Link href="/admin" className="font-semibold text-base sm:text-sm">
-            Digg Admin
-          </Link>
-          <div className="hidden sm:flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
+    <div className="min-h-screen bg-paper">
+      <header className="border-b-3 border-ink/20 bg-paper sticky top-0 z-40">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <EditorialNav onSignOut={() => void signOut()} />
+            <Link href="/admin" className="block">
+              <EditorialLabel>Digg Admin</EditorialLabel>
+            </Link>
+          </div>
+          <div className="hidden sm:flex items-center gap-3">
+            <Button asChild variant="ghost" size="lg" className="hover:bg-ink/5">
               <Link href="/admin">Dashboard</Link>
             </Button>
-            <Button variant="outline" size="sm" onClick={() => void signOut()}>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => void signOut()}
+              className="border-ink text-ink hover:bg-ink/5"
+            >
               Sign out
             </Button>
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-3 sm:px-4 py-4 sm:py-6">{children}</main>
-      <BottomNav onSignOut={() => void signOut()} />
+      <main className="mx-auto max-w-6xl px-3 sm:px-4 py-6 sm:py-8">{children}</main>
     </div>
   );
 }
