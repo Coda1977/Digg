@@ -6,44 +6,28 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../convex/_generated/api";
 import type { Doc } from "../../../../convex/_generated/dataModel";
 import { checkRateLimit, createRateLimitResponse } from "@/lib/ratelimit";
+import { chatRequestSchema, validateSchema } from "@/lib/schemas";
 
 export const runtime = "nodejs";
 
-type ChatMessage = {
-  role: "user" | "assistant";
-  content: string;
-};
-
-function isMessage(value: unknown): value is ChatMessage {
-  if (!value || typeof value !== "object") return false;
-  const v = value as Partial<ChatMessage>;
-  return (
-    (v.role === "user" || v.role === "assistant") &&
-    typeof v.content === "string"
-  );
-}
-
 export async function POST(req: Request) {
+  // Parse and validate request body with Zod
   const json = await req.json().catch(() => null);
-  if (!json || typeof json !== "object") {
+  if (!json) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const body = json as {
-    uniqueId?: unknown;
-    messages?: unknown;
-    prompt?: unknown;
-  };
-
-  const uniqueId = typeof body.uniqueId === "string" ? body.uniqueId : null;
-  const prompt = typeof body.prompt === "string" ? body.prompt : undefined;
-  const messages = Array.isArray(body.messages)
-    ? body.messages.filter(isMessage)
-    : null;
-
-  if (!uniqueId || messages === null) {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  let validatedData;
+  try {
+    validatedData = validateSchema(chatRequestSchema, json);
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Validation failed" },
+      { status: 400 }
+    );
   }
+
+  const { uniqueId, messages, prompt } = validatedData;
 
   // Rate limiting: 60 requests per minute per survey
   const rateLimit = checkRateLimit(uniqueId, "chat");

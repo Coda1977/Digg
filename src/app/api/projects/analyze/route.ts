@@ -2,22 +2,9 @@ import { NextResponse } from "next/server";
 import { generateText } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { checkRateLimit, createRateLimitResponse } from "@/lib/ratelimit";
+import { analyzeRequestSchema, summarySchema, validateSchema } from "@/lib/schemas";
 
 export const runtime = "nodejs";
-
-type Summary = {
-  overview: string;
-  keyThemes: string[];
-  sentiment: "positive" | "mixed" | "negative";
-  specificPraise: string[];
-  areasForImprovement: string[];
-};
-
-type InterviewInput = {
-  respondentName?: string;
-  relationshipLabel?: string;
-  transcript: string;
-};
 
 function parseJsonObject(text: string) {
   const trimmed = text.trim();
@@ -34,40 +21,6 @@ function parseJsonObject(text: string) {
   }
 }
 
-function asStringArray(value: unknown) {
-  if (!Array.isArray(value)) return null;
-  const strings = value.filter((v) => typeof v === "string");
-  return strings.length === value.length ? strings : null;
-}
-
-function validateSummary(value: unknown): Summary {
-  if (!value || typeof value !== "object") {
-    throw new Error("Invalid summary");
-  }
-  const v = value as Partial<Summary>;
-
-  const overview = typeof v.overview === "string" ? v.overview.trim() : null;
-  const keyThemes = asStringArray(v.keyThemes);
-  const specificPraise = asStringArray(v.specificPraise);
-  const areasForImprovement = asStringArray(v.areasForImprovement);
-  const sentiment =
-    v.sentiment === "positive" || v.sentiment === "mixed" || v.sentiment === "negative"
-      ? v.sentiment
-      : null;
-
-  if (!overview || !keyThemes || !specificPraise || !areasForImprovement || !sentiment) {
-    throw new Error("Summary JSON missing required fields");
-  }
-
-  return {
-    overview,
-    keyThemes,
-    sentiment,
-    specificPraise,
-    areasForImprovement,
-  };
-}
-
 export async function POST(req: Request) {
   // Rate limiting: 5 requests per hour
   const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "global";
@@ -76,52 +29,23 @@ export async function POST(req: Request) {
     return createRateLimitResponse(Math.ceil(rateLimit.resetMs / 1000));
   }
 
+  // Parse and validate request body with Zod
   const json = await req.json().catch(() => null);
-  if (!json || typeof json !== "object") {
+  if (!json) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const body = json as {
-    subjectName?: unknown;
-    subjectRole?: unknown;
-    projectName?: unknown;
-    templateName?: unknown;
-    interviews?: unknown;
-  };
-
-  const subjectName =
-    typeof body.subjectName === "string" ? body.subjectName.trim() : null;
-  const subjectRole =
-    typeof body.subjectRole === "string" ? body.subjectRole.trim() : null;
-  const projectName =
-    typeof body.projectName === "string" ? body.projectName.trim() : null;
-  const templateName =
-    typeof body.templateName === "string" ? body.templateName.trim() : null;
-
-  const interviews: InterviewInput[] | null = Array.isArray(body.interviews)
-    ? (body.interviews
-        .map((i): InterviewInput | null => {
-          if (!i || typeof i !== "object") return null;
-          const v = i as Partial<InterviewInput>;
-          const transcript =
-            typeof v.transcript === "string" ? v.transcript.trim() : null;
-          if (!transcript) return null;
-          return {
-            transcript,
-            respondentName:
-              typeof v.respondentName === "string" ? v.respondentName.trim() : undefined,
-            relationshipLabel:
-              typeof v.relationshipLabel === "string"
-                ? v.relationshipLabel.trim()
-                : undefined,
-          };
-        })
-        .filter((i): i is InterviewInput => i !== null))
-    : null;
-
-  if (!subjectName || !interviews || interviews.length === 0) {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  let validatedData;
+  try {
+    validatedData = validateSchema(analyzeRequestSchema, json);
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Validation failed" },
+      { status: 400 }
+    );
   }
+
+  const { subjectName, subjectRole, projectName, templateName, interviews } = validatedData;
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -177,7 +101,7 @@ ${interviewText}
   try {
     const result = await generateText({ model, system, prompt });
     const parsed = parseJsonObject(result.text);
-    const summary = validateSummary(parsed);
+    const summary = validateSchema(summarySchema, parsed);
     return NextResponse.json(summary);
   } catch (err) {
     return NextResponse.json(
