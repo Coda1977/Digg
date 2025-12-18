@@ -32,10 +32,16 @@ type RelationshipOption = {
   tempId: string;
 };
 
-function EditTemplatePage({ params }: { params: { id: string } }) {
+function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const templateId = params.id as Id<"templates">;
-  const template = useQuery(api.templates.getById, { id: templateId });
+  const [templateId, setTemplateId] = useState<Id<"templates"> | null>(null);
+
+  // Unwrap async params
+  useEffect(() => {
+    params.then((p) => setTemplateId(p.id as Id<"templates">));
+  }, [params]);
+
+  const template = useQuery(api.templates.getById, templateId ? { id: templateId } : "skip");
   const updateTemplate = useMutation(api.templates.update);
 
   const [name, setName] = useState("");
@@ -73,7 +79,8 @@ function EditTemplatePage({ params }: { params: { id: string } }) {
     }
   }, [template]);
 
-  if (template === undefined) {
+  // Show loading while params or template are loading
+  if (!templateId || template === undefined) {
     return (
       <EditorialSection spacing="lg">
         <div className="animate-pulse space-y-editorial-md">
@@ -154,6 +161,11 @@ function EditTemplatePage({ params }: { params: { id: string } }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!templateId) {
+      setError("Template ID not loaded yet");
+      return;
+    }
 
     // Validation
     if (!name.trim()) {
@@ -485,7 +497,7 @@ function EditTemplatePage({ params }: { params: { id: string } }) {
   );
 }
 
-export default function EditTemplatePageWithErrorBoundary({ params }: { params: { id: string } }) {
+export default function EditTemplatePageWithErrorBoundary({ params }: { params: Promise<{ id: string }> }) {
   return (
     <ErrorBoundary>
       <EditTemplatePage params={params} />
