@@ -23,9 +23,10 @@ export default {
         // Editorial palette
         paper: '#FAFAF8',
         ink: '#0A0A0A',
-        'ink-soft': '#6B6B6B',
-        'accent-red': '#E63946',
-        'accent-indigo': '#2B4162',
+        'ink-soft': '#52525B',
+        'ink-lighter': '#A1A1AA',
+        'accent-red': '#DC2626',
+        'accent-yellow': '#FBBF24',
 
         // Keep existing CSS variables for compatibility
         border: "hsl(var(--border))",
@@ -93,4 +94,3 @@ export default {
   },
   plugins: [],
 } satisfies Config;
-

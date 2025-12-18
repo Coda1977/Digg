@@ -129,6 +129,7 @@ export function ChatInterface({
 
   const formRef = useRef<HTMLFormElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef<WebSpeechRecognition | null>(null);
@@ -233,6 +234,13 @@ export function ChatInterface({
 
     return () => clearTimeout(timeoutId);
   }, [draft, surveyId]);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [draft]);
 
   function stopVoice() {
     const recognition = recognitionRef.current;
@@ -391,14 +399,14 @@ export function ChatInterface({
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-paper">
-      <header className="border-b-3 border-ink/20 bg-paper">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-6">
+    <div className="h-screen flex flex-col bg-paper text-ink overflow-hidden">
+      <header className="border-b-3 border-ink bg-paper flex-shrink-0">
+        <div className="mx-auto max-w-[900px] px-5 sm:px-8 py-5 sm:py-6">
           <div className="space-y-4">
             <div>
-              <EditorialLabel>Interview in Progress</EditorialLabel>
-              <h1 className="text-headline-xs font-serif font-bold text-ink mt-2">
-                {project.subjectName}
+              <EditorialLabel>Feedback Survey</EditorialLabel>
+              <h1 className="mt-2 font-serif font-bold tracking-headline text-headline-sm sm:text-headline-md leading-tight">
+                Share your thoughts about {project.subjectName}
               </h1>
               {project.subjectRole && (
                 <p className="text-body text-ink-soft mt-1">{project.subjectRole}</p>
@@ -407,64 +415,112 @@ export function ChatInterface({
                 {template.name} · {relationshipLabel}
               </p>
             </div>
-            {/* Progress Bar */}
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-1 bg-ink/10 overflow-hidden">
+            <div className="mt-5">
+              <p className="text-label text-ink-soft uppercase tracking-label font-medium">
+                Progress · {Math.round(progress)}%
+              </p>
+              <div className="mt-2 h-1.5 bg-ink/10 overflow-hidden">
                 <div
                   className="h-full bg-ink transition-all duration-300 ease-out"
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <span className="text-label text-ink font-semibold min-w-[3rem] text-right">
-                {Math.round(progress)}%
-              </span>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl w-full flex-1 px-4 sm:px-6 py-6 flex flex-col min-h-0">
+      <main className="flex-1 min-h-0 flex flex-col">
         <div className="flex-1 min-h-0 flex flex-col">
-          <div className="border-b-3 border-ink/10 pb-4 mb-6">
-            <EditorialLabel>Conversation</EditorialLabel>
-          </div>
-          <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-6">
-            {!uiMessages ? (
-              <p className="text-body-lg text-ink-soft">Loading conversation…</p>
-            ) : uiMessages.length === 0 ? (
-              <p className="text-body-lg text-ink-soft">Starting interview…</p>
-            ) : (
-              uiMessages.map((m, idx) => (
-                <div
-                  key={idx}
-                  className={
-                    m.role === "assistant"
-                      ? "flex justify-start"
-                      : "flex justify-end"
-                  }
-                >
+          <div
+            ref={scrollRef}
+            className="flex-1 overflow-y-auto px-5 sm:px-8 py-10 sm:py-16"
+          >
+            <div className="mx-auto max-w-[900px] space-y-8">
+              {!uiMessages ? (
+                <div className="border-l-4 border-ink/20 pl-6 py-2">
+                  <p className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
+                    AI Interviewer
+                  </p>
+                  <p className="mt-3 text-body-lg text-ink-soft">Loading conversation…</p>
+                </div>
+              ) : uiMessages.length === 0 ? (
+                <div className="border-l-4 border-ink/20 pl-6 py-2">
+                  <p className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
+                    AI Interviewer
+                  </p>
+                  <p className="mt-3 text-body-lg text-ink-soft">Starting interview…</p>
+                </div>
+              ) : (
+                uiMessages.map((m, idx) => (
                   <div
+                    key={idx}
                     className={
                       m.role === "assistant"
-                        ? "w-full sm:max-w-[85%] border-l-4 border-ink pl-6 py-2 text-body-lg text-ink whitespace-pre-wrap leading-relaxed"
-                        : "w-full sm:max-w-[85%] bg-ink px-6 py-4 text-body-lg text-paper whitespace-pre-wrap leading-relaxed"
+                        ? "border-l-4 border-ink pl-6 py-2"
+                        : "bg-ink text-paper p-6 sm:ml-[60px]"
                     }
                   >
-                    {m.content}
+                    <p
+                      className={
+                        m.role === "assistant"
+                          ? "text-label font-sans font-semibold uppercase tracking-label text-ink-soft"
+                          : "text-label font-sans font-semibold uppercase tracking-label text-ink-lighter"
+                      }
+                    >
+                      {m.role === "assistant" ? "AI Interviewer" : "You"}
+                    </p>
+                    <div
+                      className={
+                        m.role === "assistant"
+                          ? "mt-3 text-body-lg text-ink whitespace-pre-wrap leading-relaxed"
+                          : "mt-3 text-body-lg text-paper whitespace-pre-wrap leading-relaxed"
+                      }
+                    >
+                      {m.content}
+                    </div>
+                  </div>
+                ))
+              )}
+
+              {generating && uiMessages && (
+                <div className="border-l-4 border-ink/20 pl-6 py-2" role="status">
+                  <p className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
+                    AI Interviewer
+                  </p>
+                  <div className="mt-3 flex items-center gap-3 text-body text-ink-soft">
+                    <span className="inline-flex items-center gap-1" aria-hidden="true">
+                      <span className="h-1.5 w-1.5 rounded-full bg-ink-soft animate-bounce [animation-delay:-0.32s]" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-ink-soft animate-bounce [animation-delay:-0.16s]" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-ink-soft animate-bounce" />
+                    </span>
+                    <span>Thinking…</span>
                   </div>
                 </div>
-              ))
-            )}
+              )}
+            </div>
           </div>
         </div>
       </main>
 
-      <footer className="border-t-3 border-ink/20 bg-paper sticky bottom-0">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] space-y-4">
+      <footer className="border-t-3 border-ink bg-paper flex-shrink-0">
+        <div className="mx-auto max-w-[900px] px-5 sm:px-8 py-5 sm:py-8 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
           <form ref={formRef} className="space-y-4" onSubmit={onSend}>
+            <label
+              htmlFor="surveyDraft"
+              className="text-label font-sans font-medium uppercase tracking-label text-ink-soft"
+            >
+              Your Response
+            </label>
             <Textarea
+              id="surveyDraft"
+              ref={textareaRef}
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={(e) => {
+                setDraft(e.target.value);
+                e.currentTarget.style.height = "auto";
+                e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+              }}
               onKeyDown={(e) => {
                 if (e.nativeEvent.isComposing) return;
                 if (e.key !== "Enter") return;
@@ -473,12 +529,18 @@ export function ChatInterface({
                 formRef.current?.requestSubmit();
               }}
               placeholder={
-                listening ? "Listening… (press mic to stop)" : "Type your answer…"
+                listening
+                  ? "Listening… (press Voice to stop)"
+                  : "Share your thoughts here…"
               }
-              rows={4}
               disabled={generating || !uiMessages || listening}
-              className="text-base resize-none border-3 border-ink/20 focus:border-ink bg-paper text-ink min-h-[120px]"
+              className="min-h-[120px] max-h-[280px] resize-none rounded-none border-3 border-ink bg-paper px-5 py-4 text-base sm:text-base leading-relaxed text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
             />
+
+            <p className="text-label text-ink-soft">
+              ENTER to send · SHIFT+ENTER for new line
+              {draftSaved ? " · Draft saved" : ""}
+            </p>
 
             {error && (
               <p className="text-body text-accent-red" role="alert">
@@ -486,54 +548,40 @@ export function ChatInterface({
               </p>
             )}
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="hidden sm:flex sm:items-center sm:gap-3">
-                <p className="text-label text-ink-soft">
-                  ENTER TO SEND · SHIFT+ENTER FOR NEW LINE
-                </p>
-                {draftSaved && (
-                  <p className="text-label text-ink-soft">· DRAFT SAVED</p>
-                )}
-              </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onToggleVoice}
+                disabled={generating || !uiMessages}
+                aria-pressed={listening}
+                aria-label={listening ? "Stop voice input" : "Start voice input"}
+                className={
+                  "w-full sm:w-auto rounded-none px-5 py-3 bg-transparent border-2 " +
+                  (listening
+                    ? "border-accent-red text-accent-red hover:bg-accent-red/5 hover:text-accent-red"
+                    : "border-ink/20 text-ink hover:border-ink hover:bg-ink/5 hover:text-ink")
+                }
+              >
+                {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                {listening ? "Stop" : "Voice"}
+              </Button>
 
-              <div className="flex items-stretch gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onToggleVoice}
-                  disabled={generating || !uiMessages}
-                  aria-pressed={listening}
-                  aria-label={listening ? "Stop voice input" : "Start voice input"}
-                  className="flex-1 sm:flex-initial min-h-[48px] border-ink text-ink hover:bg-ink/5"
-                >
-                  {listening ? (
-                    <>
-                      <MicOff className="h-5 w-5 sm:mr-2" />
-                      <span className="hidden sm:inline">Stop</span>
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="h-5 w-5 sm:mr-2" />
-                      <span className="hidden sm:inline">Voice</span>
-                    </>
-                  )}
-                </Button>
-
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowConfirmDialog(true)}
                   disabled={generating}
-                  className="flex-1 sm:flex-initial min-h-[48px] border-ink text-ink hover:bg-ink/5"
+                  className="w-full sm:w-auto rounded-none border-3 border-ink bg-transparent text-ink px-7 py-3 hover:bg-ink hover:text-paper hover:border-ink"
                 >
-                  <span className="sm:hidden">Finish</span>
-                  <span className="hidden sm:inline">Finish</span>
+                  Finish
                 </Button>
 
                 <Button
                   type="submit"
                   disabled={generating || !draft.trim()}
-                  className="flex-1 sm:flex-initial min-h-[48px] bg-ink hover:bg-ink/90 text-paper font-semibold"
+                  className="w-full sm:w-auto rounded-none border-3 border-ink bg-ink text-paper px-7 py-3 font-medium hover:bg-accent-red hover:border-accent-red"
                 >
                   {generating ? "…" : "Send"}
                 </Button>
