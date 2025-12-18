@@ -73,13 +73,34 @@ function appendTranscript(acc: string, chunk: string) {
   return `${acc} ${normalized}`;
 }
 
+/**
+ * Clean AI responses by removing:
+ * - Markdown headers (# Header)
+ * - Stage directions (settles in, leans forward, etc.)
+ * - Horizontal rules (---)
+ * - Extra whitespace
+ */
+function cleanAIResponse(text: string): string {
+  return text
+    // Remove markdown headers (# or ## or ### etc at start of line)
+    .replace(/^#{1,6}\s+.+$/gm, '')
+    // Remove stage directions in italics (*text* or _text_)
+    .replace(/\b(?:settles|leans|nods|smiles|pauses|looks|sits)\s+(?:in|forward|back|up|down|carefully|gently|warmly)[^\n]*/gi, '')
+    // Remove horizontal rules (--- or ___ or ***)
+    .replace(/^[-_*]{3,}$/gm, '')
+    // Remove extra blank lines (more than 2 newlines)
+    .replace(/\n{3,}/g, '\n\n')
+    // Trim start and end
+    .trim();
+}
+
 async function generateAssistantMessage(input: {
   uniqueId: string;
   messages: UiMessage[];
   prompt?: string;
 }) {
   const result = await postJson("/api/chat", input, chatResponseSchema);
-  return result.text.trim();
+  return cleanAIResponse(result.text.trim());
 }
 
 export function ChatInterface({
@@ -125,7 +146,10 @@ export function ChatInterface({
 
   const uiMessages = useMemo<UiMessage[] | null>(() => {
     if (messages === undefined) return null;
-    return messages.map((m) => ({ role: m.role, content: m.content }));
+    return messages.map((m) => ({
+      role: m.role,
+      content: m.role === "assistant" ? cleanAIResponse(m.content) : m.content,
+    }));
   }, [messages]);
 
   const progress = useMemo(() => {
@@ -381,29 +405,31 @@ export function ChatInterface({
   return (
     <div className="h-screen flex flex-col bg-paper text-ink overflow-hidden">
       <header className="border-b-3 border-ink bg-paper flex-shrink-0">
-        <div className="mx-auto max-w-[900px] px-5 sm:px-8 py-5 sm:py-6">
-          <div className="space-y-4">
+        <div className="mx-auto max-w-[900px] px-4 sm:px-6 py-3 sm:py-4">
+          <div className="space-y-2">
             <div>
               <EditorialLabel>Feedback Survey</EditorialLabel>
-              <h1 className="mt-2 font-serif font-bold tracking-headline text-headline-sm sm:text-headline-md leading-tight">
-                Share your thoughts about {project.subjectName}
+              <h1 className="mt-1 font-serif font-bold tracking-headline text-headline-xs sm:text-headline-sm leading-tight">
+                {project.subjectName}
               </h1>
               {project.subjectRole && (
-                <p className="text-body text-ink-soft mt-1">{project.subjectRole}</p>
+                <p className="text-body text-ink-soft mt-0.5">{project.subjectRole}</p>
               )}
-              <p className="text-label text-ink-soft uppercase mt-2">
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-label text-ink-soft uppercase text-[10px]">
                 {template.name} · {relationshipLabel}
               </p>
-            </div>
-            <div className="mt-5">
-              <p className="text-label text-ink-soft uppercase tracking-label font-medium">
-                Progress · {Math.round(progress)}%
-              </p>
-              <div className="mt-2 h-1.5 bg-ink/10 overflow-hidden">
-                <div
-                  className="h-full bg-ink transition-all duration-300 ease-out"
-                  style={{ width: `${progress}%` }}
-                />
+              <div className="flex items-center gap-2">
+                <span className="text-label text-ink-soft uppercase text-[10px]">
+                  {Math.round(progress)}%
+                </span>
+                <div className="w-16 h-1 bg-ink/10 overflow-hidden">
+                  <div
+                    className="h-full bg-ink transition-all duration-300 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -414,9 +440,9 @@ export function ChatInterface({
         <div className="flex-1 min-h-0 flex flex-col">
           <div
             ref={scrollRef}
-            className="flex-1 overflow-y-auto px-5 sm:px-8 py-10 sm:py-16"
+            className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8"
           >
-            <div className="mx-auto max-w-[900px] space-y-8">
+            <div className="mx-auto max-w-[900px] space-y-6">
               {!uiMessages ? (
                 <MessageBubble variant="assistant">
                   Loading conversation…
@@ -454,11 +480,11 @@ export function ChatInterface({
       </main>
 
       <footer className="border-t-3 border-ink bg-paper flex-shrink-0">
-        <div className="mx-auto max-w-[900px] px-5 sm:px-8 py-5 sm:py-8 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
-          <form ref={formRef} className="space-y-4" onSubmit={onSend}>
+        <div className="mx-auto max-w-[900px] px-4 sm:px-6 py-3 sm:py-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+          <form ref={formRef} className="space-y-3" onSubmit={onSend}>
             <label
               htmlFor="surveyDraft"
-              className="text-label font-sans font-medium uppercase tracking-label text-ink-soft"
+              className="text-label font-sans font-medium uppercase tracking-label text-ink-soft text-[10px]"
             >
               Your Response
             </label>
@@ -484,21 +510,21 @@ export function ChatInterface({
                   : "Share your thoughts here…"
               }
               disabled={generating || !uiMessages || listening}
-              className="min-h-[120px] max-h-[280px] resize-y"
+              className="min-h-[80px] max-h-[200px] resize-y"
             />
 
-            <p className="text-label text-ink-soft">
-              ENTER to send · SHIFT+ENTER for new line
-              {draftSaved ? " · Draft saved" : ""}
-            </p>
-
-            {error && (
-              <p className="text-body text-accent-red" role="alert">
-                {error}
+            <div className="flex items-center justify-between">
+              <p className="text-label text-ink-soft text-[10px]">
+                ENTER to send{draftSaved ? " · Draft saved" : ""}
               </p>
-            )}
+              {error && (
+                <p className="text-body text-accent-red text-sm" role="alert">
+                  {error}
+                </p>
+              )}
+            </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-1">
               <EditorialButton
                 type="button"
                 variant={listening ? "primary" : "ghost"}
