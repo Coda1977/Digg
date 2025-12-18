@@ -7,8 +7,12 @@ import { api } from "../../../../convex/_generated/api";
 import { IntroScreen } from "@/components/survey/IntroScreen";
 import { ChatInterface } from "@/components/chat/ChatInterface";
 import { ThankYouScreen } from "@/components/survey/ThankYouScreen";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  EditorialHeadline,
+  EditorialLabel,
+  EditorialSection,
+  RuledDivider,
+} from "@/components/editorial";
 
 export default function SurveyPage() {
   const params = useParams();
@@ -45,15 +49,17 @@ export default function SurveyPage() {
   // Loading state
   if (surveyData === undefined) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 space-y-4">
-            <Skeleton className="h-8 w-3/4 mx-auto" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-2/3" />
-            <Skeleton className="h-10 w-full mt-4" />
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-paper flex items-center justify-center px-5 sm:px-8">
+        <EditorialSection spacing="lg" className="w-full">
+          <div className="animate-pulse max-w-[900px] mx-auto space-y-6">
+            <div className="h-4 bg-ink/5 w-40" />
+            <div className="h-12 bg-ink/5 w-2/3" />
+            <div className="h-4 bg-ink/5 w-full max-w-xl" />
+            <RuledDivider weight="thick" spacing="sm" />
+            <div className="h-14 bg-ink/5 w-full" />
+            <div className="h-14 bg-ink/5 w-2/3" />
+          </div>
+        </EditorialSection>
       </div>
     );
   }
@@ -61,15 +67,18 @@ export default function SurveyPage() {
   // Not found state
   if (surveyData === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center">
-          <CardContent className="p-6">
-            <h1 className="text-2xl font-semibold mb-2">Survey Not Found</h1>
-            <p className="text-muted-foreground">
+      <div className="min-h-screen bg-paper flex items-center justify-center px-5 sm:px-8">
+        <EditorialSection spacing="lg" className="w-full">
+          <div className="max-w-[900px] mx-auto border-l-4 border-accent-red pl-6 py-2 space-y-4">
+            <EditorialLabel accent>Not Found</EditorialLabel>
+            <EditorialHeadline as="h1" size="md">
+              Survey link not found
+            </EditorialHeadline>
+            <p className="text-body text-ink-soft">
               This survey link is invalid or has expired.
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </EditorialSection>
       </div>
     );
   }

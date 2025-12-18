@@ -15,18 +15,7 @@ import {
   EditorialSection,
   RuledDivider,
 } from "@/components/editorial";
-
-function formatStatus(value: string) {
-  return value.replace(/_/g, " ");
-}
-
-function statusBadgeClass(status: string) {
-  const base =
-    "inline-flex items-center px-4 py-2 border-3 text-label font-sans font-semibold uppercase tracking-label";
-  if (status === "completed") return `${base} border-ink bg-ink text-paper`;
-  if (status === "active") return `${base} border-accent-red bg-accent-red text-paper`;
-  return `${base} border-ink bg-paper text-ink`;
-}
+import { formatEnumLabel, statusBadgeClass } from "@/lib/editorialBadges";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -318,7 +307,7 @@ export default function ProjectDetailPage() {
                       <div className="min-w-0 space-y-2">
                         <div className="flex flex-wrap items-center gap-3">
                           <span className={statusBadgeClass(s.status)}>
-                            {formatStatus(s.status)}
+                            {formatEnumLabel(s.status)}
                           </span>
                           <p className="text-body font-medium text-ink truncate">
                             {s.respondentName ?? "Anonymous respondent"}

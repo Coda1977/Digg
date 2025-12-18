@@ -19,6 +19,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { EditorialLabel } from "@/components/editorial";
+import { postJson } from "@/lib/http";
+import { chatResponseSchema } from "@/lib/schemas";
 
 type UiMessage = {
   role: "assistant" | "user";
@@ -77,29 +79,8 @@ async function generateAssistantMessage(input: {
   messages: UiMessage[];
   prompt?: string;
 }) {
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-  const body = (await res.json().catch(() => null)) as
-    | { text: string }
-    | { error: string }
-    | null;
-
-  if (!res.ok) {
-    const errorMessage =
-      body && "error" in body && typeof body.error === "string"
-        ? body.error
-        : `Request failed (${res.status})`;
-    throw new Error(errorMessage);
-  }
-
-  if (!body || !("text" in body) || typeof body.text !== "string") {
-    throw new Error("Bad response from server");
-  }
-
-  return body.text.trim();
+  const result = await postJson("/api/chat", input, chatResponseSchema);
+  return result.text.trim();
 }
 
 export function ChatInterface({

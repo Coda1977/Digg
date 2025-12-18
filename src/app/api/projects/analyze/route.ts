@@ -2,24 +2,10 @@ import { NextResponse } from "next/server";
 import { generateText } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { checkRateLimit, createRateLimitResponse } from "@/lib/ratelimit";
+import { parseAiJsonObject } from "@/lib/aiJson";
 import { analyzeRequestSchema, summarySchema, validateSchema } from "@/lib/schemas";
 
 export const runtime = "nodejs";
-
-function parseJsonObject(text: string) {
-  const trimmed = text.trim();
-  try {
-    return JSON.parse(trimmed) as unknown;
-  } catch {
-    const start = trimmed.indexOf("{");
-    const end = trimmed.lastIndexOf("}");
-    if (start === -1 || end === -1 || end <= start) {
-      throw new Error("Model did not return JSON");
-    }
-    const candidate = trimmed.slice(start, end + 1);
-    return JSON.parse(candidate) as unknown;
-  }
-}
 
 export async function POST(req: Request) {
   // Rate limiting: 5 requests per hour
@@ -100,7 +86,7 @@ ${interviewText}
 
   try {
     const result = await generateText({ model, system, prompt });
-    const parsed = parseJsonObject(result.text);
+    const parsed = parseAiJsonObject(result.text);
     const summary = validateSchema(summarySchema, parsed);
     return NextResponse.json(summary);
   } catch (err) {
@@ -110,4 +96,3 @@ ${interviewText}
     );
   }
 }
-

@@ -15,35 +15,14 @@ import {
   EditorialSection,
   RuledDivider,
 } from "@/components/editorial";
+import {
+  formatEnumLabel,
+  sentimentBadgeClass,
+  statusBadgeClass,
+} from "@/lib/editorialBadges";
+import { summarySchema, type Summary } from "@/lib/schemas";
+import { postJson } from "@/lib/http";
 import { ProjectInsightsPdf } from "@/components/pdf/ProjectInsightsPdf";
-
-type ProjectSummary = {
-  overview: string;
-  keyThemes: string[];
-  sentiment: "positive" | "mixed" | "negative";
-  specificPraise: string[];
-  areasForImprovement: string[];
-};
-
-function formatStatus(value: string) {
-  return value.replace(/_/g, " ");
-}
-
-function statusBadgeClass(status: string) {
-  const base =
-    "inline-flex items-center px-4 py-2 border-3 text-label font-sans font-semibold uppercase tracking-label";
-  if (status === "completed") return `${base} border-ink bg-ink text-paper`;
-  if (status === "active") return `${base} border-accent-red bg-accent-red text-paper`;
-  return `${base} border-ink bg-paper text-ink`;
-}
-
-function sentimentBadgeClass(sentiment: string) {
-  const base =
-    "inline-flex items-center px-4 py-2 border-3 text-label font-sans font-semibold uppercase tracking-label";
-  if (sentiment === "negative") return `${base} border-accent-red text-accent-red`;
-  if (sentiment === "positive") return `${base} border-ink bg-ink text-paper`;
-  return `${base} border-ink text-ink`;
-}
 
 async function generateProjectInsights(input: {
   subjectName: string;
@@ -55,37 +34,8 @@ async function generateProjectInsights(input: {
     relationshipLabel?: string;
     transcript: string;
   }>;
-}) {
-  const res = await fetch("/api/projects/analyze", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-
-  const body = (await res.json().catch(() => null)) as
-    | ProjectSummary
-    | { error: string }
-    | null;
-
-  if (!res.ok) {
-    const errorMessage =
-      body && "error" in body && typeof body.error === "string"
-        ? body.error
-        : `Request failed (${res.status})`;
-    throw new Error(errorMessage);
-  }
-
-  if (
-    !body ||
-    !("overview" in body) ||
-    typeof body.overview !== "string" ||
-    !("keyThemes" in body) ||
-    !Array.isArray(body.keyThemes)
-  ) {
-    throw new Error("Bad response from server");
-  }
-
-  return body as ProjectSummary;
+}): Promise<Summary> {
+  return postJson("/api/projects/analyze", input, summarySchema);
 }
 
 function formatDateTime(ms: number) {
@@ -310,7 +260,7 @@ export default function ProjectAnalysisPage() {
           <div className="flex flex-wrap items-center gap-3">
             <EditorialLabel>Interviews &amp; analysis</EditorialLabel>
             <span className={statusBadgeClass(project.status)}>
-              {formatStatus(project.status)}
+              {formatEnumLabel(project.status)}
             </span>
           </div>
 
@@ -571,7 +521,7 @@ export default function ProjectAnalysisPage() {
                       <div className="min-w-0 space-y-2">
                         <div className="flex flex-wrap items-center gap-3">
                           <span className={statusBadgeClass(survey.status)}>
-                            {formatStatus(survey.status)}
+                            {formatEnumLabel(survey.status)}
                           </span>
                           <p className="text-body font-medium text-ink truncate">
                             {survey.respondentName ?? "Anonymous respondent"}

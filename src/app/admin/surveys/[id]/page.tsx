@@ -15,66 +15,26 @@ import {
   EditorialSection,
   RuledDivider,
 } from "@/components/editorial";
-
-type Summary = {
-  overview: string;
-  keyThemes: string[];
-  sentiment: "positive" | "mixed" | "negative";
-  specificPraise: string[];
-  areasForImprovement: string[];
-};
+import {
+  formatEnumLabel,
+  sentimentBadgeClass,
+  statusBadgeClass,
+} from "@/lib/editorialBadges";
+import { postJson } from "@/lib/http";
+import { summarySchema, type Summary } from "@/lib/schemas";
 
 type UiMessage = {
   role: "assistant" | "user";
   content: string;
 };
 
-function formatStatus(value: string) {
-  return value.replace(/_/g, " ");
-}
-
-function statusBadgeClass(status: string) {
-  const base =
-    "inline-flex items-center px-4 py-2 border-3 text-label font-sans font-semibold uppercase tracking-label";
-  if (status === "completed") return `${base} border-ink bg-ink text-paper`;
-  if (status === "in_progress") return `${base} border-ink bg-paper text-ink`;
-  return `${base} border-ink bg-paper text-ink`;
-}
-
-function sentimentBadgeClass(sentiment: string) {
-  const base =
-    "inline-flex items-center px-4 py-2 border-3 text-label font-sans font-semibold uppercase tracking-label";
-  if (sentiment === "negative") return `${base} border-accent-red text-accent-red`;
-  if (sentiment === "positive") return `${base} border-ink bg-ink text-paper`;
-  return `${base} border-ink text-ink`;
-}
-
 async function requestSurveySummary(input: {
   subjectName: string;
-  subjectRole?: string | null;
-  relationshipLabel?: string | null;
+  subjectRole?: string;
+  relationshipLabel?: string;
   messages: UiMessage[];
-}) {
-  const res = await fetch("/api/surveys/summarize", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-
-  const body = (await res.json().catch(() => null)) as Summary | { error: string } | null;
-  if (!res.ok) {
-    const errorMessage =
-      body && "error" in body && typeof body.error === "string"
-        ? body.error
-        : `Request failed (${res.status})`;
-    throw new Error(errorMessage);
-  }
-
-  if (!body || typeof body !== "object") {
-    throw new Error("Bad response from server");
-  }
-
-  return body as Summary;
+}): Promise<Summary> {
+  return postJson("/api/surveys/summarize", input, summarySchema);
 }
 
 export default function AdminSurveyDetailPage() {
@@ -135,8 +95,8 @@ export default function AdminSurveyDetailPage() {
     try {
       const summary = await requestSurveySummary({
         subjectName: survey.project.subjectName,
-        subjectRole: survey.project.subjectRole ?? null,
-        relationshipLabel,
+        subjectRole: survey.project.subjectRole ?? undefined,
+        relationshipLabel: relationshipLabel ?? undefined,
         messages: uiMessages,
       });
       await saveSummary({ surveyId, summary });
@@ -199,7 +159,7 @@ export default function AdminSurveyDetailPage() {
           <div className="flex flex-wrap items-center gap-3">
             <EditorialLabel>Interview</EditorialLabel>
             <span className={statusBadgeClass(survey.status)}>
-              {formatStatus(survey.status)}
+              {formatEnumLabel(survey.status)}
             </span>
             {relationshipLabel && (
               <span className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
