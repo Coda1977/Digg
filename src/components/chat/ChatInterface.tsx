@@ -76,7 +76,7 @@ function appendTranscript(acc: string, chunk: string) {
 /**
  * Clean AI responses by removing:
  * - Markdown headers (# Header)
- * - Stage directions (settles in, leans forward, etc.)
+ * - Stage directions (anything in asterisks or underscores that looks theatrical)
  * - Horizontal rules (---)
  * - Extra whitespace
  */
@@ -84,12 +84,22 @@ function cleanAIResponse(text: string): string {
   return text
     // Remove markdown headers (# or ## or ### etc at start of line)
     .replace(/^#{1,6}\s+.+$/gm, '')
-    // Remove stage directions in italics (*text* or _text_)
-    .replace(/\b(?:settles|leans|nods|smiles|pauses|looks|sits)\s+(?:in|forward|back|up|down|carefully|gently|warmly)[^\n]*/gi, '')
+    // Remove anything in single asterisks (*like this*)
+    .replace(/\*[^*\n]+\*/g, '')
+    // Remove anything in single underscores (_like this_)
+    .replace(/\b_[^_\n]+_\b/g, '')
+    // Remove parenthetical stage directions like (smiles) or (pauses)
+    .replace(/\([^)]*(?:smiles|nods|pauses|leans|settles|sits|looks|takes|sighs|laughs|chuckles|grins)[^)]*\)/gi, '')
     // Remove horizontal rules (--- or ___ or ***)
     .replace(/^[-_*]{3,}$/gm, '')
+    // Remove common stage direction phrases even without formatting
+    .replace(/^(?:settles|leans|nods|smiles|pauses|looks|sits|takes|sighs)\s+(?:in|forward|back|up|down|carefully|gently|warmly|thoughtfully|slowly)[^\n]*/gmi, '')
     // Remove extra blank lines (more than 2 newlines)
     .replace(/\n{3,}/g, '\n\n')
+    // Clean up any lines that became empty after removals
+    .split('\n')
+    .filter(line => line.trim().length > 0)
+    .join('\n')
     // Trim start and end
     .trim();
 }
