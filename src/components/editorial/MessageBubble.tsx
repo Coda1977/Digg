@@ -42,11 +42,11 @@ function parseMarkdown(text: string): React.ReactNode[] {
   return elements;
 }
 
-const messageBubbleVariants = cva("mb-8 animate-in fade-in slide-in-from-bottom-2 duration-300", {
+const messageBubbleVariants = cva("mb-10 animate-in fade-in slide-in-from-bottom-2 duration-300", {
   variants: {
     variant: {
-      assistant: "border-l-4 border-ink pl-6",
-      user: "bg-ink text-paper p-6 ml-0 md:ml-15",
+      assistant: "border-l-4 border-ink pl-6 py-1",
+      user: "bg-ink text-paper px-6 py-5 ml-0 md:ml-15",
     },
   },
   defaultVariants: {
@@ -99,7 +99,7 @@ const MessageBubble = React.forwardRef<HTMLDivElement, MessageBubbleProps>(
         )}
         <div
           className={cn(
-            "text-base leading-relaxed",
+            "text-[17px] leading-[1.8]",
             variant === "assistant" ? "text-ink" : "text-paper"
           )}
         >

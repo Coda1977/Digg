@@ -404,32 +404,26 @@ export function ChatInterface({
 
   return (
     <div className="h-screen flex flex-col bg-paper text-ink overflow-hidden">
-      <header className="border-b-3 border-ink bg-paper flex-shrink-0">
-        <div className="mx-auto max-w-[900px] px-4 sm:px-6 py-3 sm:py-4">
-          <div className="space-y-2">
-            <div>
-              <EditorialLabel>Feedback Survey</EditorialLabel>
-              <h1 className="mt-1 font-serif font-bold tracking-headline text-headline-xs sm:text-headline-sm leading-tight">
+      <header className="border-b border-ink/20 bg-paper flex-shrink-0">
+        <div className="mx-auto max-w-[900px] px-4 sm:px-6 py-2 sm:py-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="font-serif font-bold tracking-headline text-[16px] sm:text-[18px] leading-tight truncate">
                 {project.subjectName}
               </h1>
-              {project.subjectRole && (
-                <p className="text-body text-ink-soft mt-0.5">{project.subjectRole}</p>
-              )}
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <p className="text-label text-ink-soft uppercase text-[10px]">
-                {template.name} · {relationshipLabel}
+              <p className="text-[10px] text-ink-soft uppercase tracking-wider mt-0.5">
+                {template.name}
               </p>
-              <div className="flex items-center gap-2">
-                <span className="text-label text-ink-soft uppercase text-[10px]">
-                  {Math.round(progress)}%
-                </span>
-                <div className="w-16 h-1 bg-ink/10 overflow-hidden">
-                  <div
-                    className="h-full bg-ink transition-all duration-300 ease-out"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-[10px] text-ink-soft uppercase tracking-wider">
+                {Math.round(progress)}%
+              </span>
+              <div className="w-12 h-0.5 bg-ink/10 overflow-hidden">
+                <div
+                  className="h-full bg-ink transition-all duration-300 ease-out"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
             </div>
           </div>
@@ -440,9 +434,9 @@ export function ChatInterface({
         <div className="flex-1 min-h-0 flex flex-col">
           <div
             ref={scrollRef}
-            className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8"
+            className="flex-1 overflow-y-auto px-4 sm:px-6 py-8 sm:py-12"
           >
-            <div className="mx-auto max-w-[900px] space-y-6">
+            <div className="mx-auto max-w-[900px] space-y-8 sm:space-y-10">
               {!uiMessages ? (
                 <MessageBubble variant="assistant">
                   Loading conversation…
@@ -479,15 +473,9 @@ export function ChatInterface({
         </div>
       </main>
 
-      <footer className="border-t-3 border-ink bg-paper flex-shrink-0">
-        <div className="mx-auto max-w-[900px] px-4 sm:px-6 py-3 sm:py-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-          <form ref={formRef} className="space-y-3" onSubmit={onSend}>
-            <label
-              htmlFor="surveyDraft"
-              className="text-label font-sans font-medium uppercase tracking-label text-ink-soft text-[10px]"
-            >
-              Your Response
-            </label>
+      <footer className="border-t border-ink/20 bg-paper flex-shrink-0">
+        <div className="mx-auto max-w-[900px] px-4 sm:px-6 py-2.5 sm:py-3 pb-[calc(0.625rem+env(safe-area-inset-bottom))]">
+          <form ref={formRef} className="space-y-2" onSubmit={onSend}>
             <EditorialTextarea
               id="surveyDraft"
               ref={textareaRef}
@@ -507,24 +495,19 @@ export function ChatInterface({
               placeholder={
                 listening
                   ? "Listening… (press Voice to stop)"
-                  : "Share your thoughts here…"
+                  : "Your response…"
               }
               disabled={generating || !uiMessages || listening}
-              className="min-h-[80px] max-h-[200px] resize-y"
+              className="min-h-[70px] max-h-[180px] resize-y"
             />
 
-            <div className="flex items-center justify-between">
-              <p className="text-label text-ink-soft text-[10px]">
-                ENTER to send{draftSaved ? " · Draft saved" : ""}
+            {error && (
+              <p className="text-body text-accent-red text-sm" role="alert">
+                {error}
               </p>
-              {error && (
-                <p className="text-body text-accent-red text-sm" role="alert">
-                  {error}
-                </p>
-              )}
-            </div>
+            )}
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-1">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <EditorialButton
                 type="button"
                 variant={listening ? "primary" : "ghost"}
