@@ -107,9 +107,23 @@ function buildSurveySystemPrompt(args: {
     "unknown";
   const questionsText = buildQuestionsText(template, project.subjectName);
 
-  return template.systemPromptTemplate
+  const customizedPrompt = template.systemPromptTemplate
     .replaceAll("{{subjectName}}", project.subjectName)
     .replaceAll("{{subjectRole}}", roleText)
     .replaceAll("{{relationship}}", relationshipLabel)
     .replaceAll("{{questions}}", questionsText);
+
+  // Universal formatting instruction applied to ALL templates
+  const formattingInstruction = `
+
+CRITICAL FORMATTING REQUIREMENT:
+You must respond in plain, natural conversational text only. Do NOT include:
+- Stage directions or actions (in asterisks, italics, or parentheses)
+- Narrative descriptions of your tone, body language, or emotional state
+- Markdown headers, dividers, or special formatting
+- Any theatrical, script-like, or performative elements
+
+Write as if you're speaking directly to someone in a real conversation, not performing in a play or writing a transcript. Just the actual words you would say.`;
+
+  return customizedPrompt + formattingInstruction;
 }
