@@ -12,7 +12,6 @@ import {
   EditorialHeadline,
   EditorialLabel,
   RuledDivider,
-  EditorialCard,
   EditorialButton,
 } from "@/components/editorial";
 import {
@@ -114,7 +113,7 @@ export default function TemplatesPage() {
               </div>
               <div className="grid gap-4">
                 {customTemplates.map((template) => (
-                  <EditorialCard key={template._id} hover>
+                  <div key={template._id} className="border-l-4 border-ink pl-8 py-6">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-serif font-bold text-headline-xs mb-2">
@@ -150,7 +149,7 @@ export default function TemplatesPage() {
                         </Button>
                       </div>
                     </div>
-                  </EditorialCard>
+                  </div>
                 ))}
               </div>
             </div>
@@ -171,7 +170,7 @@ export default function TemplatesPage() {
             </div>
             <div className="grid gap-4">
               {builtInTemplates.map((template) => (
-                <EditorialCard key={template._id}>
+                <div key={template._id} className="border-l-4 border-ink pl-8 py-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <h3 className="font-serif font-bold text-headline-xs mb-2">
@@ -187,7 +186,7 @@ export default function TemplatesPage() {
                       </div>
                     </div>
                   </div>
-                </EditorialCard>
+                </div>
               ))}
             </div>
           </div>
