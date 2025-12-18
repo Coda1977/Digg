@@ -9,18 +9,13 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 
-import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+  EditorialHeadline,
+  EditorialLabel,
+  EditorialSection,
+  RuledDivider,
+} from "@/components/editorial";
 import { ProjectInsightsPdf } from "@/components/pdf/ProjectInsightsPdf";
-import { cn } from "@/lib/utils";
 
 type ProjectSummary = {
   overview: string;
@@ -30,8 +25,24 @@ type ProjectSummary = {
   areasForImprovement: string[];
 };
 
-function statusBadgeVariant(status: string): "default" | "secondary" {
-  return status === "completed" ? "default" : "secondary";
+function formatStatus(value: string) {
+  return value.replace(/_/g, " ");
+}
+
+function statusBadgeClass(status: string) {
+  const base =
+    "inline-flex items-center px-4 py-2 border-3 text-label font-sans font-semibold uppercase tracking-label";
+  if (status === "completed") return `${base} border-ink bg-ink text-paper`;
+  if (status === "active") return `${base} border-accent-red bg-accent-red text-paper`;
+  return `${base} border-ink bg-paper text-ink`;
+}
+
+function sentimentBadgeClass(sentiment: string) {
+  const base =
+    "inline-flex items-center px-4 py-2 border-3 text-label font-sans font-semibold uppercase tracking-label";
+  if (sentiment === "negative") return `${base} border-accent-red text-accent-red`;
+  if (sentiment === "positive") return `${base} border-ink bg-ink text-paper`;
+  return `${base} border-ink text-ink`;
 }
 
 async function generateProjectInsights(input: {
@@ -249,80 +260,147 @@ export default function ProjectAnalysisPage() {
 
   if (project === undefined || surveys === undefined) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-10 w-40" />
+      <EditorialSection spacing="lg">
+        <div className="animate-pulse max-w-[900px] mx-auto space-y-6">
+          <div className="h-4 bg-ink/5 w-40" />
+          <div className="h-12 bg-ink/5 w-2/3" />
+          <div className="h-4 bg-ink/5 w-full max-w-xl" />
+          <RuledDivider weight="thick" spacing="sm" />
+          <div className="h-40 bg-ink/5 w-full" />
+          <div className="h-40 bg-ink/5 w-full" />
         </div>
-        <Skeleton className="h-32" />
-        <Skeleton className="h-64" />
-      </div>
+      </EditorialSection>
     );
   }
 
   if (project === null) {
     return (
-      <Card className="max-w-xl">
-        <CardHeader>
-          <CardTitle className="text-lg">Project not found</CardTitle>
-          <CardDescription>
+      <EditorialSection spacing="lg">
+        <div className="max-w-[900px] mx-auto border-l-4 border-accent-red pl-6 py-2 space-y-4">
+          <EditorialLabel accent>Not Found</EditorialLabel>
+          <h1 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+            Project not found
+          </h1>
+          <p className="text-body text-ink-soft">
             This project ID doesn&apos;t exist or you don&apos;t have access.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild variant="outline">
-            <Link href="/admin">Back to dashboard</Link>
-          </Button>
-        </CardContent>
-      </Card>
+          </p>
+          <div className="pt-2">
+            <Link
+              href="/admin"
+              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+            >
+              Back to dashboard
+            </Link>
+          </div>
+        </div>
+      </EditorialSection>
     );
   }
 
   const analysis = project.analysis ?? null;
+  const relationshipOptions = project.template?.relationshipOptions ?? [];
   const pdfFileName = `digg-${fileSafe(project.subjectName)}-${fileSafe(
     project.name
   )}.pdf`;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold">Interviews &amp; analysis</h1>
-          <p className="text-sm text-muted-foreground">
-            {project.name} - {project.subjectName}
-          </p>
-          {stats && (
-            <p className="text-xs text-muted-foreground">
-              {stats.total} interviews - {stats.completed} completed - {stats.inProgress}{" "}
-              in progress
-            </p>
-          )}
-        </div>
-        <Button asChild variant="outline">
-          <Link href={`/admin/projects/${projectId}`}>Back to project</Link>
-        </Button>
-      </div>
+    <div>
+      <EditorialSection spacing="lg">
+        <div className="max-w-[900px] mx-auto space-y-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <EditorialLabel>Interviews &amp; analysis</EditorialLabel>
+            <span className={statusBadgeClass(project.status)}>
+              {formatStatus(project.status)}
+            </span>
+          </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Project insights</CardTitle>
-          <CardDescription>
-            Aggregate analysis across completed interviews for this project.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm text-muted-foreground">
+          <EditorialHeadline as="h1" size="lg">
+            {project.subjectName}
+          </EditorialHeadline>
+
+          {project.subjectRole && (
+            <p className="text-body-lg text-ink-soft">{project.subjectRole}</p>
+          )}
+
+          <p className="text-body text-ink-soft">
+            {project.name}
+            {project.template?.name ? ` · ${project.template.name}` : ""}
+          </p>
+
+          {stats && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-4">
+              <div className="space-y-2 border-l-4 border-ink pl-6 py-2">
+                <div className="font-serif font-bold text-[56px] leading-none tracking-headline">
+                  {stats.total}
+                </div>
+                <div className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
+                  Total interviews
+                </div>
+              </div>
+              <div className="space-y-2 border-l-4 border-ink pl-6 py-2">
+                <div className="font-serif font-bold text-[56px] leading-none tracking-headline">
+                  {stats.completed}
+                </div>
+                <div className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
+                  Completed
+                </div>
+              </div>
+              <div className="space-y-2 border-l-4 border-ink pl-6 py-2">
+                <div className="font-serif font-bold text-[56px] leading-none tracking-headline">
+                  {stats.inProgress}
+                </div>
+                <div className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
+                  In progress
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
+            <Link
+              href={`/admin/projects/${projectId}`}
+              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+            >
+              Back to project
+            </Link>
+            <Link
+              href="/admin"
+              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+            >
+              Dashboard
+            </Link>
+          </div>
+        </div>
+      </EditorialSection>
+
+      <RuledDivider weight="thick" spacing="sm" />
+
+      <EditorialSection spacing="md">
+        <div className="max-w-[900px] mx-auto space-y-8">
+          <div className="space-y-3">
+            <EditorialLabel>Project insights</EditorialLabel>
+            <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+              Aggregate what people said
+            </h2>
+            <p className="text-body text-ink-soft max-w-2xl">
+              Generate an AI synthesis across completed interviews, then export it to a
+              PDF.
+            </p>
+          </div>
+
+          <div className="border-l-4 border-ink pl-6 py-2 space-y-4">
+            <p className="text-body text-ink-soft">
               {analysis ? (
                 <>
-                  Generated from {analysis.basedOnSurveyCount} completed interviews -{" "}
+                  Generated from {analysis.basedOnSurveyCount} completed interviews ·{" "}
                   {formatDateTime(analysis.generatedAt)}
                 </>
               ) : (
                 <>No insights generated yet.</>
               )}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
               <PDFDownloadLink
                 document={
                   <ProjectInsightsPdf
@@ -335,176 +413,191 @@ export default function ProjectAnalysisPage() {
                   />
                 }
                 fileName={pdfFileName}
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
               >
                 {({ loading }) => (loading ? "Preparing PDF..." : "Download PDF")}
               </PDFDownloadLink>
 
-              <Button
+              <button
                 type="button"
-                size="sm"
                 onClick={() => void onGenerateInsights()}
                 disabled={generatingInsights}
+                className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-ink text-paper font-medium hover:bg-accent-red hover:border-accent-red transition-colors disabled:opacity-50 disabled:pointer-events-none"
               >
                 {generatingInsights
                   ? "Generating..."
                   : analysis
-                  ? "Regenerate insights"
-                  : "Generate insights"}
-              </Button>
+                    ? "Regenerate insights"
+                    : "Generate insights"}
+              </button>
             </div>
+
+            {insightsError && (
+              <p className="text-body text-accent-red" role="alert">
+                {insightsError}
+              </p>
+            )}
           </div>
 
-          {insightsError && (
-            <p className="text-sm text-destructive" role="alert">
-              {insightsError}
-            </p>
-          )}
-
           {analysis && (
-            <div className="space-y-4">
-              {/* Segment Tabs */}
+            <div className="space-y-8">
               {project.segmentedAnalysis && project.segmentedAnalysis.length > 0 && (
-                <div className="flex flex-wrap gap-2 border-b pb-3">
-                  <Button
-                    variant={activeSegment === null ? "default" : "outline"}
-                    size="sm"
+                <div className="flex flex-wrap gap-3 border-t-3 border-ink pt-6">
+                  <button
+                    type="button"
                     onClick={() => setActiveSegment(null)}
+                    className={
+                      activeSegment === null
+                        ? "inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-ink text-paper font-medium"
+                        : "inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+                    }
                   >
                     Overall ({analysis.basedOnSurveyCount})
-                  </Button>
+                  </button>
                   {project.segmentedAnalysis.map((segment) => (
-                    <Button
+                    <button
                       key={segment.relationshipType}
-                      variant={activeSegment === segment.relationshipType ? "default" : "outline"}
-                      size="sm"
+                      type="button"
                       onClick={() => setActiveSegment(segment.relationshipType)}
+                      className={
+                        activeSegment === segment.relationshipType
+                          ? "inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-ink text-paper font-medium"
+                          : "inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+                      }
                     >
                       {segment.relationshipLabel} ({segment.basedOnSurveyCount})
-                    </Button>
+                    </button>
                   ))}
                 </div>
               )}
 
-              {/* Display active analysis */}
               {(() => {
                 const activeAnalysis = activeSegment
                   ? project.segmentedAnalysis?.find(
-                      (s) => s.relationshipType === activeSegment
+                      (segment) => segment.relationshipType === activeSegment
                     )
                   : analysis;
 
                 if (!activeAnalysis) return null;
 
                 return (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">Sentiment: {activeAnalysis.sentiment}</Badge>
+                  <div className="space-y-8 border-t-3 border-ink pt-6">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <EditorialLabel>Sentiment</EditorialLabel>
+                      <span className={sentimentBadgeClass(activeAnalysis.sentiment)}>
+                        {activeAnalysis.sentiment}
+                      </span>
                     </div>
 
-                    <div className="space-y-2">
-                      <h3 className="text-sm font-medium">Overview</h3>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    <div className="space-y-3">
+                      <EditorialLabel>Overview</EditorialLabel>
+                      <p className="text-body text-ink-soft whitespace-pre-wrap">
                         {activeAnalysis.overview}
                       </p>
                     </div>
 
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <h3 className="text-sm font-medium">Key themes</h3>
-                        <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-                          {activeAnalysis.keyThemes.map((t, idx) => (
+                    <div className="grid gap-10 md:grid-cols-2">
+                      <div className="space-y-3">
+                        <EditorialLabel>Key themes</EditorialLabel>
+                        <ul className="list-disc pl-5 text-body text-ink-soft space-y-2">
+                          {activeAnalysis.keyThemes.map((t: string, idx: number) => (
                             <li key={idx}>{t}</li>
                           ))}
                         </ul>
                       </div>
 
-                      <div className="space-y-2">
-                        <h3 className="text-sm font-medium">Specific praise</h3>
-                        <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-                          {activeAnalysis.specificPraise.map((t, idx) => (
+                      <div className="space-y-3">
+                        <EditorialLabel>Specific praise</EditorialLabel>
+                        <ul className="list-disc pl-5 text-body text-ink-soft space-y-2">
+                          {activeAnalysis.specificPraise.map((t: string, idx: number) => (
                             <li key={idx}>{t}</li>
                           ))}
                         </ul>
                       </div>
 
-                      <div className="space-y-2 md:col-span-2">
-                        <h3 className="text-sm font-medium">Areas for improvement</h3>
-                        <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-                          {activeAnalysis.areasForImprovement.map((t, idx) => (
-                            <li key={idx}>{t}</li>
-                          ))}
+                      <div className="space-y-3 md:col-span-2">
+                        <EditorialLabel>Areas for improvement</EditorialLabel>
+                        <ul className="list-disc pl-5 text-body text-ink-soft space-y-2">
+                          {activeAnalysis.areasForImprovement.map(
+                            (t: string, idx: number) => (
+                              <li key={idx}>{t}</li>
+                            )
+                          )}
                         </ul>
                       </div>
                     </div>
-                  </>
+                  </div>
                 );
               })()}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </EditorialSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Interviews</CardTitle>
-          <CardDescription>
-            Open transcripts and see (or generate) per-interview AI summaries. To invite more
-            people, use the share link on the project page.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      <RuledDivider weight="thick" spacing="sm" />
+
+      <EditorialSection spacing="md">
+        <div className="max-w-[900px] mx-auto space-y-8">
+          <div className="space-y-3">
+            <EditorialLabel>Interviews</EditorialLabel>
+            <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+              Transcripts and summaries
+            </h2>
+            <p className="text-body text-ink-soft max-w-2xl">
+              Open transcripts and see (or generate) per-interview summaries. To invite more
+              people, use the share link on the project page.
+            </p>
+          </div>
+
           {!sortedSurveys || sortedSurveys.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No interviews yet.</p>
+            <p className="text-body text-ink-soft">No interviews yet.</p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-8">
               {sortedSurveys.map((survey) => {
                 const relationshipLabel =
-                  project.template?.relationshipOptions.find(
-                    (r) => r.id === survey.relationship
-                  )?.label ??
+                  relationshipOptions.find((r) => r.id === survey.relationship)?.label ??
                   survey.relationship ??
                   "Unknown";
 
                 const summaryLabel = survey.summary
-                  ? `Summary ready`
+                  ? "Summary ready"
                   : survey.status === "completed"
-                  ? "Summary not generated"
-                  : "Summary available after completion";
+                    ? "Summary not generated"
+                    : "Summary available after completion";
 
                 return (
-                  <div
-                    key={survey._id}
-                    className="flex flex-col gap-3 rounded-md border p-3 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <Badge variant={statusBadgeVariant(survey.status)}>
-                          {survey.status}
-                        </Badge>
-                        <p className="text-sm font-medium truncate">
-                          {survey.respondentName ?? "Anonymous respondent"}
+                  <article key={survey._id} className="border-t-3 border-ink pt-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 space-y-2">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span className={statusBadgeClass(survey.status)}>
+                            {formatStatus(survey.status)}
+                          </span>
+                          <p className="text-body font-medium text-ink truncate">
+                            {survey.respondentName ?? "Anonymous respondent"}
+                          </p>
+                        </div>
+                        <p className="text-body text-ink-soft truncate">
+                          Relationship · {relationshipLabel} · {summaryLabel}
                         </p>
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">
-                        Relationship: {relationshipLabel} - {summaryLabel}
-                      </p>
-                    </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button asChild size="sm">
-                        <Link href={`/admin/surveys/${survey._id}`}>
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <Link
+                          href={`/admin/surveys/${survey._id}`}
+                          className="inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+                        >
                           Transcript &amp; summary
                         </Link>
-                      </Button>
+                      </div>
                     </div>
-                  </div>
+                  </article>
                 );
               })}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </EditorialSection>
     </div>
   );
 }

@@ -8,20 +8,24 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  EditorialHeadline,
+  EditorialLabel,
+  EditorialSection,
+  RuledDivider,
+} from "@/components/editorial";
 
-function statusBadgeVariant(status: string): "default" | "secondary" {
-  return status === "completed" ? "default" : "secondary";
+function formatStatus(value: string) {
+  return value.replace(/_/g, " ");
+}
+
+function statusBadgeClass(status: string) {
+  const base =
+    "inline-flex items-center px-4 py-2 border-3 text-label font-sans font-semibold uppercase tracking-label";
+  if (status === "completed") return `${base} border-ink bg-ink text-paper`;
+  if (status === "active") return `${base} border-accent-red bg-accent-red text-paper`;
+  return `${base} border-ink bg-paper text-ink`;
 }
 
 export default function ProjectDetailPage() {
@@ -50,7 +54,8 @@ export default function ProjectDetailPage() {
   const surveys = useMemo(() => {
     if (!project?.surveys) return null;
     return [...project.surveys].sort(
-      (a, b) => (b.completedAt ?? b.startedAt ?? 0) - (a.completedAt ?? a.startedAt ?? 0)
+      (a, b) =>
+        (b.completedAt ?? b.startedAt ?? 0) - (a.completedAt ?? a.startedAt ?? 0)
     );
   }, [project?.surveys]);
 
@@ -101,154 +106,202 @@ export default function ProjectDetailPage() {
 
   if (project === undefined) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center gap-4">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-10 w-60" />
+      <EditorialSection spacing="lg">
+        <div className="animate-pulse max-w-[900px] mx-auto space-y-6">
+          <div className="h-4 bg-ink/5 w-40" />
+          <div className="h-12 bg-ink/5 w-2/3" />
+          <div className="h-4 bg-ink/5 w-full max-w-xl" />
+          <RuledDivider weight="thick" spacing="sm" />
+          <div className="h-40 bg-ink/5 w-full" />
+          <div className="h-40 bg-ink/5 w-full" />
         </div>
-        <Skeleton className="h-48" />
-        <Skeleton className="h-64" />
-      </div>
+      </EditorialSection>
     );
   }
 
   if (project === null) {
     return (
-      <Card className="max-w-xl">
-        <CardHeader>
-          <CardTitle className="text-lg">Project not found</CardTitle>
-          <CardDescription>
+      <EditorialSection spacing="lg">
+        <div className="max-w-[900px] mx-auto border-l-4 border-accent-red pl-6 py-2 space-y-4">
+          <EditorialLabel accent>Not Found</EditorialLabel>
+          <h1 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+            Project not found
+          </h1>
+          <p className="text-body text-ink-soft">
             This project ID doesn&apos;t exist or you don&apos;t have access.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild variant="outline">
-            <Link href="/admin">Back to dashboard</Link>
-          </Button>
-        </CardContent>
-      </Card>
+          </p>
+          <div className="pt-2">
+            <Link
+              href="/admin"
+              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+            >
+              Back to dashboard
+            </Link>
+          </div>
+        </div>
+      </EditorialSection>
     );
   }
 
   const relationshipOptions = project.template?.relationshipOptions ?? [];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">{project.name}</h1>
-            <Badge variant={project.status === "active" ? "default" : "secondary"}>
-              {project.status}
-            </Badge>
+    <div>
+      <EditorialSection spacing="lg">
+        <div className="max-w-[900px] mx-auto space-y-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <EditorialLabel>Project</EditorialLabel>
+            <span className={statusBadgeClass(project.status)}>{project.status}</span>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {project.subjectName}
-            {project.subjectRole ? ` - ${project.subjectRole}` : ""} -{" "}
-            {project.template?.name}
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline">
-            <Link href={`/admin/projects/${projectId}/analysis`}>
+          <EditorialHeadline as="h1" size="lg">
+            {project.subjectName}
+          </EditorialHeadline>
+
+          {project.subjectRole && (
+            <p className="text-body-lg text-ink-soft">{project.subjectRole}</p>
+          )}
+
+          <p className="text-body text-ink-soft">
+            {project.name}
+            {project.template?.name ? ` · ${project.template.name}` : ""}
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
+            <Link
+              href={`/admin/projects/${projectId}/analysis`}
+              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-ink text-paper font-medium hover:bg-accent-red hover:border-accent-red transition-colors"
+            >
               Interviews &amp; analysis
             </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/admin">Back</Link>
-          </Button>
+            <Link
+              href="/admin"
+              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+            >
+              Back to dashboard
+            </Link>
+          </div>
         </div>
-      </div>
+      </EditorialSection>
+
+      <RuledDivider weight="thick" spacing="sm" />
 
       {error && (
-        <div className="text-sm text-destructive" role="alert">
-          {error}
-        </div>
+        <EditorialSection spacing="md">
+          <div className="max-w-[900px] mx-auto border-l-4 border-accent-red pl-6 py-2">
+            <EditorialLabel accent>Something went wrong</EditorialLabel>
+            <p className="mt-3 text-body text-accent-red" role="alert">
+              {error}
+            </p>
+          </div>
+        </EditorialSection>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Share link (send to everyone)</CardTitle>
-          <CardDescription>
-            This is the one link you share. Each person who opens it gets their own
-            private interview so answers don&apos;t mix.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <Input readOnly value={projectShareLink} />
-            <div className="flex items-center gap-2">
-              <Button
+      <EditorialSection spacing="md">
+        <div className="max-w-[900px] mx-auto space-y-8">
+          <div className="space-y-3">
+            <EditorialLabel>Share Link</EditorialLabel>
+            <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+              Send one link to everyone
+            </h2>
+            <p className="text-body text-ink-soft max-w-2xl">
+              This is the one link you share. Each person who opens it gets their own
+              private interview, so answers don&apos;t mix.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Input
+              readOnly
+              value={projectShareLink}
+              className="h-14 text-base sm:text-base rounded-none border-3 border-ink bg-paper text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
+            />
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
                 type="button"
-                variant="outline"
                 onClick={() => void navigator.clipboard.writeText(projectShareLink)}
+                className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
               >
                 Copy
-              </Button>
-              <Button asChild type="button" variant="outline">
-                <a href={projectShareLink} target="_blank" rel="noreferrer">
-                  Open
-                </a>
-              </Button>
+              </button>
+              <a
+                href={projectShareLink}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+              >
+                Open
+              </a>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </EditorialSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Interviews</CardTitle>
-          <CardDescription>
-            Each interview is one person&apos;s response. Use the links below to resend
-            a specific interview link or open transcripts.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted-foreground">
+      <RuledDivider weight="thick" spacing="sm" />
+
+      <EditorialSection spacing="md">
+        <div className="max-w-[900px] mx-auto space-y-8">
+          <div className="space-y-3">
+            <EditorialLabel>Interviews</EditorialLabel>
+            <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+              Responses and transcripts
+            </h2>
+            <p className="text-body text-ink-soft max-w-2xl">
+              Each interview is one person&apos;s response. Use the links below to resend
+              a specific interview link or open transcripts.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-body text-ink-soft max-w-xl">
               Optional: create an individual invite link (useful for reminders).
             </p>
-            <Button
+            <button
               type="button"
-              variant="outline"
               onClick={() => void onCreateInviteLink()}
               disabled={busy}
+              className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors disabled:opacity-50 disabled:pointer-events-none"
             >
-              {busy ? "Working..." : "Create invite link"}
-            </Button>
+              {busy ? "Working…" : "Create invite link"}
+            </button>
           </div>
 
           {newSurveyLink && (
-            <div className="space-y-2 rounded-md border p-3">
-              <p className="text-sm font-medium">Invite link copied</p>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <Input readOnly value={newSurveyLink} />
-                <div className="flex items-center gap-2">
-                  <Button
+            <div className="border-l-4 border-ink pl-6 py-2 space-y-4">
+              <EditorialLabel>Invite link copied</EditorialLabel>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Input
+                  readOnly
+                  value={newSurveyLink}
+                  className="h-14 text-base sm:text-base rounded-none border-3 border-ink bg-paper text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
                     type="button"
-                    size="sm"
-                    variant="outline"
                     onClick={() => void navigator.clipboard.writeText(newSurveyLink)}
+                    className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
                   >
                     Copy
-                  </Button>
-                  <Button asChild type="button" size="sm" variant="outline">
-                    <a href={newSurveyLink} target="_blank" rel="noreferrer">
-                      Open
-                    </a>
-                  </Button>
+                  </button>
+                  <a
+                    href={newSurveyLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+                  >
+                    Open
+                  </a>
                 </div>
               </div>
             </div>
           )}
 
           {!surveys || surveys.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-body text-ink-soft">
               No interviews yet. Share the link above to start collecting responses.
             </p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-8">
               {surveys.map((s) => {
                 const surveyLink = origin
                   ? `${origin}/survey/${s.uniqueId}`
@@ -260,68 +313,91 @@ export default function ProjectDetailPage() {
                   : null;
 
                 return (
-                  <div
-                    key={s._id}
-                    className="flex flex-col gap-3 rounded-md border p-3 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <Badge variant={statusBadgeVariant(s.status)}>{s.status}</Badge>
-                        <p className="text-sm font-medium truncate">
-                          {s.respondentName ?? "Anonymous respondent"}
+                  <article key={s._id} className="border-t-3 border-ink pt-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 space-y-2">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span className={statusBadgeClass(s.status)}>
+                            {formatStatus(s.status)}
+                          </span>
+                          <p className="text-body font-medium text-ink truncate">
+                            {s.respondentName ?? "Anonymous respondent"}
+                          </p>
+                        </div>
+                        <p className="text-body text-ink-soft truncate">
+                          {relationshipLabel
+                            ? `Relationship · ${relationshipLabel}`
+                            : "Relationship · Not selected yet"}{" "}
+                          · /survey/{s.uniqueId}
                         </p>
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {relationshipLabel
-                          ? `Relationship: ${relationshipLabel}`
-                          : "Relationship not selected yet"}{" "}
-                        | /survey/{s.uniqueId}
-                      </p>
-                    </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => void navigator.clipboard.writeText(surveyLink)}
-                      >
-                        Copy interview link
-                      </Button>
-                      <Button asChild size="sm" variant="outline">
-                        <a href={surveyLink} target="_blank" rel="noreferrer">
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <button
+                          type="button"
+                          onClick={() => void navigator.clipboard.writeText(surveyLink)}
+                          className="inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+                        >
+                          Copy interview link
+                        </button>
+                        <a
+                          href={surveyLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+                        >
                           Open
                         </a>
-                      </Button>
-                      <Button asChild size="sm">
-                        <Link href={`/admin/surveys/${s._id}`}>Transcript</Link>
-                      </Button>
+                        <Link
+                          href={`/admin/surveys/${s._id}`}
+                          className="inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+                        >
+                          Transcript
+                        </Link>
+                      </div>
                     </div>
-                  </div>
+                  </article>
                 );
               })}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </EditorialSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Project actions</CardTitle>
-          <CardDescription>
-            Close the project to stop new interviews. Delete removes everything.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap items-center gap-2">
-          <Button type="button" variant="outline" onClick={() => void onToggleStatus()} disabled={busy}>
-            {project.status === "active" ? "Close project" : "Reopen project"}
-          </Button>
-          <Button type="button" variant="destructive" onClick={() => void onDeleteProject()} disabled={busy}>
-            Delete project
-          </Button>
-        </CardContent>
-      </Card>
+      <RuledDivider weight="thick" spacing="sm" />
+
+      <EditorialSection spacing="md">
+        <div className="max-w-[900px] mx-auto space-y-8">
+          <div className="space-y-3">
+            <EditorialLabel>Project actions</EditorialLabel>
+            <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+              Controls
+            </h2>
+            <p className="text-body text-ink-soft max-w-2xl">
+              Close the project to stop new interviews. Delete removes everything.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              type="button"
+              onClick={() => void onToggleStatus()}
+              disabled={busy}
+              className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {project.status === "active" ? "Close project" : "Reopen project"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void onDeleteProject()}
+              disabled={busy}
+              className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-accent-red bg-accent-red text-paper font-medium hover:bg-[#B91C1C] hover:border-[#B91C1C] transition-colors disabled:opacity-50 disabled:pointer-events-none"
+            >
+              Delete project
+            </button>
+          </div>
+        </div>
+      </EditorialSection>
     </div>
   );
 }
-
