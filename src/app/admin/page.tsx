@@ -5,7 +5,6 @@ import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "../../../convex/_generated/api";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, CheckCircle2, Clock, Search, ArrowRight } from "lucide-react";
 import {
@@ -48,15 +47,13 @@ export default function AdminDashboard() {
 
   if (projects === undefined) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <EditorialSection spacing="lg">
-          <div className="animate-pulse space-y-editorial-md">
-            <div className="h-24 bg-ink/5 rounded w-2/3" />
-            <RuledDivider />
-            <div className="h-48 bg-ink/5 rounded" />
-          </div>
-        </EditorialSection>
-      </div>
+      <EditorialSection spacing="lg">
+        <div className="animate-pulse space-y-editorial-md">
+          <div className="h-16 bg-ink/5 w-2/3" />
+          <RuledDivider weight="thick" spacing="sm" />
+          <div className="h-40 bg-ink/5" />
+        </div>
+      </EditorialSection>
     );
   }
 
@@ -68,29 +65,32 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div>
       {/* Hero Section */}
       <EditorialSection spacing="lg">
         <div className="space-y-6">
-          <EditorialHeadline as="h1" size="lg">
+          <EditorialLabel>Digg Admin</EditorialLabel>
+          <EditorialHeadline as="h1" size="xl">
             Dashboard
           </EditorialHeadline>
           <p className="text-body-lg text-ink-soft max-w-2xl">
             Manage your feedback projects, create new surveys, and analyze insights.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <Button asChild size="lg" className="w-full sm:w-auto bg-ink hover:bg-ink/90 text-paper">
-              <Link href="/admin/projects/new">
-                <Plus className="h-5 w-5 mr-2" />
-                New Project
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto border-ink text-ink hover:bg-ink/5">
-              <Link href="/admin/templates/new">
-                <Plus className="h-5 w-5 mr-2" />
-                New Template
-              </Link>
-            </Button>
+            <Link
+              href="/admin/projects/new"
+              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-ink text-paper font-medium hover:bg-accent-red hover:border-accent-red transition-colors"
+            >
+              <Plus className="h-5 w-5" />
+              New Project
+            </Link>
+            <Link
+              href="/admin/templates/new"
+              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+            >
+              <Plus className="h-5 w-5" />
+              New Template
+            </Link>
           </div>
         </div>
       </EditorialSection>
@@ -103,19 +103,19 @@ export default function AdminDashboard() {
           <EditorialLabel>Project Statistics</EditorialLabel>
           <div className="grid grid-cols-3 gap-editorial-xs">
             <div>
-              <div className="text-headline-sm font-serif font-bold text-ink">
+              <div className="font-serif font-bold text-ink leading-none text-[56px] sm:text-[72px]">
                 {activeProjects.length}
               </div>
               <p className="text-body text-ink-soft mt-2">Active Projects</p>
             </div>
             <div>
-              <div className="text-headline-sm font-serif font-bold text-ink">
+              <div className="font-serif font-bold text-ink leading-none text-[56px] sm:text-[72px]">
                 {totalSurveys}
               </div>
               <p className="text-body text-ink-soft mt-2">Total Surveys</p>
             </div>
             <div>
-              <div className="text-headline-sm font-serif font-bold text-ink">
+              <div className="font-serif font-bold text-ink leading-none text-[56px] sm:text-[72px]">
                 {completedSurveys}
               </div>
               <p className="text-body text-ink-soft mt-2">Completed</p>
@@ -138,36 +138,33 @@ export default function AdminDashboard() {
                 placeholder="Search by name, subject, or role..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 text-base border-ink/20 focus:border-ink bg-paper text-ink"
+                className="pl-12 h-14 text-base sm:text-base rounded-none border-3 border-ink bg-paper text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
 
             {/* Status Filter */}
             <div className="flex gap-2">
-              <Button
-                variant={statusFilter === "all" ? "default" : "outline"}
-                size="lg"
-                onClick={() => setStatusFilter("all")}
-                className={statusFilter === "all" ? "bg-ink text-paper" : "border-ink text-ink hover:bg-ink/5"}
-              >
-                All
-              </Button>
-              <Button
-                variant={statusFilter === "active" ? "default" : "outline"}
-                size="lg"
-                onClick={() => setStatusFilter("active")}
-                className={statusFilter === "active" ? "bg-ink text-paper" : "border-ink text-ink hover:bg-ink/5"}
-              >
-                Active
-              </Button>
-              <Button
-                variant={statusFilter === "closed" ? "default" : "outline"}
-                size="lg"
-                onClick={() => setStatusFilter("closed")}
-                className={statusFilter === "closed" ? "bg-ink text-paper" : "border-ink text-ink hover:bg-ink/5"}
-              >
-                Closed
-              </Button>
+              {(["all", "active", "closed"] as const).map((value) => {
+                const label =
+                  value === "all" ? "All" : value === "active" ? "Active" : "Closed";
+                const active = statusFilter === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setStatusFilter(value)}
+                    aria-pressed={active}
+                    className={
+                      "min-h-[48px] px-6 py-3 border-3 font-medium transition-colors " +
+                      (active
+                        ? "border-ink bg-ink text-paper hover:bg-accent-red hover:border-accent-red"
+                        : "border-ink bg-transparent text-ink hover:bg-ink hover:text-paper")
+                    }
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -194,12 +191,13 @@ export default function AdminDashboard() {
                   <p className="text-body-lg text-ink-soft max-w-md mx-auto">
                     No projects yet. Create your first feedback project to get started.
                   </p>
-                  <Button asChild size="lg" className="bg-accent-red hover:bg-accent-red/90 text-paper">
-                    <Link href="/admin/projects/new">
-                      <Plus className="h-5 w-5 mr-2" />
-                      Create Your First Project
-                    </Link>
-                  </Button>
+                  <Link
+                    href="/admin/projects/new"
+                    className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-accent-red bg-accent-red text-paper font-medium hover:bg-[#B91C1C] hover:border-[#B91C1C] transition-colors"
+                  >
+                    <Plus className="h-5 w-5" />
+                    Create Your First Project
+                  </Link>
                 </div>
               ) : (
                 <p className="text-body-lg text-ink-soft">
@@ -216,30 +214,28 @@ export default function AdminDashboard() {
                   headline={project.subjectName}
                   onClick={() => router.push(`/admin/projects/${project._id}`)}
                   description={
-                    <>
+                    <div className="space-y-3">
                       {project.subjectRole && (
-                        <span className="block text-ink font-medium mb-2">
-                          {project.subjectRole}
-                        </span>
+                        <p className="text-body text-ink">{project.subjectRole}</p>
                       )}
-                      <span className="flex items-center gap-4 text-sm">
-                        <span className="flex items-center gap-1.5">
+                      <div className="flex flex-wrap items-center gap-4 text-body text-ink-soft">
+                        <span className="inline-flex items-center gap-2">
                           <CheckCircle2 className="h-4 w-4" />
                           {project.stats.completed} completed
                         </span>
                         {project.stats.inProgress > 0 && (
-                          <span className="flex items-center gap-1.5">
+                          <span className="inline-flex items-center gap-2">
                             <Clock className="h-4 w-4" />
                             {project.stats.inProgress} in progress
                           </span>
                         )}
-                      </span>
+                      </div>
                       {project.template?.name && (
-                        <span className="block text-label mt-2 uppercase">
-                          Template: {project.template.name}
-                        </span>
+                        <p className="text-label text-ink-soft uppercase tracking-label">
+                          Template · {project.template.name}
+                        </p>
                       )}
-                    </>
+                    </div>
                   }
                   action={
                     <span className="inline-flex items-center gap-2 text-ink font-medium">
