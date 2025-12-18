@@ -35,16 +35,42 @@ export default function NewTemplatePage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [systemPrompt, setSystemPrompt] = useState(
-    `You are a skilled interviewer conducting a 360-degree feedback interview. Your goal is to gather thoughtful, specific feedback about {subjectName}.
+    `You are conducting a feedback interview about {{subjectName}}{{subjectRole}}.
+The person you're talking to is their {{relationship}}.
 
-Follow these guidelines:
-1. Start with a brief, friendly introduction
-2. Ask one question at a time from the template
-3. Follow up on vague answers with probing questions
-4. Create a conversational, comfortable atmosphere
-5. When you've covered all questions thoroughly, naturally conclude the interview
+YOUR GOAL:
+Get specific, actionable feedback. When someone gives vague feedback, probe for concrete examples of behaviors and their impact.
 
-Be empathetic, professional, and focused on collecting actionable insights.`
+QUESTIONS TO COVER:
+{{questions}}
+
+CONVERSATION FLOW:
+1. Brief intro (1 sentence)
+2. Ask first question
+3. Probe for specifics on their answer
+4. Ask "What else comes to mind?" to collect multiple items (aim for 2-3)
+5. Probe for specifics on additional items
+6. Move to next question
+7. Repeat pattern for each question
+8. After all questions: "Anything else you'd like to add?"
+9. Thank them and end
+
+PROBING RULES:
+- When answers are vague (good, great, difficult, challenging), ask for specific examples
+- When they mention abstract concepts (trust, communication, leadership), ask "What did that look like in practice?"
+- When answers are short (< 15 words), ask "Tell me more about that"
+- When they say "nothing to improve" or "can't think of anything", ask "If you had to pick one small thing, even minor, what would it be?"
+
+CRITICAL RULES:
+- Keep responses SHORT (1-2 sentences max)
+- Ask ONE question at a time
+- Be warm and conversational, not formal
+- Never argue or defend - just listen and probe
+- Accept "I don't know" gracefully - never push more than once on the same point
+- For questions marked "collect multiple", aim for 2-3 items before moving on
+- Always respond in the same language the respondent uses
+
+START by introducing yourself briefly and asking the first question.`
   );
   const [questions, setQuestions] = useState<Question[]>([
     { text: "", collectMultiple: false, tempId: crypto.randomUUID() },
@@ -117,6 +143,11 @@ Be empathetic, professional, and focused on collecting actionable insights.`
 
     if (!systemPrompt.trim()) {
       setError("System prompt is required");
+      return;
+    }
+
+    if (!systemPrompt.includes("{{questions}}")) {
+      setError('System prompt must include {{questions}} placeholder - otherwise your questions above won\'t be used by the AI!');
       return;
     }
 
@@ -367,8 +398,18 @@ Be empathetic, professional, and focused on collecting actionable insights.`
                   System prompt template
                 </h2>
                 <p className="text-body text-ink-soft max-w-2xl">
-                  Instructions for the AI interviewer. Use {"{subjectName}"} as a placeholder.
+                  Define how the AI interviewer should behave. <strong className="text-ink">You MUST include {"{{"}}questions{"}}"}</strong> in your prompt - this is where your questions from above will be injected.
                 </p>
+              </div>
+
+              <div className="border-l-4 border-accent-yellow bg-accent-yellow/10 pl-6 py-4 mb-6">
+                <p className="text-body text-ink font-medium mb-2">Available Placeholders:</p>
+                <ul className="text-body text-ink-soft space-y-1">
+                  <li><code className="bg-ink/5 px-1 font-mono">{"{{"}}questions{"}}"}</code> - Your questions from above (REQUIRED)</li>
+                  <li><code className="bg-ink/5 px-1 font-mono">{"{{"}}subjectName{"}}"}</code> - Person being reviewed (e.g. "John")</li>
+                  <li><code className="bg-ink/5 px-1 font-mono">{"{{"}}subjectRole{"}}"}</code> - Their role (e.g. "Senior Engineer")</li>
+                  <li><code className="bg-ink/5 px-1 font-mono">{"{{"}}relationship{"}}"}</code> - Respondent's relationship (e.g. "Manager")</li>
+                </ul>
               </div>
 
               <Textarea

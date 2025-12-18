@@ -195,6 +195,11 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
       return;
     }
 
+    if (!systemPrompt.includes("{{questions}}")) {
+      setError('System prompt must include {{questions}} placeholder - otherwise your questions above won\'t be used by the AI!');
+      return;
+    }
+
     setUpdating(true);
     try {
       await updateTemplate({
@@ -450,12 +455,18 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
                   System instructions
                 </h2>
                 <p className="text-body text-ink-soft max-w-2xl">
-                  Define how the AI interviewer should behave. Available placeholders:{" "}
-                  <code className="bg-ink/5 px-1">{"{subjectName}"}</code>,{" "}
-                  <code className="bg-ink/5 px-1">{"{subjectRole}"}</code>,{" "}
-                  <code className="bg-ink/5 px-1">{"{relationship}"}</code>,{" "}
-                  <code className="bg-ink/5 px-1">{"{questions}"}</code>
+                  Define how the AI interviewer should behave. <strong className="text-ink">You MUST include {"{{"}}questions{"}}"}</strong> in your prompt - this is where your questions from above will be injected.
                 </p>
+              </div>
+
+              <div className="border-l-4 border-accent-yellow bg-accent-yellow/10 pl-6 py-4 mb-6">
+                <p className="text-body text-ink font-medium mb-2">Available Placeholders:</p>
+                <ul className="text-body text-ink-soft space-y-1">
+                  <li><code className="bg-ink/5 px-1 font-mono">{"{{"}}questions{"}}"}</code> - Your questions from above (REQUIRED)</li>
+                  <li><code className="bg-ink/5 px-1 font-mono">{"{{"}}subjectName{"}}"}</code> - Person being reviewed (e.g. "John")</li>
+                  <li><code className="bg-ink/5 px-1 font-mono">{"{{"}}subjectRole{"}}"}</code> - Their role (e.g. "Senior Engineer")</li>
+                  <li><code className="bg-ink/5 px-1 font-mono">{"{{"}}relationship{"}}"}</code> - Respondent's relationship (e.g. "Manager")</li>
+                </ul>
               </div>
 
               <Textarea
