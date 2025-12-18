@@ -4,24 +4,10 @@ import { ConvexError } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { normalizeEmail, getAdminEmailsFromEnv } from "./lib/email";
 
 type Role = "admin" | "user";
 type Ctx = QueryCtx | MutationCtx;
-
-function normalizeEmail(email: unknown) {
-  if (typeof email !== "string") return null;
-  const normalized = email.trim().toLowerCase();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function parseAdminEmails(raw: string | undefined) {
-  if (!raw) return new Set<string>();
-  const parts = raw
-    .split(/[\s,]+/g)
-    .map((part) => normalizeEmail(part))
-    .filter((part): part is string => part !== null);
-  return new Set(parts);
-}
 
 async function getRoleDoc(ctx: Ctx, userId: Id<"users">) {
   return await ctx.db
@@ -50,9 +36,7 @@ async function upsertRole(ctx: MutationCtx, userId: Id<"users">, desiredRole: Ro
 }
 
 async function computeDesiredRole(ctx: Ctx, email: string | null): Promise<Role> {
-  const adminEmails = parseAdminEmails(
-    process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL
-  );
+  const adminEmails = getAdminEmailsFromEnv();
 
   if (adminEmails.size > 0) {
     return email && adminEmails.has(email) ? "admin" : "user";
@@ -73,9 +57,7 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
       const user = await ctx.db.get(args.userId);
       if (!user) return;
 
-      const adminEmails = parseAdminEmails(
-        process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL
-      );
+      const adminEmails = getAdminEmailsFromEnv();
 
       const profileEmail = normalizeEmail(args.profile.email);
       const userEmail = normalizeEmail(user.email);
@@ -97,9 +79,7 @@ export const currentUser = query({
     if (!userId) return null;
     const user = await ctx.db.get(userId);
     if (!user) return null;
-    const adminEmails = parseAdminEmails(
-      process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL
-    );
+    const adminEmails = getAdminEmailsFromEnv();
     if (adminEmails.size > 0) {
       const email = normalizeEmail(user.email);
       const role: Role = email && adminEmails.has(email) ? "admin" : "user";
@@ -118,9 +98,7 @@ export const ensureRole = mutation({
     const user = await ctx.db.get(userId);
     if (!user) throw new ConvexError("Unauthorized");
 
-    const adminEmails = parseAdminEmails(
-      process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL
-    );
+    const adminEmails = getAdminEmailsFromEnv();
 
     const existingRoleDoc = await getRoleDoc(ctx, userId);
     if (adminEmails.size === 0 && existingRoleDoc) {

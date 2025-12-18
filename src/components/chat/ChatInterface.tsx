@@ -21,11 +21,7 @@ import {
 import { EditorialLabel } from "@/components/editorial";
 import { postJson } from "@/lib/http";
 import { chatResponseSchema } from "@/lib/schemas";
-
-type UiMessage = {
-  role: "assistant" | "user";
-  content: string;
-};
+import type { UiMessage } from "@/types/message";
 
 type WebSpeechRecognitionAlternative = { transcript: string };
 

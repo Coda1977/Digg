@@ -22,11 +22,7 @@ import {
 } from "@/lib/editorialBadges";
 import { postJson } from "@/lib/http";
 import { summarySchema, type Summary } from "@/lib/schemas";
-
-type UiMessage = {
-  role: "assistant" | "user";
-  content: string;
-};
+import type { UiMessage } from "@/types/message";
 
 async function requestSurveySummary(input: {
   subjectName: string;

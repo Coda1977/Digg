@@ -95,7 +95,6 @@ export const seedTemplates = mutation({
     // Check if templates already exist
     const existingTemplates = await ctx.db.query("templates").collect();
     if (existingTemplates.length > 0) {
-      console.log("Templates already seeded");
       return { message: "Templates already exist", count: existingTemplates.length };
     }
 
