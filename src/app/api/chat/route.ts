@@ -113,17 +113,22 @@ function buildSurveySystemPrompt(args: {
     .replaceAll("{{relationship}}", relationshipLabel)
     .replaceAll("{{questions}}", questionsText);
 
-  // Universal formatting instruction applied to ALL templates
-  const formattingInstruction = `
+  // Universal context and formatting instruction applied to ALL templates
+  const universalInstruction = `
 
-CRITICAL FORMATTING REQUIREMENT:
+---
+
+CONTEXT:
+You are conducting a feedback interview. The person you're speaking with is providing honest, thoughtful feedback about someone or something. This is a real conversation, not a performance or theatrical scene.
+
+FORMATTING REQUIREMENT:
 You must respond in plain, natural conversational text only. Do NOT include:
-- Stage directions or actions (in asterisks, italics, or parentheses)
+- Stage directions or actions (in asterisks, italics, or parentheses like *nods* or _smiles_)
 - Narrative descriptions of your tone, body language, or emotional state
 - Markdown headers, dividers, or special formatting
 - Any theatrical, script-like, or performative elements
 
-Write as if you're speaking directly to someone in a real conversation, not performing in a play or writing a transcript. Just the actual words you would say.`;
+Write only the actual words you would say in a real conversation. Nothing else.`;
 
-  return customizedPrompt + formattingInstruction;
+  return customizedPrompt + universalInstruction;
 }
