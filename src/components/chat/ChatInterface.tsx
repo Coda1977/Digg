@@ -8,8 +8,6 @@ import { Mic, MicOff } from "lucide-react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +16,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { EditorialLabel } from "@/components/editorial";
+import {
+  EditorialLabel,
+  EditorialButton,
+  EditorialTextarea,
+  MessageBubble,
+} from "@/components/editorial";
 import { postJson } from "@/lib/http";
 import { chatResponseSchema } from "@/lib/schemas";
 import type { UiMessage } from "@/types/message";
@@ -415,57 +418,27 @@ export function ChatInterface({
           >
             <div className="mx-auto max-w-[900px] space-y-8">
               {!uiMessages ? (
-                <div className="border-l-4 border-ink/20 pl-6 py-2">
-                  <p className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
-                    AI Interviewer
-                  </p>
-                  <p className="mt-3 text-body-lg text-ink-soft">Loading conversation…</p>
-                </div>
+                <MessageBubble variant="assistant">
+                  Loading conversation…
+                </MessageBubble>
               ) : uiMessages.length === 0 ? (
-                <div className="border-l-4 border-ink/20 pl-6 py-2">
-                  <p className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
-                    AI Interviewer
-                  </p>
-                  <p className="mt-3 text-body-lg text-ink-soft">Starting interview…</p>
-                </div>
+                <MessageBubble variant="assistant">
+                  Starting interview…
+                </MessageBubble>
               ) : (
                 uiMessages.map((m, idx) => (
-                  <div
+                  <MessageBubble
                     key={idx}
-                    className={
-                      m.role === "assistant"
-                        ? "border-l-4 border-ink pl-6 py-2"
-                        : "bg-ink text-paper p-6 sm:ml-[60px]"
-                    }
+                    variant={m.role === "assistant" ? "assistant" : "user"}
                   >
-                    <p
-                      className={
-                        m.role === "assistant"
-                          ? "text-label font-sans font-semibold uppercase tracking-label text-ink-soft"
-                          : "text-label font-sans font-semibold uppercase tracking-label text-ink-lighter"
-                      }
-                    >
-                      {m.role === "assistant" ? "AI Interviewer" : "You"}
-                    </p>
-                    <div
-                      className={
-                        m.role === "assistant"
-                          ? "mt-3 text-body-lg text-ink whitespace-pre-wrap leading-relaxed"
-                          : "mt-3 text-body-lg text-paper whitespace-pre-wrap leading-relaxed"
-                      }
-                    >
-                      {m.content}
-                    </div>
-                  </div>
+                    {m.content}
+                  </MessageBubble>
                 ))
               )}
 
               {generating && uiMessages && (
-                <div className="border-l-4 border-ink/20 pl-6 py-2" role="status">
-                  <p className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
-                    AI Interviewer
-                  </p>
-                  <div className="mt-3 flex items-center gap-3 text-body text-ink-soft">
+                <MessageBubble variant="assistant" role="AI Interviewer">
+                  <div className="flex items-center gap-3 text-body text-ink-soft">
                     <span className="inline-flex items-center gap-1" aria-hidden="true">
                       <span className="h-1.5 w-1.5 rounded-full bg-ink-soft animate-bounce [animation-delay:-0.32s]" />
                       <span className="h-1.5 w-1.5 rounded-full bg-ink-soft animate-bounce [animation-delay:-0.16s]" />
@@ -473,7 +446,7 @@ export function ChatInterface({
                     </span>
                     <span>Thinking…</span>
                   </div>
-                </div>
+                </MessageBubble>
               )}
             </div>
           </div>
@@ -489,7 +462,7 @@ export function ChatInterface({
             >
               Your Response
             </label>
-            <Textarea
+            <EditorialTextarea
               id="surveyDraft"
               ref={textareaRef}
               value={draft}
@@ -511,7 +484,7 @@ export function ChatInterface({
                   : "Share your thoughts here…"
               }
               disabled={generating || !uiMessages || listening}
-              className="min-h-[120px] max-h-[280px] resize-none rounded-none border-3 border-ink bg-paper px-5 py-4 text-base sm:text-base leading-relaxed text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="min-h-[120px] max-h-[280px] resize-y"
             />
 
             <p className="text-label text-ink-soft">
@@ -526,42 +499,38 @@ export function ChatInterface({
             )}
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
-              <Button
+              <EditorialButton
                 type="button"
-                variant="outline"
+                variant={listening ? "primary" : "ghost"}
                 onClick={onToggleVoice}
                 disabled={generating || !uiMessages}
                 aria-pressed={listening}
                 aria-label={listening ? "Stop voice input" : "Start voice input"}
-                className={
-                  "w-full sm:w-auto rounded-none px-5 py-3 bg-transparent border-2 " +
-                  (listening
-                    ? "border-accent-red text-accent-red hover:bg-accent-red/5 hover:text-accent-red"
-                    : "border-ink/20 text-ink hover:border-ink hover:bg-ink/5 hover:text-ink")
-                }
+                className="w-full sm:w-auto"
               >
                 {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                 {listening ? "Stop" : "Voice"}
-              </Button>
+              </EditorialButton>
 
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                <Button
+                <EditorialButton
                   type="button"
                   variant="outline"
                   onClick={() => setShowConfirmDialog(true)}
                   disabled={generating}
-                  className="w-full sm:w-auto rounded-none border-3 border-ink bg-transparent text-ink px-7 py-3 hover:bg-ink hover:text-paper hover:border-ink"
+                  className="w-full sm:w-auto"
                 >
                   Finish
-                </Button>
+                </EditorialButton>
 
-                <Button
+                <EditorialButton
                   type="submit"
+                  variant="secondary"
                   disabled={generating || !draft.trim()}
-                  className="w-full sm:w-auto rounded-none border-3 border-ink bg-ink text-paper px-7 py-3 font-medium hover:bg-accent-red hover:border-accent-red"
+                  className="w-full sm:w-auto"
                 >
                   {generating ? "…" : "Send"}
-                </Button>
+                </EditorialButton>
               </div>
             </div>
           </form>
@@ -578,14 +547,15 @@ export function ChatInterface({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
+            <EditorialButton
               variant="outline"
               onClick={() => setShowConfirmDialog(false)}
               disabled={generating}
             >
               Continue Editing
-            </Button>
-            <Button
+            </EditorialButton>
+            <EditorialButton
+              variant="secondary"
               onClick={() => {
                 setShowConfirmDialog(false);
                 void onFinish();
@@ -593,7 +563,7 @@ export function ChatInterface({
               disabled={generating}
             >
               Finish Survey
-            </Button>
+            </EditorialButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

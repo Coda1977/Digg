@@ -8,14 +8,15 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 
-import { Input } from "@/components/ui/input";
 import {
   EditorialHeadline,
   EditorialLabel,
   EditorialSection,
   RuledDivider,
+  EditorialButton,
+  EditorialInput,
+  StatusBadge,
 } from "@/components/editorial";
-import { formatEnumLabel, statusBadgeClass } from "@/lib/editorialBadges";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -120,12 +121,9 @@ export default function ProjectDetailPage() {
             This project ID doesn&apos;t exist or you don&apos;t have access.
           </p>
           <div className="pt-2">
-            <Link
-              href="/admin"
-              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
-            >
-              Back to dashboard
-            </Link>
+            <EditorialButton variant="outline" asChild>
+              <Link href="/admin">Back to dashboard</Link>
+            </EditorialButton>
           </div>
         </div>
       </EditorialSection>
@@ -140,7 +138,7 @@ export default function ProjectDetailPage() {
         <div className="max-w-[900px] mx-auto space-y-6">
           <div className="flex flex-wrap items-center gap-3">
             <EditorialLabel>Project</EditorialLabel>
-            <span className={statusBadgeClass(project.status)}>{project.status}</span>
+            <StatusBadge status={project.status as "active" | "closed"} />
           </div>
 
           <EditorialHeadline as="h1" size="lg">
@@ -157,18 +155,14 @@ export default function ProjectDetailPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <Link
-              href={`/admin/projects/${projectId}/analysis`}
-              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-ink text-paper font-medium hover:bg-accent-red hover:border-accent-red transition-colors"
-            >
-              Interviews &amp; analysis
-            </Link>
-            <Link
-              href="/admin"
-              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
-            >
-              Back to dashboard
-            </Link>
+            <EditorialButton variant="secondary" asChild>
+              <Link href={`/admin/projects/${projectId}/analysis`}>
+                Interviews &amp; analysis
+              </Link>
+            </EditorialButton>
+            <EditorialButton variant="outline" asChild>
+              <Link href="/admin">Back to dashboard</Link>
+            </EditorialButton>
           </div>
         </div>
       </EditorialSection>
@@ -200,27 +194,20 @@ export default function ProjectDetailPage() {
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Input
-              readOnly
-              value={projectShareLink}
-              className="h-14 text-base sm:text-base rounded-none border-3 border-ink bg-paper text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
-            />
+            <EditorialInput readOnly value={projectShareLink} />
             <div className="flex flex-col sm:flex-row gap-3">
-              <button
+              <EditorialButton
                 type="button"
+                variant="outline"
                 onClick={() => void navigator.clipboard.writeText(projectShareLink)}
-                className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
               >
                 Copy
-              </button>
-              <a
-                href={projectShareLink}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
-              >
-                Open
-              </a>
+              </EditorialButton>
+              <EditorialButton variant="outline" asChild>
+                <a href={projectShareLink} target="_blank" rel="noreferrer">
+                  Open
+                </a>
+              </EditorialButton>
             </div>
           </div>
         </div>
@@ -245,41 +232,34 @@ export default function ProjectDetailPage() {
             <p className="text-body text-ink-soft max-w-xl">
               Optional: create an individual invite link (useful for reminders).
             </p>
-            <button
+            <EditorialButton
               type="button"
+              variant="outline"
               onClick={() => void onCreateInviteLink()}
               disabled={busy}
-              className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors disabled:opacity-50 disabled:pointer-events-none"
             >
               {busy ? "Working…" : "Create invite link"}
-            </button>
+            </EditorialButton>
           </div>
 
           {newSurveyLink && (
             <div className="border-l-4 border-ink pl-6 py-2 space-y-4">
               <EditorialLabel>Invite link copied</EditorialLabel>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Input
-                  readOnly
-                  value={newSurveyLink}
-                  className="h-14 text-base sm:text-base rounded-none border-3 border-ink bg-paper text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
+                <EditorialInput readOnly value={newSurveyLink} />
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <button
+                  <EditorialButton
                     type="button"
+                    variant="outline"
                     onClick={() => void navigator.clipboard.writeText(newSurveyLink)}
-                    className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
                   >
                     Copy
-                  </button>
-                  <a
-                    href={newSurveyLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
-                  >
-                    Open
-                  </a>
+                  </EditorialButton>
+                  <EditorialButton variant="outline" asChild>
+                    <a href={newSurveyLink} target="_blank" rel="noreferrer">
+                      Open
+                    </a>
+                  </EditorialButton>
                 </div>
               </div>
             </div>
@@ -306,9 +286,11 @@ export default function ProjectDetailPage() {
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0 space-y-2">
                         <div className="flex flex-wrap items-center gap-3">
-                          <span className={statusBadgeClass(s.status)}>
-                            {formatEnumLabel(s.status)}
-                          </span>
+                          <StatusBadge
+                            status={
+                              s.status as "completed" | "in_progress" | "not_started"
+                            }
+                          />
                           <p className="text-body font-medium text-ink truncate">
                             {s.respondentName ?? "Anonymous respondent"}
                           </p>
@@ -322,27 +304,22 @@ export default function ProjectDetailPage() {
                       </div>
 
                       <div className="flex flex-col sm:flex-row gap-3">
-                        <button
+                        <EditorialButton
                           type="button"
+                          variant="outline"
+                          size="small"
                           onClick={() => void navigator.clipboard.writeText(surveyLink)}
-                          className="inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
                         >
                           Copy interview link
-                        </button>
-                        <a
-                          href={surveyLink}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
-                        >
-                          Open
-                        </a>
-                        <Link
-                          href={`/admin/surveys/${s._id}`}
-                          className="inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
-                        >
-                          Transcript
-                        </Link>
+                        </EditorialButton>
+                        <EditorialButton variant="outline" size="small" asChild>
+                          <a href={surveyLink} target="_blank" rel="noreferrer">
+                            Open
+                          </a>
+                        </EditorialButton>
+                        <EditorialButton variant="outline" size="small" asChild>
+                          <Link href={`/admin/surveys/${s._id}`}>Transcript</Link>
+                        </EditorialButton>
                       </div>
                     </div>
                   </article>
@@ -368,22 +345,22 @@ export default function ProjectDetailPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            <button
+            <EditorialButton
               type="button"
+              variant="outline"
               onClick={() => void onToggleStatus()}
               disabled={busy}
-              className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors disabled:opacity-50 disabled:pointer-events-none"
             >
               {project.status === "active" ? "Close project" : "Reopen project"}
-            </button>
-            <button
+            </EditorialButton>
+            <EditorialButton
               type="button"
+              variant="primary"
               onClick={() => void onDeleteProject()}
               disabled={busy}
-              className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-accent-red bg-accent-red text-paper font-medium hover:bg-[#B91C1C] hover:border-[#B91C1C] transition-colors disabled:opacity-50 disabled:pointer-events-none"
             >
               Delete project
-            </button>
+            </EditorialButton>
           </div>
         </div>
       </EditorialSection>
