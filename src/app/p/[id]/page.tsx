@@ -7,8 +7,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { EditorialLabel } from "@/components/editorial";
 
 export default function ProjectShareRedirectPage() {
   const params = useParams();
@@ -36,30 +35,34 @@ export default function ProjectShareRedirectPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-lg">Link not available</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">{error}</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center p-5 bg-paper text-ink">
+        <div className="w-full max-w-[900px] border-l-4 border-accent-red pl-6 py-2">
+          <EditorialLabel accent>Link Error</EditorialLabel>
+          <h1 className="mt-2 font-serif font-bold tracking-headline text-headline-xs leading-tight">
+            Link not available
+          </h1>
+          <p className="mt-3 text-body text-ink-soft">{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-lg">Starting survey...</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Skeleton className="h-4 w-2/3" />
-          <Skeleton className="h-10 w-full" />
-        </CardContent>
-      </Card>
+    <div className="min-h-screen flex items-center justify-center p-5 bg-paper text-ink">
+      <div className="w-full max-w-[900px] border-l-4 border-ink pl-6 py-2">
+        <EditorialLabel>Feedback Survey</EditorialLabel>
+        <h1 className="mt-2 font-serif font-bold tracking-headline text-headline-xs leading-tight">
+          Starting survey…
+        </h1>
+        <div className="mt-3 flex items-center gap-3 text-body text-ink-soft" role="status">
+          <span className="inline-flex items-center gap-1" aria-hidden="true">
+            <span className="h-1.5 w-1.5 rounded-full bg-ink-soft animate-bounce [animation-delay:-0.32s]" />
+            <span className="h-1.5 w-1.5 rounded-full bg-ink-soft animate-bounce [animation-delay:-0.16s]" />
+            <span className="h-1.5 w-1.5 rounded-full bg-ink-soft animate-bounce" />
+          </span>
+          <span>Preparing your interview</span>
+        </div>
+      </div>
     </div>
   );
 }
