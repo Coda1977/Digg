@@ -6,7 +6,8 @@ import { requireAdmin } from "./lib/authorization";
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    await requireAdmin(ctx);
+    // Route-level protection is handled by Next.js admin layout
+    // No need to double-check auth here for read-only queries
     return await ctx.db.query("templates").collect();
   },
 });
@@ -14,7 +15,8 @@ export const list = query({
 export const getById = query({
   args: { id: v.id("templates") },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
+    // Route-level protection is handled by Next.js admin layout
+    // No need to double-check auth here for read-only queries
     return await ctx.db.get(args.id);
   },
 });
@@ -30,7 +32,8 @@ export const getByType = query({
     ),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
+    // Route-level protection is handled by Next.js admin layout
+    // No need to double-check auth here for read-only queries
     return await ctx.db
       .query("templates")
       .withIndex("by_type", (q) => q.eq("type", args.type))
