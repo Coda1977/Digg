@@ -17,6 +17,7 @@ import {
   EditorialSection,
   RuledDivider,
 } from "@/components/editorial";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 type Question = {
   id?: string;
@@ -31,7 +32,7 @@ type RelationshipOption = {
   tempId: string;
 };
 
-export default function EditTemplatePage({ params }: { params: { id: string } }) {
+function EditTemplatePage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const templateId = params.id as Id<"templates">;
   const template = useQuery(api.templates.getById, { id: templateId });
@@ -481,5 +482,13 @@ export default function EditTemplatePage({ params }: { params: { id: string } })
         </div>
       </EditorialSection>
     </div>
+  );
+}
+
+export default function EditTemplatePageWithErrorBoundary({ params }: { params: { id: string } }) {
+  return (
+    <ErrorBoundary>
+      <EditTemplatePage params={params} />
+    </ErrorBoundary>
   );
 }

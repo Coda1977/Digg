@@ -14,6 +14,7 @@ import {
   RuledDivider,
   EditorialButton,
 } from "@/components/editorial";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-export default function TemplatesPage() {
+function TemplatesPage() {
   const router = useRouter();
   const templates = useQuery(api.templates.list);
   const deleteTemplate = useMutation(api.templates.remove);
@@ -247,5 +248,13 @@ export default function TemplatesPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function TemplatesPageWithErrorBoundary() {
+  return (
+    <ErrorBoundary>
+      <TemplatesPage />
+    </ErrorBoundary>
   );
 }
