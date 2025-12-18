@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yonatan - Project Details - Digg Admin</title>
+    <style>
+        /* Editorial Design System */
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:wght@300;400;500;600&display=swap');
+        
+        :root {
+            --paper: #FAFAF8;
+            --ink: #0A0A0A;
+            --ink-soft: #52525B;
+            --ink-lighter: #A1A1AA;
+            --accent-red: #DC2626;
+            --accent-yellow: #FBBF24;
+            --space-xs: 40px;
+            --space-sm: 60px;
+            --space-md: 80px;
+            --space-lg: 120px;
+            --font-serif: 'Fraunces', serif;
+            --font-sans: 'Inter', sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+        
+        /* Header */
+        .header {
+            border-bottom: 3px solid var(--ink);
+            padding: 24px 0;
+            position: sticky;
+            top: 0;
+            background: var(--paper);
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+        
+        .header-link {
+            font-size: 15px;
+            text-decoration: none;
+            color: var(--ink);
+            transition: color 0.2s;
+        }
+        
+        .header-link:hover {
+            color: var(--accent-red);
+        }
+        
+        /* Typography */
+        .eyebrow {
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 12px;
+        }
+        
+        .headline-xl {
+            font-family: var(--font-serif);
+            font-size: 64px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+        
+        .headline-lg {
+            font-family: var(--font-serif);
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+        
+        .headline-md {
+            font-family: var(--font-serif);
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+        
+        .body-text {
+            font-size: 16px;
+            line-height: 1.65;
+            color: var(--ink-soft);
+        }
+        
+        /* Rules */
+        .rule-thick {
+            border: none;
+            border-top: 4px solid var(--ink);
+            margin: var(--space-md) 0;
+        }
+        
+        .rule-medium {
+            border: none;
+            border-top: 3px solid var(--ink);
+            margin: var(--space-sm) 0;
+        }
+        
+        .rule-thin {
+            border: none;
+            border-top: 1px solid var(--ink-lighter);
+            margin: 24px 0;
+        }
+        
+        /* Hero */
+        .hero {
+            padding: var(--space-lg) 0 var(--space-sm);
+        }
+        
+        .hero-meta {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            margin-top: 16px;
+        }
+        
+        .status-badge {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 6px 16px;
+            background: var(--accent-red);
+            color: var(--paper);
+        }
+        
+        .meta-text {
+            font-size: 15px;
+            color: var(--ink-soft);
+        }
+        
+        /* Button */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            font-size: 15px;
+            font-weight: 500;
+            text-decoration: none;
+            border: 3px solid var(--ink);
+            background: transparent;
+            color: var(--ink);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: var(--ink);
+            color: var(--paper);
+        }
+        
+        .btn-primary {
+            background: var(--accent-red);
+            color: white;
+            border-color: var(--accent-red);
+        }
+        
+        .btn-primary:hover {
+            background: #B91C1C;
+            border-color: #B91C1C;
+        }
+        
+        /* Actions Bar */
+        .actions-bar {
+            display: flex;
+            gap: 12px;
+            padding: var(--space-sm) 0;
+        }
+        
+        /* Share Link Section */
+        .share-section {
+            background: white;
+            border: 3px solid var(--ink);
+            padding: var(--space-sm);
+        }
+        
+        .share-content {
+            max-width: 800px;
+        }
+        
+        .link-display {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-top: 24px;
+        }
+        
+        .link-input {
+            flex: 1;
+            padding: 16px 20px;
+            font-family: var(--font-sans);
+            font-size: 15px;
+            border: 2px solid var(--ink-lighter);
+            background: var(--paper);
+            color: var(--ink-soft);
+        }
+        
+        /* Interviews Section */
+        .interviews-section {
+            padding: var(--space-md) 0;
+        }
+        
+        .section-header {
+            margin-bottom: var(--space-sm);
+        }
+        
+        .section-intro {
+            max-width: 800px;
+            margin-bottom: var(--space-sm);
+        }
+        
+        /* Interview Cards */
+        .interview-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 32px;
+            border-left: 4px solid var(--ink);
+            margin-bottom: 24px;
+            transition: border-color 0.2s;
+        }
+        
+        .interview-card:hover {
+            border-color: var(--accent-red);
+        }
+        
+        .interview-info {
+            flex: 1;
+        }
+        
+        .interview-status {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 8px;
+        }
+        
+        .interview-status.completed {
+            color: var(--accent-red);
+        }
+        
+        .interview-name {
+            font-family: var(--font-serif);
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+        
+        .interview-meta {
+            font-size: 14px;
+            color: var(--ink-soft);
+        }
+        
+        .interview-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn-sm {
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+        
+        /* Project Actions */
+        .danger-zone {
+            padding: var(--space-md) 0;
+            border-top: 3px solid var(--accent-red);
+        }
+        
+        .danger-content {
+            max-width: 800px;
+        }
+        
+        .danger-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+        
+        .btn-outline {
+            border: 3px solid var(--ink);
+            background: transparent;
+            color: var(--ink);
+        }
+        
+        .btn-danger {
+            border: 3px solid var(--accent-red);
+            background: transparent;
+            color: var(--accent-red);
+        }
+        
+        .btn-danger:hover {
+            background: var(--accent-red);
+            color: white;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-lg);
+            border: 2px dashed var(--ink-lighter);
+        }
+        
+        .empty-state .headline-md {
+            margin-bottom: 16px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+            
+            .headline-xl {
+                font-size: 40px;
+            }
+            
+            .headline-lg {
+                font-size: 32px;
+            }
+            
+            .actions-bar {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .link-display {
+                flex-direction: column;
+            }
+            
+            .interview-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+            
+            .interview-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+            
+            .danger-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">DIGG ADMIN</div>
+                <nav class="header-nav">
+                    <a href="#" class="header-link">Dashboard</a>
+                    <a href="#" class="header-link">Sign out</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="eyebrow">Project Details</div>
+            <h1 class="headline-xl">Yonatan</h1>
+            <div class="hero-meta">
+                <span class="status-badge">Active</span>
+                <span class="meta-text">Yonatan Primes · Consultant · Personal 360 Feedback</span>
+            </div>
+        </div>
+    </section>
+
+    <hr class="rule-thick">
+
+    <!-- Actions -->
+    <section class="actions-bar">
+        <div class="container">
+            <div style="display: flex; gap: 12px;">
+                <a href="#" class="btn btn-primary">Interviews & analysis</a>
+                <a href="#" class="btn">Back</a>
+            </div>
+        </div>
+    </section>
+
+    <hr class="rule-medium">
+
+    <!-- Share Link -->
+    <section class="share-section">
+        <div class="container">
+            <div class="share-content">
+                <h2 class="headline-md">Share link (send to everyone)</h2>
+                <p class="body-text">This is the one link you share. Each person who opens it gets their own private interview so answers don't mix.</p>
+                
+                <div class="link-display">
+                    <input 
+                        type="text" 
+                        class="link-input" 
+                        value="https://digg-teal.vercel.app/p/k17dz96h2dgvsm5rke25af54rh7xcbzn"
+                        readonly
+                    >
+                    <button class="btn">Copy</button>
+                    <button class="btn">Open</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="rule-thick">
+
+    <!-- Interviews -->
+    <section class="interviews-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="eyebrow">Survey Responses</div>
+                <h2 class="headline-lg">Interviews</h2>
+            </div>
+            
+            <div class="section-intro">
+                <p class="body-text">Each interview is one person's response. Use the links below to resend a specific interview link or open transcripts.</p>
+                <p class="body-text" style="margin-top: 16px;">Optional: create an individual invite link (useful for reminders).</p>
+                <button class="btn" style="margin-top: 24px;">Create invite link</button>
+            </div>
+
+            <!-- Interview Card 1 -->
+            <article class="interview-card">
+                <div class="interview-info">
+                    <div class="interview-status">in_progress</div>
+                    <h3 class="interview-name">שימי</h3>
+                    <p class="interview-meta">Relationship: Direct Manager | /survey/rGpkKFxHOu</p>
+                </div>
+                <div class="interview-actions">
+                    <button class="btn btn-sm">Copy interview link</button>
+                    <button class="btn btn-sm">Open</button>
+                    <button class="btn btn-sm">Transcript</button>
+                </div>
+            </article>
+
+            <!-- Interview Card 2 -->
+            <article class="interview-card">
+                <div class="interview-info">
+                    <div class="interview-status">in_progress</div>
+                    <h3 class="interview-name">יוני</h3>
+                    <p class="interview-meta">Relationship: Direct Report | /survey/5PN-Z47TVY</p>
+                </div>
+                <div class="interview-actions">
+                    <button class="btn btn-sm">Copy interview link</button>
+                    <button class="btn btn-sm">Open</button>
+                    <button class="btn btn-sm">Transcript</button>
+                </div>
+            </article>
+
+            <!-- Interview Card 3 -->
+            <article class="interview-card">
+                <div class="interview-info">
+                    <div class="interview-status completed">completed</div>
+                    <h3 class="interview-name">YP</h3>
+                    <p class="interview-meta">Relationship: Other | /survey/9qf35lhzjB</p>
+                </div>
+                <div class="interview-actions">
+                    <button class="btn btn-sm">Copy interview link</button>
+                    <button class="btn btn-sm">Open</button>
+                    <button class="btn btn-sm btn-primary">Transcript</button>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <hr class="rule-thick">
+
+    <!-- Danger Zone -->
+    <section class="danger-zone">
+        <div class="container">
+            <div class="danger-content">
+                <div class="eyebrow" style="color: var(--accent-red);">Project Actions</div>
+                <h2 class="headline-md">Close or Delete Project</h2>
+                <p class="body-text">Close the project to stop new interviews. Delete removes everything.</p>
+                
+                <div class="danger-buttons">
+                    <button class="btn btn-outline">Close project</button>
+                    <button class="btn btn-danger">Delete project</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Space -->
+    <div style="height: 80px;"></div>
+
+    <script>
+        // Copy link functionality
+        document.querySelector('.link-display .btn').addEventListener('click', function() {
+            const input = document.querySelector('.link-input');
+            input.select();
+            document.execCommand('copy');
+            
+            const originalText = this.textContent;
+            this.textContent = 'Copied!';
+            setTimeout(() => {
+                this.textContent = originalText;
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

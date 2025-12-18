@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Project - Digg Admin</title>
+    <style>
+        /* Editorial Design System */
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:wght@300;400;500;600&display=swap');
+        
+        :root {
+            --paper: #FAFAF8;
+            --ink: #0A0A0A;
+            --ink-soft: #52525B;
+            --ink-lighter: #A1A1AA;
+            --accent-red: #DC2626;
+            --accent-yellow: #FBBF24;
+            --space-xs: 40px;
+            --space-sm: 60px;
+            --space-md: 80px;
+            --space-lg: 120px;
+            --font-serif: 'Fraunces', serif;
+            --font-sans: 'Inter', sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+        
+        /* Header */
+        .header {
+            border-bottom: 3px solid var(--ink);
+            padding: 24px 0;
+            position: sticky;
+            top: 0;
+            background: var(--paper);
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+        
+        .header-link {
+            font-size: 15px;
+            text-decoration: none;
+            color: var(--ink);
+            transition: color 0.2s;
+        }
+        
+        .header-link:hover {
+            color: var(--accent-red);
+        }
+        
+        /* Typography */
+        .eyebrow {
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 12px;
+        }
+        
+        .headline-xl {
+            font-family: var(--font-serif);
+            font-size: 64px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+        
+        .headline-md {
+            font-family: var(--font-serif);
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        
+        .body-text {
+            font-size: 16px;
+            line-height: 1.75;
+            color: var(--ink-soft);
+        }
+        
+        /* Rules */
+        .rule-thick {
+            border: none;
+            border-top: 4px solid var(--ink);
+            margin: var(--space-md) 0;
+        }
+        
+        .rule-medium {
+            border: none;
+            border-top: 3px solid var(--ink);
+            margin: var(--space-sm) 0;
+        }
+        
+        /* Hero */
+        .hero {
+            padding: var(--space-lg) 0 var(--space-sm);
+        }
+        
+        /* Form */
+        .form-section {
+            padding: var(--space-md) 0;
+        }
+        
+        .form-group {
+            margin-bottom: var(--space-sm);
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 12px;
+        }
+        
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 20px;
+            font-family: var(--font-sans);
+            font-size: 16px;
+            border: 3px solid var(--ink);
+            background: var(--paper);
+            color: var(--ink);
+        }
+        
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent-red);
+        }
+        
+        .form-input::placeholder {
+            color: var(--ink-lighter);
+        }
+        
+        .form-hint {
+            font-size: 14px;
+            color: var(--ink-soft);
+            margin-top: 12px;
+            line-height: 1.6;
+        }
+        
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%230A0A0A' stroke-width='2'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 20px center;
+            cursor: pointer;
+        }
+        
+        /* Template Card */
+        .template-cards {
+            display: grid;
+            gap: 24px;
+        }
+        
+        .template-card {
+            border-left: 4px solid var(--ink-lighter);
+            padding: 32px;
+            transition: border-color 0.2s;
+            cursor: pointer;
+        }
+        
+        .template-card:hover {
+            border-color: var(--ink);
+        }
+        
+        .template-card.selected {
+            border-color: var(--accent-red);
+            background: white;
+        }
+        
+        .template-header {
+            display: flex;
+            align-items: start;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .template-radio {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--ink);
+            border-radius: 50%;
+            margin-top: 4px;
+            position: relative;
+        }
+        
+        .template-card.selected .template-radio::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            background: var(--accent-red);
+            border-radius: 50%;
+        }
+        
+        .template-info {
+            flex: 1;
+        }
+        
+        .template-name {
+            font-family: var(--font-serif);
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 8px;
+        }
+        
+        .template-description {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--ink-soft);
+        }
+        
+        /* Buttons */
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            padding: var(--space-sm) 0;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 32px;
+            font-family: var(--font-sans);
+            font-size: 15px;
+            font-weight: 500;
+            text-decoration: none;
+            border: 3px solid var(--ink);
+            background: transparent;
+            color: var(--ink);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: var(--ink);
+            color: var(--paper);
+        }
+        
+        .btn-primary {
+            background: var(--accent-red);
+            color: white;
+            border-color: var(--accent-red);
+        }
+        
+        .btn-primary:hover {
+            background: #B91C1C;
+            border-color: #B91C1C;
+        }
+        
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .btn:disabled:hover {
+            background: transparent;
+            color: var(--ink);
+            border-color: var(--ink);
+        }
+        
+        .btn-primary:disabled:hover {
+            background: var(--accent-red);
+            color: white;
+            border-color: var(--accent-red);
+        }
+        
+        /* Seed Link */
+        .seed-link {
+            text-align: center;
+            padding: var(--space-sm) 0;
+        }
+        
+        .seed-link a {
+            font-size: 15px;
+            color: var(--ink-soft);
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+        
+        .seed-link a:hover {
+            border-color: var(--ink-soft);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container,
+            .header-content {
+                padding: 0 20px;
+            }
+            
+            .headline-xl {
+                font-size: 40px;
+            }
+            
+            .form-actions {
+                flex-direction: column-reverse;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">DIGG ADMIN</div>
+            <nav class="header-nav">
+                <a href="#" class="header-link">Dashboard</a>
+                <a href="#" class="header-link">Sign out</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="eyebrow">New Project</div>
+            <h1 class="headline-xl">Create Project</h1>
+            <p class="body-text">Set up a new feedback collection project. Choose a template and provide details about the person being reviewed.</p>
+        </div>
+    </section>
+
+    <hr class="rule-thick">
+
+    <!-- Form -->
+    <form class="form-section">
+        <div class="container">
+            <!-- Subject Name -->
+            <div class="form-group">
+                <label class="form-label" for="subjectName">Subject Name</label>
+                <input 
+                    type="text" 
+                    id="subjectName" 
+                    class="form-input"
+                    placeholder="e.g., Sarah Chen"
+                    required
+                >
+                <p class="form-hint">The person who will receive feedback</p>
+            </div>
+
+            <hr class="rule-medium">
+
+            <!-- Subject Role -->
+            <div class="form-group">
+                <label class="form-label" for="subjectRole">Subject Role</label>
+                <input 
+                    type="text" 
+                    id="subjectRole" 
+                    class="form-input"
+                    placeholder="e.g., Senior Product Manager"
+                    required
+                >
+                <p class="form-hint">Their job title or position</p>
+            </div>
+
+            <hr class="rule-medium">
+
+            <!-- Template Selection -->
+            <div class="form-group">
+                <label class="form-label">Choose Template</label>
+                <p class="form-hint" style="margin-top: 0; margin-bottom: 32px;">Select the feedback protocol that best fits your needs</p>
+                
+                <div class="template-cards">
+                    <!-- Template 1 -->
+                    <div class="template-card selected" data-template="personal-360">
+                        <div class="template-header">
+                            <div class="template-radio"></div>
+                            <div class="template-info">
+                                <h3 class="template-name">Personal 360 Feedback</h3>
+                                <p class="template-description">
+                                    Comprehensive 360-degree review collecting feedback from managers, peers, and direct reports on performance, collaboration, and growth areas.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Template 2 -->
+                    <div class="template-card" data-template="manager-effectiveness">
+                        <div class="template-header">
+                            <div class="template-radio"></div>
+                            <div class="template-info">
+                                <h3 class="template-name">Manager Effectiveness</h3>
+                                <p class="template-description">
+                                    Focused assessment of leadership capabilities, team management, decision-making, and ability to develop direct reports.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Template 3 -->
+                    <div class="template-card" data-template="team-collaboration">
+                        <div class="template-header">
+                            <div class="template-radio"></div>
+                            <div class="template-info">
+                                <h3 class="template-name">Team Collaboration Assessment</h3>
+                                <p class="template-description">
+                                    Evaluates communication patterns, cross-functional effectiveness, conflict resolution, and contribution to team culture.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Template 4 -->
+                    <div class="template-card" data-template="leadership-review">
+                        <div class="template-header">
+                            <div class="template-radio"></div>
+                            <div class="template-info">
+                                <h3 class="template-name">Executive Leadership Review</h3>
+                                <p class="template-description">
+                                    In-depth evaluation of strategic vision, organizational impact, stakeholder management, and executive presence.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <hr class="rule-thick">
+
+    <!-- Actions -->
+    <section class="form-actions">
+        <div class="container">
+            <div style="display: flex; gap: 12px;">
+                <a href="#" class="btn">Cancel</a>
+                <button type="submit" class="btn btn-primary">Create Project</button>
+            </div>
+        </div>
+    </section>
+
+    <hr class="rule-medium">
+
+    <!-- Seed Templates Link -->
+    <section class="seed-link">
+        <div class="container">
+            <p class="body-text">
+                First time here? <a href="#">Seed default templates</a>
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer Space -->
+    <div style="height: 80px;"></div>
+
+    <script>
+        // Template selection
+        const templateCards = document.querySelectorAll('.template-card');
+        let selectedTemplate = 'personal-360';
+        
+        templateCards.forEach(card => {
+            card.addEventListener('click', () => {
+                // Remove selected class from all cards
+                templateCards.forEach(c => c.classList.remove('selected'));
+                
+                // Add selected class to clicked card
+                card.classList.add('selected');
+                selectedTemplate = card.dataset.template;
+            });
+        });
+        
+        // Form submission
+        document.querySelector('form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const subjectName = document.getElementById('subjectName').value;
+            const subjectRole = document.getElementById('subjectRole').value;
+            
+            console.log('Creating project:', {
+                subjectName,
+                subjectRole,
+                template: selectedTemplate
+            });
+            
+            // In real app, this would submit to API
+            alert(`Project created!\n\nSubject: ${subjectName}\nRole: ${subjectRole}\nTemplate: ${selectedTemplate}`);
+        });
+    </script>
+</body>
+</html>

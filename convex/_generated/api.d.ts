@@ -11,6 +11,7 @@
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
 import type * as lib_authorization from "../lib/authorization.js";
+import type * as lib_email from "../lib/email.js";
 import type * as messages from "../messages.js";
 import type * as projects from "../projects.js";
 import type * as seed from "../seed.js";
@@ -27,6 +28,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   http: typeof http;
   "lib/authorization": typeof lib_authorization;
+  "lib/email": typeof lib_email;
   messages: typeof messages;
   projects: typeof projects;
   seed: typeof seed;

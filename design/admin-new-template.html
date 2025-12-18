@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Template - Digg Admin</title>
+    <style>
+        /* Editorial Design System */
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:wght@300;400;500;600&display=swap');
+        
+        :root {
+            --paper: #FAFAF8;
+            --ink: #0A0A0A;
+            --ink-soft: #52525B;
+            --ink-lighter: #A1A1AA;
+            --accent-red: #DC2626;
+            --accent-yellow: #FBBF24;
+            --space-xs: 40px;
+            --space-sm: 60px;
+            --space-md: 80px;
+            --space-lg: 120px;
+            --font-serif: 'Fraunces', serif;
+            --font-sans: 'Inter', sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+        
+        /* Header */
+        .header {
+            border-bottom: 3px solid var(--ink);
+            padding: 24px 0;
+            position: sticky;
+            top: 0;
+            background: var(--paper);
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+        
+        .header-link {
+            font-size: 15px;
+            text-decoration: none;
+            color: var(--ink);
+            transition: color 0.2s;
+        }
+        
+        .header-link:hover {
+            color: var(--accent-red);
+        }
+        
+        /* Typography */
+        .eyebrow {
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 12px;
+        }
+        
+        .headline-xl {
+            font-family: var(--font-serif);
+            font-size: 64px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+        
+        .headline-md {
+            font-family: var(--font-serif);
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        
+        .body-text {
+            font-size: 16px;
+            line-height: 1.75;
+            color: var(--ink-soft);
+        }
+        
+        /* Rules */
+        .rule-thick {
+            border: none;
+            border-top: 4px solid var(--ink);
+            margin: var(--space-md) 0;
+        }
+        
+        .rule-medium {
+            border: none;
+            border-top: 3px solid var(--ink);
+            margin: var(--space-sm) 0;
+        }
+        
+        .rule-thin {
+            border: none;
+            border-top: 1px solid var(--ink-lighter);
+            margin: 24px 0;
+        }
+        
+        /* Hero */
+        .hero {
+            padding: var(--space-lg) 0 var(--space-sm);
+        }
+        
+        /* Form */
+        .form-section {
+            padding: var(--space-md) 0;
+        }
+        
+        .form-group {
+            margin-bottom: var(--space-sm);
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 12px;
+        }
+        
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 20px;
+            font-family: var(--font-sans);
+            font-size: 16px;
+            border: 3px solid var(--ink);
+            background: var(--paper);
+            color: var(--ink);
+        }
+        
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-red);
+        }
+        
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: var(--ink-lighter);
+        }
+        
+        .form-hint {
+            font-size: 14px;
+            color: var(--ink-soft);
+            margin-top: 12px;
+            line-height: 1.6;
+        }
+        
+        /* Question Builder */
+        .questions-list {
+            margin-top: 32px;
+        }
+        
+        .question-item {
+            border-left: 4px solid var(--ink);
+            padding: 24px;
+            margin-bottom: 24px;
+            background: white;
+        }
+        
+        .question-header {
+            display: flex;
+            gap: 16px;
+            align-items: start;
+            margin-bottom: 16px;
+        }
+        
+        .question-number {
+            font-family: var(--font-serif);
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--ink-soft);
+            flex-shrink: 0;
+        }
+        
+        .question-input-group {
+            flex: 1;
+        }
+        
+        .question-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        
+        .checkbox-input {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--ink);
+            cursor: pointer;
+        }
+        
+        .checkbox-label {
+            font-size: 14px;
+            color: var(--ink-soft);
+            cursor: pointer;
+        }
+        
+        /* Relationship Options */
+        .relationship-item {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            padding: 16px;
+            border: 2px solid var(--ink-lighter);
+            margin-bottom: 12px;
+        }
+        
+        .relationship-input {
+            flex: 1;
+            padding: 12px 16px;
+            font-size: 15px;
+            border: 2px solid var(--ink-lighter);
+            background: var(--paper);
+        }
+        
+        .relationship-input:focus {
+            outline: none;
+            border-color: var(--ink);
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            font-family: var(--font-sans);
+            font-size: 15px;
+            font-weight: 500;
+            text-decoration: none;
+            border: 3px solid var(--ink);
+            background: transparent;
+            color: var(--ink);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: var(--ink);
+            color: var(--paper);
+        }
+        
+        .btn-primary {
+            background: var(--accent-red);
+            color: white;
+            border-color: var(--accent-red);
+        }
+        
+        .btn-primary:hover {
+            background: #B91C1C;
+            border-color: #B91C1C;
+        }
+        
+        .btn-sm {
+            padding: 10px 20px;
+            font-size: 14px;
+            border-width: 2px;
+        }
+        
+        .btn-danger {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+        
+        .btn-danger:hover {
+            background: var(--accent-red);
+            color: white;
+        }
+        
+        .add-btn {
+            margin-top: 24px;
+        }
+        
+        /* Form Actions */
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            padding: var(--space-sm) 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container,
+            .header-content {
+                padding: 0 20px;
+            }
+            
+            .headline-xl {
+                font-size: 40px;
+            }
+            
+            .question-header {
+                flex-direction: column;
+            }
+            
+            .question-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .relationship-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .form-actions {
+                flex-direction: column-reverse;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">DIGG ADMIN</div>
+            <nav class="header-nav">
+                <a href="#" class="header-link">Dashboard</a>
+                <a href="#" class="header-link">Sign out</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="eyebrow">Template Builder</div>
+            <h1 class="headline-xl">Create Custom Template</h1>
+            <p class="body-text">Design your own feedback interview protocol with custom questions, relationship types, and AI instructions.</p>
+        </div>
+    </section>
+
+    <hr class="rule-thick">
+
+    <!-- Form -->
+    <form class="form-section" id="templateForm">
+        <div class="container">
+            <!-- Template Name -->
+            <div class="form-group">
+                <label class="form-label" for="templateName">Template Name</label>
+                <input 
+                    type="text" 
+                    id="templateName" 
+                    class="form-input"
+                    placeholder="e.g., Sales Performance Review"
+                    required
+                >
+                <p class="form-hint">A clear, descriptive name for this feedback protocol</p>
+            </div>
+
+            <hr class="rule-medium">
+
+            <!-- Template Description -->
+            <div class="form-group">
+                <label class="form-label" for="templateDescription">Template Description</label>
+                <textarea 
+                    id="templateDescription" 
+                    class="form-textarea"
+                    placeholder="Describe the purpose and use case for this template..."
+                    required
+                ></textarea>
+                <p class="form-hint">Explain when and how this template should be used</p>
+            </div>
+
+            <hr class="rule-thick">
+
+            <!-- Questions Builder -->
+            <div class="form-group">
+                <div class="eyebrow">Interview Questions</div>
+                <h2 class="headline-md">Build Question Set</h2>
+                <p class="form-hint">Create the questions the AI will ask during interviews</p>
+                
+                <div class="questions-list" id="questionsList">
+                    <!-- Question 1 (initial) -->
+                    <div class="question-item" data-question-id="1">
+                        <div class="question-header">
+                            <span class="question-number">1</span>
+                            <div class="question-input-group">
+                                <input 
+                                    type="text" 
+                                    class="form-input question-text"
+                                    placeholder="Enter question text..."
+                                    required
+                                >
+                            </div>
+                            <div class="question-controls">
+                                <button type="button" class="btn btn-sm btn-danger remove-question">Remove</button>
+                            </div>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" class="checkbox-input collect-multiple" id="collect-1">
+                            <label for="collect-1" class="checkbox-label">Collect multiple responses for this question</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="button" class="btn add-btn" id="addQuestion">
+                    <span>+</span> Add Question
+                </button>
+            </div>
+
+            <hr class="rule-thick">
+
+            <!-- Relationship Types -->
+            <div class="form-group">
+                <div class="eyebrow">Relationship Options</div>
+                <h2 class="headline-md">Define Relationships</h2>
+                <p class="form-hint">Specify the types of relationships respondents can select from</p>
+                
+                <div id="relationshipsList">
+                    <!-- Relationship 1 (initial) -->
+                    <div class="relationship-item" data-relationship-id="1">
+                        <input 
+                            type="text" 
+                            class="relationship-input"
+                            placeholder="e.g., Direct Manager"
+                            required
+                        >
+                        <button type="button" class="btn btn-sm btn-danger remove-relationship">Remove</button>
+                    </div>
+                </div>
+                
+                <button type="button" class="btn add-btn" id="addRelationship">
+                    <span>+</span> Add Relationship Type
+                </button>
+            </div>
+
+            <hr class="rule-thick">
+
+            <!-- AI System Prompt -->
+            <div class="form-group">
+                <div class="eyebrow">AI Configuration</div>
+                <h2 class="headline-md">System Prompt</h2>
+                <p class="form-hint">Instructions for how the AI should conduct interviews</p>
+                
+                <textarea 
+                    id="systemPrompt" 
+                    class="form-textarea"
+                    style="min-height: 200px;"
+                    placeholder="You are conducting a feedback interview. Be empathetic, ask follow-up questions, and encourage specific examples..."
+                    required
+                >You are conducting a professional feedback interview. Your role is to:
+
+1. Ask questions warmly and conversationally
+2. Listen actively and ask relevant follow-up questions
+3. Encourage specific examples and concrete details
+4. Maintain a supportive, non-judgmental tone
+5. Guide the conversation naturally through all questions
+6. Keep responses concise and focused
+
+Remember: You're gathering authentic feedback to help someone grow.</textarea>
+                <p class="form-hint">This guides the AI's interviewing style and behavior</p>
+            </div>
+        </div>
+    </form>
+
+    <hr class="rule-thick">
+
+    <!-- Actions -->
+    <section class="form-actions">
+        <div class="container">
+            <div style="display: flex; gap: 12px;">
+                <a href="#" class="btn">Cancel</a>
+                <button type="submit" form="templateForm" class="btn btn-primary">Create Template</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Space -->
+    <div style="height: 80px;"></div>
+
+    <script>
+        let questionCount = 1;
+        let relationshipCount = 1;
+
+        // Add Question
+        document.getElementById('addQuestion').addEventListener('click', () => {
+            questionCount++;
+            const questionsList = document.getElementById('questionsList');
+            const newQuestion = document.createElement('div');
+            newQuestion.className = 'question-item';
+            newQuestion.dataset.questionId = questionCount;
+            newQuestion.innerHTML = `
+                <div class="question-header">
+                    <span class="question-number">${questionCount}</span>
+                    <div class="question-input-group">
+                        <input 
+                            type="text" 
+                            class="form-input question-text"
+                            placeholder="Enter question text..."
+                            required
+                        >
+                    </div>
+                    <div class="question-controls">
+                        <button type="button" class="btn btn-sm btn-danger remove-question">Remove</button>
+                    </div>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" class="checkbox-input collect-multiple" id="collect-${questionCount}">
+                    <label for="collect-${questionCount}" class="checkbox-label">Collect multiple responses for this question</label>
+                </div>
+            `;
+            questionsList.appendChild(newQuestion);
+        });
+
+        // Remove Question
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-question')) {
+                const questionItem = e.target.closest('.question-item');
+                if (document.querySelectorAll('.question-item').length > 1) {
+                    questionItem.remove();
+                    renumberQuestions();
+                } else {
+                    alert('You must have at least one question.');
+                }
+            }
+        });
+
+        function renumberQuestions() {
+            const questions = document.querySelectorAll('.question-item');
+            questions.forEach((q, index) => {
+                q.querySelector('.question-number').textContent = index + 1;
+            });
+        }
+
+        // Add Relationship
+        document.getElementById('addRelationship').addEventListener('click', () => {
+            relationshipCount++;
+            const relationshipsList = document.getElementById('relationshipsList');
+            const newRelationship = document.createElement('div');
+            newRelationship.className = 'relationship-item';
+            newRelationship.dataset.relationshipId = relationshipCount;
+            newRelationship.innerHTML = `
+                <input 
+                    type="text" 
+                    class="relationship-input"
+                    placeholder="e.g., Direct Manager"
+                    required
+                >
+                <button type="button" class="btn btn-sm btn-danger remove-relationship">Remove</button>
+            `;
+            relationshipsList.appendChild(newRelationship);
+        });
+
+        // Remove Relationship
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-relationship')) {
+                const relationshipItem = e.target.closest('.relationship-item');
+                if (document.querySelectorAll('.relationship-item').length > 1) {
+                    relationshipItem.remove();
+                } else {
+                    alert('You must have at least one relationship type.');
+                }
+            }
+        });
+
+        // Form Submission
+        document.getElementById('templateForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Collect form data
+            const templateData = {
+                name: document.getElementById('templateName').value,
+                description: document.getElementById('templateDescription').value,
+                systemPrompt: document.getElementById('systemPrompt').value,
+                questions: [],
+                relationships: []
+            };
+            
+            // Collect questions
+            document.querySelectorAll('.question-item').forEach((item, index) => {
+                const text = item.querySelector('.question-text').value;
+                const collectMultiple = item.querySelector('.collect-multiple').checked;
+                templateData.questions.push({
+                    id: `q${index + 1}`,
+                    text,
+                    collectMultiple,
+                    order: index + 1
+                });
+            });
+            
+            // Collect relationships
+            document.querySelectorAll('.relationship-item').forEach((item, index) => {
+                const label = item.querySelector('.relationship-input').value;
+                if (label.trim()) {
+                    templateData.relationships.push({
+                        id: `r${index + 1}`,
+                        label
+                    });
+                }
+            });
+            
+            console.log('Creating template:', templateData);
+            
+            // In real app, this would submit to API
+            alert('Template created successfully!\n\n' + JSON.stringify(templateData, null, 2));
+        });
+    </script>
+</body>
+</html>

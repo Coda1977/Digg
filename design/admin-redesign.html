@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Digg Admin</title>
+    <style>
+        /* Editorial Design System for Digg */
+        
+        /* Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:wght@300;400;500;600&display=swap');
+        
+        :root {
+            /* Paper + Ink Base */
+            --paper: #FAFAF8;
+            --ink: #0A0A0A;
+            --ink-soft: #52525B;
+            --ink-lighter: #A1A1AA;
+            
+            /* Rare Loud Accents */
+            --accent-red: #DC2626;
+            --accent-yellow: #FBBF24;
+            
+            /* Editorial Spacing */
+            --space-xs: 40px;
+            --space-sm: 60px;
+            --space-md: 80px;
+            --space-lg: 120px;
+            --space-xl: 160px;
+            
+            /* Typography */
+            --font-serif: 'Fraunces', serif;
+            --font-sans: 'Inter', sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+        
+        /* Header */
+        .header {
+            border-bottom: 3px solid var(--ink);
+            padding: 24px 0;
+            position: sticky;
+            top: 0;
+            background: var(--paper);
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-family: var(--font-sans);
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+        
+        .header-link {
+            font-size: 15px;
+            text-decoration: none;
+            color: var(--ink);
+            transition: color 0.2s;
+        }
+        
+        .header-link:hover {
+            color: var(--accent-red);
+        }
+        
+        /* Editorial Typography */
+        .eyebrow {
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 12px;
+        }
+        
+        .headline-xl {
+            font-family: var(--font-serif);
+            font-size: 64px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.02em;
+            margin-bottom: 16px;
+        }
+        
+        .headline-lg {
+            font-family: var(--font-serif);
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+        
+        .headline-md {
+            font-family: var(--font-serif);
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.01em;
+        }
+        
+        .body-text {
+            font-size: 16px;
+            line-height: 1.65;
+            color: var(--ink-soft);
+        }
+        
+        /* Graphic Rules */
+        .rule-thick {
+            border: none;
+            border-top: 4px solid var(--ink);
+            margin: var(--space-md) 0;
+        }
+        
+        .rule-medium {
+            border: none;
+            border-top: 3px solid var(--ink);
+            margin: var(--space-sm) 0;
+        }
+        
+        .rule-thin {
+            border: none;
+            border-top: 1px solid var(--ink-lighter);
+            margin: 24px 0;
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: var(--space-lg) 0;
+        }
+        
+        /* Stats Panel */
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 48px;
+            padding: var(--space-md) 0;
+        }
+        
+        .stat-item {
+            text-align: left;
+        }
+        
+        .stat-number {
+            font-family: var(--font-serif);
+            font-size: 72px;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--ink);
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--ink-soft);
+            letter-spacing: 0.02em;
+        }
+        
+        /* Actions Row */
+        .actions-row {
+            display: flex;
+            gap: 16px;
+            padding: var(--space-sm) 0;
+        }
+        
+        /* Buttons - Flat Editorial Style */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 32px;
+            font-family: var(--font-sans);
+            font-size: 15px;
+            font-weight: 500;
+            text-decoration: none;
+            border: 3px solid var(--ink);
+            background: transparent;
+            color: var(--ink);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: var(--ink);
+            color: var(--paper);
+        }
+        
+        .btn-primary {
+            background: var(--accent-red);
+            color: white;
+            border-color: var(--accent-red);
+        }
+        
+        .btn-primary:hover {
+            background: #B91C1C;
+            border-color: #B91C1C;
+        }
+        
+        /* Search & Filter Section */
+        .filter-section {
+            padding: var(--space-sm) 0;
+        }
+        
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 24px;
+            align-items: end;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 16px 20px;
+            font-family: var(--font-sans);
+            font-size: 16px;
+            border: 3px solid var(--ink);
+            background: var(--paper);
+            color: var(--ink);
+        }
+        
+        .search-input::placeholder {
+            color: var(--ink-lighter);
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .filter-tab {
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border: 2px solid var(--ink-lighter);
+            background: transparent;
+            color: var(--ink-soft);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filter-tab.active {
+            border-color: var(--ink);
+            background: var(--ink);
+            color: var(--paper);
+        }
+        
+        /* Projects Section */
+        .projects-section {
+            padding: var(--space-md) 0;
+        }
+        
+        .section-header {
+            margin-bottom: var(--space-sm);
+        }
+        
+        /* Editorial Card Pattern: Eyebrow → Headline → Description → Link */
+        .project-card {
+            border-left: 4px solid var(--ink);
+            padding: 32px;
+            margin-bottom: 40px;
+            transition: border-color 0.2s;
+        }
+        
+        .project-card:hover {
+            border-color: var(--accent-red);
+        }
+        
+        .project-eyebrow {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .status-badge {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            background: var(--ink);
+            color: var(--paper);
+        }
+        
+        .status-badge.active {
+            background: var(--accent-red);
+        }
+        
+        .project-title {
+            font-family: var(--font-serif);
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
+        
+        .project-meta {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: var(--ink-soft);
+        }
+        
+        .project-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .project-template {
+            font-size: 14px;
+            color: var(--ink-soft);
+            margin-bottom: 24px;
+            letter-spacing: 0.03em;
+        }
+        
+        .project-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            text-decoration: none;
+            color: var(--ink);
+            padding: 8px 0;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+        
+        .project-link:hover {
+            border-color: var(--ink);
+        }
+        
+        .arrow {
+            font-size: 18px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+            
+            .headline-xl {
+                font-size: 48px;
+            }
+            
+            .stats-panel {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+            
+            .stat-number {
+                font-size: 56px;
+            }
+            
+            .actions-row {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-tabs {
+                width: 100%;
+            }
+            
+            .filter-tab {
+                flex: 1;
+            }
+            
+            .project-title {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">DIGG ADMIN</div>
+                <nav class="header-nav">
+                    <a href="#" class="header-link">Dashboard</a>
+                    <a href="#" class="header-link">Sign out</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="eyebrow">Dashboard Overview</div>
+            <h1 class="headline-xl">Dashboard</h1>
+            <p class="body-text">Manage your feedback projects, create new surveys, and analyze insights.</p>
+        </div>
+    </section>
+
+    <hr class="rule-thick">
+
+    <!-- Stats -->
+    <section>
+        <div class="container">
+            <div class="stats-panel">
+                <div class="stat-item">
+                    <div class="stat-number">1</div>
+                    <div class="stat-label">Active Projects</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">Total Surveys</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">1</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="rule-thick">
+
+    <!-- Actions -->
+    <section class="actions-row">
+        <div class="container">
+            <div style="display: flex; gap: 16px;">
+                <button class="btn btn-primary">
+                    <span>+</span>
+                    New Project
+                </button>
+                <button class="btn">
+                    <span>+</span>
+                    New Template
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <hr class="rule-medium">
+
+    <!-- Search & Filter -->
+    <section class="filter-section">
+        <div class="container">
+            <div class="eyebrow">Filter Projects</div>
+            <div class="filter-grid">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    placeholder="Search by name, subject, or role..."
+                >
+                <div class="filter-tabs">
+                    <button class="filter-tab active">All</button>
+                    <button class="filter-tab">Active</button>
+                    <button class="filter-tab">Closed</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="rule-thick">
+
+    <!-- Projects -->
+    <section class="projects-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="eyebrow">Active Projects</div>
+                <h2 class="headline-lg">Recent Projects</h2>
+            </div>
+
+            <!-- Project Card -->
+            <article class="project-card">
+                <div class="project-eyebrow">
+                    <span class="status-badge active">Active</span>
+                    <span class="eyebrow" style="margin: 0;">Consultant</span>
+                </div>
+                
+                <h3 class="project-title">Yonatan Primes</h3>
+                
+                <div class="project-meta">
+                    <div class="project-meta-item">
+                        <span>✓</span>
+                        <span>1 completed</span>
+                    </div>
+                    <div class="project-meta-item">
+                        <span>○</span>
+                        <span>2 in progress</span>
+                    </div>
+                </div>
+                
+                <div class="project-template">
+                    Template: Personal 360 Feedback
+                </div>
+                
+                <a href="#" class="project-link">
+                    View Project
+                    <span class="arrow">→</span>
+                </a>
+            </article>
+
+            <!-- Add more project cards as needed -->
+        </div>
+    </section>
+
+    <hr class="rule-thick">
+
+    <!-- Footer Space -->
+    <div style="height: 80px;"></div>
+
+</body>
+</html>

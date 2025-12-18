@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis - Yonatan - Digg Admin</title>
+    <style>
+        /* Editorial Design System */
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:wght@300;400;500;600&display=swap');
+        
+        :root {
+            --paper: #FAFAF8;
+            --ink: #0A0A0A;
+            --ink-soft: #52525B;
+            --ink-lighter: #A1A1AA;
+            --accent-red: #DC2626;
+            --accent-yellow: #FBBF24;
+            --space-xs: 40px;
+            --space-sm: 60px;
+            --space-md: 80px;
+            --space-lg: 120px;
+            --font-serif: 'Fraunces', serif;
+            --font-sans: 'Inter', sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+        
+        /* Header */
+        .header {
+            border-bottom: 3px solid var(--ink);
+            padding: 24px 0;
+            position: sticky;
+            top: 0;
+            background: var(--paper);
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+        
+        .header-link {
+            font-size: 15px;
+            text-decoration: none;
+            color: var(--ink);
+            transition: color 0.2s;
+        }
+        
+        .header-link:hover {
+            color: var(--accent-red);
+        }
+        
+        /* Typography */
+        .eyebrow {
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 12px;
+        }
+        
+        .headline-xl {
+            font-family: var(--font-serif);
+            font-size: 64px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+        
+        .headline-lg {
+            font-family: var(--font-serif);
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+        
+        .headline-md {
+            font-family: var(--font-serif);
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+        }
+        
+        .headline-sm {
+            font-family: var(--font-serif);
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        
+        .body-text {
+            font-size: 16px;
+            line-height: 1.75;
+            color: var(--ink-soft);
+        }
+        
+        /* Rules */
+        .rule-thick {
+            border: none;
+            border-top: 4px solid var(--ink);
+            margin: var(--space-md) 0;
+        }
+        
+        .rule-medium {
+            border: none;
+            border-top: 3px solid var(--ink);
+            margin: var(--space-sm) 0;
+        }
+        
+        .rule-thin {
+            border: none;
+            border-top: 1px solid var(--ink-lighter);
+            margin: 32px 0;
+        }
+        
+        /* Hero */
+        .hero {
+            padding: var(--space-lg) 0 var(--space-sm);
+        }
+        
+        .breadcrumb {
+            font-size: 14px;
+            color: var(--ink-soft);
+            margin-bottom: 16px;
+        }
+        
+        .breadcrumb a {
+            color: var(--ink-soft);
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            color: var(--accent-red);
+        }
+        
+        .stats-summary {
+            margin-top: 24px;
+            font-size: 15px;
+            color: var(--ink-soft);
+        }
+        
+        /* Button */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            font-size: 15px;
+            font-weight: 500;
+            text-decoration: none;
+            border: 3px solid var(--ink);
+            background: transparent;
+            color: var(--ink);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: var(--ink);
+            color: var(--paper);
+        }
+        
+        .btn-primary {
+            background: var(--accent-red);
+            color: white;
+            border-color: var(--accent-red);
+        }
+        
+        .btn-primary:hover {
+            background: #B91C1C;
+            border-color: #B91C1C;
+        }
+        
+        /* Project Insights Panel */
+        .insights-panel {
+            background: white;
+            border: 3px solid var(--ink);
+            padding: var(--space-md);
+        }
+        
+        .insights-header {
+            margin-bottom: var(--space-sm);
+        }
+        
+        .insights-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: var(--space-md);
+            border: 2px dashed var(--ink-lighter);
+        }
+        
+        /* Tabs */
+        .tabs-container {
+            padding: var(--space-md) 0;
+        }
+        
+        .tabs-nav {
+            display: flex;
+            gap: 8px;
+            border-bottom: 3px solid var(--ink);
+            padding-bottom: 0;
+            overflow-x: auto;
+        }
+        
+        .tab-button {
+            padding: 16px 32px;
+            font-family: var(--font-sans);
+            font-size: 15px;
+            font-weight: 500;
+            background: transparent;
+            border: none;
+            color: var(--ink-soft);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 4px solid transparent;
+            margin-bottom: -3px;
+            white-space: nowrap;
+        }
+        
+        .tab-button:hover {
+            color: var(--ink);
+        }
+        
+        .tab-button.active {
+            color: var(--ink);
+            border-bottom-color: var(--accent-red);
+        }
+        
+        .tab-count {
+            font-size: 13px;
+            color: var(--ink-lighter);
+        }
+        
+        .tab-content {
+            display: none;
+            padding-top: var(--space-sm);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Interview Cards in Analysis */
+        .interviews-grid {
+            display: grid;
+            gap: 32px;
+        }
+        
+        .interview-card {
+            border-left: 4px solid var(--ink);
+            padding: 32px;
+            transition: border-color 0.2s;
+        }
+        
+        .interview-card:hover {
+            border-color: var(--accent-red);
+        }
+        
+        .interview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 24px;
+        }
+        
+        .interview-title {
+            font-family: var(--font-serif);
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+        
+        .interview-meta {
+            font-size: 14px;
+            color: var(--ink-soft);
+        }
+        
+        .summary-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 12px;
+        }
+        
+        .summary-text {
+            font-size: 16px;
+            line-height: 1.75;
+            color: var(--ink);
+            margin-bottom: 24px;
+        }
+        
+        .interview-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn-sm {
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+        
+        /* Segment Analysis */
+        .segment-intro {
+            max-width: 800px;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .analysis-content {
+            background: white;
+            border: 3px solid var(--ink);
+            padding: var(--space-md);
+            margin-bottom: var(--space-sm);
+        }
+        
+        .analysis-section {
+            margin-bottom: var(--space-sm);
+        }
+        
+        .analysis-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .section-title {
+            font-family: var(--font-serif);
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 16px;
+        }
+        
+        .section-body {
+            font-size: 16px;
+            line-height: 1.75;
+            color: var(--ink);
+        }
+        
+        .section-body p {
+            margin-bottom: 16px;
+        }
+        
+        .section-body p:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+            
+            .headline-xl {
+                font-size: 40px;
+            }
+            
+            .headline-lg {
+                font-size: 32px;
+            }
+            
+            .insights-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .tabs-nav {
+                gap: 4px;
+            }
+            
+            .tab-button {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+            
+            .interview-header {
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .interview-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">DIGG ADMIN</div>
+                <nav class="header-nav">
+                    <a href="#" class="header-link">Dashboard</a>
+                    <a href="#" class="header-link">Sign out</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="#">Yonatan</a> · <span>Yonatan Primes</span>
+            </div>
+            <h1 class="headline-xl">Interviews & analysis</h1>
+            <p class="stats-summary">3 interviews - 1 completed - 2 in progress</p>
+        </div>
+    </section>
+
+    <hr class="rule-thick">
+
+    <!-- Project Insights -->
+    <section class="insights-panel">
+        <div class="container">
+            <div class="insights-header">
+                <h2 class="headline-md">Project insights</h2>
+                <p class="body-text">Aggregate analysis across completed interviews for this project.</p>
+            </div>
+            
+            <div class="empty-state">
+                <p class="body-text">No insights generated yet.</p>
+            </div>
+            
+            <div class="insights-actions">
+                <button class="btn">Download PDF</button>
+                <button class="btn btn-primary">Generate insights</button>
+            </div>
+        </div>
+    </section>
+
+    <hr class="rule-thick">
+
+    <!-- Tabbed Section -->
+    <section class="tabs-container">
+        <div class="container">
+            <div class="eyebrow">Individual Responses</div>
+            <h2 class="headline-lg">Interviews</h2>
+            
+            <div class="tabs-nav">
+                <button class="tab-button active" data-tab="overall">
+                    Overall <span class="tab-count">(3)</span>
+                </button>
+                <button class="tab-button" data-tab="managers">
+                    Direct Managers <span class="tab-count">(1)</span>
+                </button>
+                <button class="tab-button" data-tab="reports">
+                    Direct Reports <span class="tab-count">(1)</span>
+                </button>
+                <button class="tab-button" data-tab="other">
+                    Other <span class="tab-count">(1)</span>
+                </button>
+            </div>
+            
+            <!-- Overall Tab -->
+            <div class="tab-content active" id="overall">
+                <p class="body-text segment-intro">
+                    Open transcripts and see (or generate) per-interview AI summaries. To invite more people, use the share link on the project page.
+                </p>
+                
+                <div class="interviews-grid">
+                    <!-- Interview 1 -->
+                    <article class="interview-card">
+                        <div class="interview-header">
+                            <div>
+                                <h3 class="interview-title">שימי</h3>
+                                <p class="interview-meta">Relationship: Direct Manager - Summary available after completion</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm">Transcript & summary</button>
+                    </article>
+                    
+                    <!-- Interview 2 -->
+                    <article class="interview-card">
+                        <div class="interview-header">
+                            <div>
+                                <h3 class="interview-title">יוני</h3>
+                                <p class="interview-meta">Relationship: Direct Report - Summary available after completion</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm">Transcript & summary</button>
+                    </article>
+                    
+                    <!-- Interview 3 - Completed -->
+                    <article class="interview-card">
+                        <div class="interview-header">
+                            <div>
+                                <h3 class="interview-title">YP</h3>
+                                <p class="interview-meta">Relationship: Other - Summary ready</p>
+                            </div>
+                        </div>
+                        
+                        <div class="summary-label">AI Summary</div>
+                        <div class="summary-text">
+                            YP highlighted Yonatan's exceptional communication skills, particularly his ability to distill complex concepts into clear, actionable insights. They noted specific examples of how Yonatan effectively bridges technical and non-technical stakeholders, fostering alignment across diverse teams.
+                        </div>
+                        
+                        <button class="btn btn-sm btn-primary">Transcript & summary</button>
+                    </article>
+                </div>
+            </div>
+            
+            <!-- Direct Managers Tab -->
+            <div class="tab-content" id="managers">
+                <div class="segment-intro">
+                    <h3 class="headline-md">Analysis: Direct Managers</h3>
+                    <p class="body-text">Insights from direct manager relationships (minimum 2 completed interviews required).</p>
+                </div>
+                
+                <div class="empty-state">
+                    <p class="body-text">Not enough completed interviews for segment analysis. Need at least 2.</p>
+                </div>
+            </div>
+            
+            <!-- Direct Reports Tab -->
+            <div class="tab-content" id="reports">
+                <div class="segment-intro">
+                    <h3 class="headline-md">Analysis: Direct Reports</h3>
+                    <p class="body-text">Insights from direct report relationships (minimum 2 completed interviews required).</p>
+                </div>
+                
+                <div class="empty-state">
+                    <p class="body-text">Not enough completed interviews for segment analysis. Need at least 2.</p>
+                </div>
+            </div>
+            
+            <!-- Other Tab -->
+            <div class="tab-content" id="other">
+                <div class="segment-intro">
+                    <h3 class="headline-md">Analysis: Other Relationships</h3>
+                    <p class="body-text">Insights from other relationships (minimum 2 completed interviews required).</p>
+                </div>
+                
+                <div class="empty-state">
+                    <p class="body-text">Not enough completed interviews for segment analysis. Need at least 2.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="rule-thick">
+
+    <!-- Back Button -->
+    <section style="padding: var(--space-sm) 0;">
+        <div class="container">
+            <a href="#" class="btn">← Back to project</a>
+        </div>
+    </section>
+
+    <!-- Footer Space -->
+    <div style="height: 80px;"></div>
+
+    <script>
+        // Tab switching
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.dataset.tab;
+                
+                // Remove active class from all buttons and contents
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Add active class to clicked button and corresponding content
+                button.classList.add('active');
+                document.getElementById(targetTab).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

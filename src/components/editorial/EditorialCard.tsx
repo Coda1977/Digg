@@ -4,7 +4,7 @@ import { EditorialLabel } from "./EditorialLabel";
 import { EditorialHeadline } from "./EditorialHeadline";
 
 interface EditorialCardProps {
-  eyebrow?: string;
+  eyebrow?: ReactNode;
   headline: string;
   description?: ReactNode;
   action?: ReactNode;
@@ -15,6 +15,7 @@ interface EditorialCardProps {
 /**
  * Editorial Card Component
  * Text-forward pattern: eyebrow → headline → description → link
+ * Uses 4px left border (not top border) per editorial design mockups
  */
 export function EditorialCard({
   eyebrow,
@@ -27,13 +28,21 @@ export function EditorialCard({
   return (
     <article
       className={cn(
-        "group space-y-4 border-t-3 border-ink pt-6",
-        onClick && "cursor-pointer transition-opacity hover:opacity-70",
+        "group space-y-4 border-l-4 border-ink pl-8 py-6 transition-colors",
+        onClick && "cursor-pointer hover:border-accent-red",
         className
       )}
       onClick={onClick}
     >
-      {eyebrow && <EditorialLabel>{eyebrow}</EditorialLabel>}
+      {eyebrow && (
+        <div className="mb-3">
+          {typeof eyebrow === "string" ? (
+            <EditorialLabel>{eyebrow}</EditorialLabel>
+          ) : (
+            eyebrow
+          )}
+        </div>
+      )}
 
       <EditorialHeadline as="h3" size="sm">
         {headline}

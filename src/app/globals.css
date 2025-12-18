@@ -3,74 +3,64 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Editorial Design System - Paper + Ink Base */
+    --paper: #FAFAF8;
+    --ink: #0A0A0A;
+    --ink-soft: #52525B;
+    --ink-lighter: #A1A1AA;
 
+    /* Rare Loud Accents */
+    --accent-red: #DC2626;
+    --accent-yellow: #FBBF24;
+
+    /* Editorial Spacing Scale */
+    --space-xs: 40px;
+    --space-sm: 60px;
+    --space-md: 80px;
+    --space-lg: 120px;
+    --space-xl: 160px;
+
+    /* Typography */
+    --font-serif: 'Fraunces', serif;
+    --font-sans: 'Inter', sans-serif;
+
+    /* Legacy shadcn/ui variables (for Dialog/Popover compatibility) */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 4%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 0 0% 4%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --popover-foreground: 0 0% 4%;
+    --primary: 0 73% 48%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 32%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 32%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 4%;
+    --destructive: 0 73% 48%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89%;
+    --input: 0 0% 89%;
+    --ring: 0 73% 48%;
+    --radius: 0rem;
   }
 
   * {
-    border-color: hsl(var(--border));
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    border-color: var(--ink);
   }
 
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    font-family: var(--font-sans);
+    background-color: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   /* Mobile optimizations */
@@ -92,16 +82,37 @@
     }
   }
 
-  /* Prevent iOS text size adjustment */
+  /* Critical: 16px minimum font size on inputs (prevents iOS zoom) */
   input,
   textarea,
   select {
+    font-size: 16px;
     -webkit-text-size-adjust: 100%;
   }
 
   /* Smooth scrolling for mobile */
   * {
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* Remove all border-radius globally */
+  * {
+    border-radius: 0 !important;
+  }
+
+  /* Remove all box-shadows globally */
+  * {
+    box-shadow: none !important;
+  }
+
+  /* Focus states: Editorial style (accent-red outline, no ring) */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 3px solid var(--accent-red);
+    outline-offset: 2px;
   }
 }
 
@@ -121,5 +132,66 @@
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
+  }
+
+  /* Editorial Typography Utilities */
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .headline-xl {
+    font-family: var(--font-serif);
+    font-size: 64px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .headline-lg {
+    font-family: var(--font-serif);
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .headline-md {
+    font-family: var(--font-serif);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .headline-sm {
+    font-family: var(--font-serif);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .body-text {
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+  }
+
+  /* Mobile headline scaling */
+  @media (max-width: 768px) {
+    .headline-xl {
+      font-size: 40px;
+    }
+
+    .headline-lg {
+      font-size: 32px;
+    }
+
+    .headline-md {
+      font-size: 24px;
+    }
   }
 }

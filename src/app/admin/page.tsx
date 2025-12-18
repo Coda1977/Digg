@@ -5,7 +5,6 @@ import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "../../../convex/_generated/api";
 import Link from "next/link";
-import { Input } from "@/components/ui/input";
 import { Plus, CheckCircle2, Clock, Search, ArrowRight } from "lucide-react";
 import {
   EditorialSection,
@@ -13,6 +12,9 @@ import {
   EditorialLabel,
   RuledDivider,
   EditorialCard,
+  EditorialButton,
+  EditorialInput,
+  StatusBadge,
 } from "@/components/editorial";
 
 export default function AdminDashboard() {
@@ -77,20 +79,18 @@ export default function AdminDashboard() {
             Manage your feedback projects, create new surveys, and analyze insights.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <Link
-              href="/admin/projects/new"
-              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-ink text-paper font-medium hover:bg-accent-red hover:border-accent-red transition-colors"
-            >
-              <Plus className="h-5 w-5" />
-              New Project
-            </Link>
-            <Link
-              href="/admin/templates/new"
-              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
-            >
-              <Plus className="h-5 w-5" />
-              New Template
-            </Link>
+            <EditorialButton variant="primary" asChild>
+              <Link href="/admin/projects/new">
+                <Plus className="h-5 w-5" />
+                New Project
+              </Link>
+            </EditorialButton>
+            <EditorialButton variant="outline" asChild>
+              <Link href="/admin/templates/new">
+                <Plus className="h-5 w-5" />
+                New Template
+              </Link>
+            </EditorialButton>
           </div>
         </div>
       </EditorialSection>
@@ -132,13 +132,13 @@ export default function AdminDashboard() {
           <div className="flex flex-col sm:flex-row gap-4">
             {/* Search Input */}
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-ink-soft" />
-              <Input
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-ink-soft pointer-events-none" />
+              <EditorialInput
                 type="search"
                 placeholder="Search by name, subject, or role..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-14 text-base sm:text-base rounded-none border-3 border-ink bg-paper text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="pl-12"
               />
             </div>
 
@@ -149,20 +149,15 @@ export default function AdminDashboard() {
                   value === "all" ? "All" : value === "active" ? "Active" : "Closed";
                 const active = statusFilter === value;
                 return (
-                  <button
+                  <EditorialButton
                     key={value}
                     type="button"
                     onClick={() => setStatusFilter(value)}
-                    aria-pressed={active}
-                    className={
-                      "min-h-[48px] px-6 py-3 border-3 font-medium transition-colors " +
-                      (active
-                        ? "border-ink bg-ink text-paper hover:bg-accent-red hover:border-accent-red"
-                        : "border-ink bg-transparent text-ink hover:bg-ink hover:text-paper")
-                    }
+                    variant={active ? "secondary" : "outline"}
+                    size="default"
                   >
                     {label}
-                  </button>
+                  </EditorialButton>
                 );
               })}
             </div>
@@ -191,13 +186,12 @@ export default function AdminDashboard() {
                   <p className="text-body-lg text-ink-soft max-w-md mx-auto">
                     No projects yet. Create your first feedback project to get started.
                   </p>
-                  <Link
-                    href="/admin/projects/new"
-                    className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-accent-red bg-accent-red text-paper font-medium hover:bg-[#B91C1C] hover:border-[#B91C1C] transition-colors"
-                  >
-                    <Plus className="h-5 w-5" />
-                    Create Your First Project
-                  </Link>
+                  <EditorialButton variant="primary" asChild>
+                    <Link href="/admin/projects/new">
+                      <Plus className="h-5 w-5" />
+                      Create Your First Project
+                    </Link>
+                  </EditorialButton>
                 </div>
               ) : (
                 <p className="text-body-lg text-ink-soft">
@@ -210,7 +204,11 @@ export default function AdminDashboard() {
               {filteredProjects.map((project) => (
                 <EditorialCard
                   key={project._id}
-                  eyebrow={project.status.toUpperCase()}
+                  eyebrow={
+                    <StatusBadge
+                      status={project.status as "active" | "closed"}
+                    />
+                  }
                   headline={project.subjectName}
                   onClick={() => router.push(`/admin/projects/${project._id}`)}
                   description={
