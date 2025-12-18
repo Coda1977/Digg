@@ -69,7 +69,7 @@ export async function POST(req: Request) {
       relationshipId: surveyData.relationship,
     });
 
-    const model = anthropic("claude-3-5-haiku-latest");
+    const model = anthropic("claude-haiku-4-5");
     const result = prompt
       ? await generateText({ model, system, prompt })
       : await generateText({ model, system, messages });

@@ -48,6 +48,7 @@ export default defineSchema({
   projects: defineTable({
     templateId: v.id("templates"),
     name: v.string(),
+    description: v.optional(v.string()),
     subjectName: v.string(),
     subjectRole: v.optional(v.string()),
     status: v.union(v.literal("active"), v.literal("closed")),

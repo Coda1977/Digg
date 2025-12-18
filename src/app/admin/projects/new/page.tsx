@@ -1,23 +1,38 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
-import { Plus } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 
 import { api } from "../../../../../convex/_generated/api";
-import type { Id } from "../../../../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   EditorialSection,
   EditorialHeadline,
   EditorialLabel,
   RuledDivider,
 } from "@/components/editorial";
+import { getErrorMessage } from "@/lib/errorHandling";
+
+const COMMON_ROLES = [
+  "Product Manager",
+  "Engineering Manager",
+  "Software Engineer",
+  "Designer",
+  "Data Scientist",
+  "Director",
+  "VP",
+  "Team Lead",
+  "Consultant",
+  "Analyst",
+];
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -27,10 +42,14 @@ export default function NewProjectPage() {
 
   const [templateId, setTemplateId] = useState("");
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [subjectName, setSubjectName] = useState("");
   const [subjectRole, setSubjectRole] = useState("");
+  const [showRoleSuggestions, setShowRoleSuggestions] = useState(false);
+  const [showTemplatePreview, setShowTemplatePreview] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userModifiedName, setUserModifiedName] = useState(false);
 
   const templatesEmpty = templates !== undefined && templates.length === 0;
   const canSubmit = !!templateId && !!name && !!subjectName && !submitting;
@@ -39,6 +58,33 @@ export default function NewProjectPage() {
     if (!templates) return null;
     return [...templates].sort((a, b) => a.name.localeCompare(b.name));
   }, [templates]);
+
+  const selectedTemplate = useMemo(() => {
+    if (!templateId || !templates) return null;
+    return templates.find((t) => t._id === templateId) ?? null;
+  }, [templateId, templates]);
+
+  // Check for similar projects
+  const similarProjects = useQuery(
+    api.projects.findSimilar,
+    templateId && subjectName
+      ? { templateId: templateId as Id<"templates">, subjectName }
+      : "skip"
+  );
+
+  // Smart project name suggestion
+  useEffect(() => {
+    if (!userModifiedName && selectedTemplate && subjectName) {
+      const suggestedName = `${selectedTemplate.name} for ${subjectName}`;
+      setName(suggestedName);
+    }
+  }, [selectedTemplate, subjectName, userModifiedName]);
+
+  const filteredRoles = useMemo(() => {
+    if (!subjectRole) return COMMON_ROLES;
+    const search = subjectRole.toLowerCase();
+    return COMMON_ROLES.filter((role) => role.toLowerCase().includes(search));
+  }, [subjectRole]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -49,12 +95,13 @@ export default function NewProjectPage() {
       const projectId = await createProject({
         templateId: templateId as Id<"templates">,
         name,
+        description: description.trim() || undefined,
         subjectName,
-        subjectRole: subjectRole.trim() ? subjectRole.trim() : undefined,
+        subjectRole: subjectRole.trim() || undefined,
       });
       router.replace(`/admin/projects/${projectId}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create project");
+      setError(getErrorMessage(err, "Failed to create project"));
     } finally {
       setSubmitting(false);
     }
@@ -66,7 +113,7 @@ export default function NewProjectPage() {
     try {
       await seedTemplates({});
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to seed templates");
+      setError(getErrorMessage(err, "Failed to seed templates"));
     } finally {
       setSubmitting(false);
     }
@@ -101,7 +148,7 @@ export default function NewProjectPage() {
             New Project
           </EditorialHeadline>
           <p className="text-body-lg text-ink-soft max-w-2xl">
-            Create a feedback project using one of the protocols (templates).
+            Create a feedback project using one of the survey types (templates).
           </p>
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
             <Link
@@ -124,7 +171,7 @@ export default function NewProjectPage() {
               No templates found
             </h2>
             <p className="text-body text-ink-soft">
-              You probably haven&apos;t seeded the 4 built-in protocols yet.
+              You probably haven&apos;t seeded the 4 built-in survey templates yet.
             </p>
             <div className="pt-2">
               <button
@@ -144,10 +191,9 @@ export default function NewProjectPage() {
       <EditorialSection spacing="md" ruled>
         <div className="max-w-[900px] mx-auto space-y-8">
           <div className="space-y-3">
-            <EditorialLabel>Project Details</EditorialLabel>
+            <EditorialLabel>1. Choose Survey Type</EditorialLabel>
             <p className="text-body text-ink-soft max-w-2xl">
-              Choose a protocol and set the subject. You can share the survey link
-              after creating the project.
+              Select the type of feedback you want to collect. Each template includes specific questions and interview prompts.
             </p>
           </div>
 
@@ -157,7 +203,7 @@ export default function NewProjectPage() {
                 htmlFor="template"
                 className="text-label font-sans font-medium uppercase tracking-label text-ink-soft"
               >
-                Protocol
+                Survey Type
               </Label>
               <select
                 id="template"
@@ -167,17 +213,88 @@ export default function NewProjectPage() {
                 required
               >
                 <option value="" disabled>
-                  Select a protocol…
+                  Select a survey type…
                 </option>
                 {sortedTemplates?.map((t) => (
                   <option key={t._id} value={t._id}>
-                    {t.name} ({t.type})
+                    {t.name}
                   </option>
                 ))}
               </select>
+
+              {selectedTemplate && (
+                <div className="bg-ink/5 border-l-4 border-ink pl-6 pr-6 py-4 space-y-3">
+                  <p className="text-body text-ink">
+                    {selectedTemplate.description}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowTemplatePreview(!showTemplatePreview)}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-ink-soft hover:text-ink transition-colors"
+                  >
+                    {showTemplatePreview ? (
+                      <>
+                        <ChevronUp className="h-4 w-4" />
+                        Hide survey questions
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4" />
+                        Show survey questions
+                      </>
+                    )}
+                  </button>
+
+                  {showTemplatePreview && (
+                    <div className="pt-3 space-y-4">
+                      <div>
+                        <h4 className="text-label font-sans font-medium uppercase tracking-label text-ink-soft mb-2">
+                          Questions
+                        </h4>
+                        <ol className="space-y-2 list-decimal list-inside text-body text-ink-soft">
+                          {selectedTemplate.questions
+                            .sort((a, b) => a.order - b.order)
+                            .map((q) => (
+                              <li key={q.id}>
+                                {q.text.replaceAll("{{subjectName}}", subjectName || "[Subject]")}
+                                {q.collectMultiple && (
+                                  <span className="text-xs text-ink-lighter ml-2">
+                                    (collect multiple responses)
+                                  </span>
+                                )}
+                              </li>
+                            ))}
+                        </ol>
+                      </div>
+                      <div>
+                        <h4 className="text-label font-sans font-medium uppercase tracking-label text-ink-soft mb-2">
+                          Relationship Options
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedTemplate.relationshipOptions.map((r) => (
+                            <span
+                              key={r.id}
+                              className="inline-block px-3 py-1 bg-ink/10 text-sm text-ink"
+                            >
+                              {r.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <RuledDivider weight="medium" spacing="xs" />
+
+            <div className="space-y-3">
+              <EditorialLabel>2. Project Details</EditorialLabel>
+              <p className="text-body text-ink-soft max-w-2xl">
+                Name your project and optionally add a description for context.
+              </p>
+            </div>
 
             <div className="space-y-3">
               <Label
@@ -189,14 +306,41 @@ export default function NewProjectPage() {
               <Input
                 id="name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. 360 feedback for Jane"
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setUserModifiedName(true);
+                }}
+                placeholder="e.g. 360 feedback for Jane Doe"
                 required
                 className="h-14 text-base sm:text-base rounded-none border-3 border-ink bg-paper text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
 
+            <div className="space-y-3">
+              <Label
+                htmlFor="description"
+                className="text-label font-sans font-medium uppercase tracking-label text-ink-soft"
+              >
+                Description (optional)
+              </Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g. Q1 2025 performance review cycle"
+                rows={3}
+                className="text-base sm:text-base rounded-none border-3 border-ink bg-paper text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
+
             <RuledDivider weight="medium" spacing="xs" />
+
+            <div className="space-y-3">
+              <EditorialLabel>3. Subject Information</EditorialLabel>
+              <p className="text-body text-ink-soft max-w-2xl">
+                Enter details about the person receiving feedback.
+              </p>
+            </div>
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-3">
@@ -215,7 +359,7 @@ export default function NewProjectPage() {
                   className="h-14 text-base sm:text-base rounded-none border-3 border-ink bg-paper text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-3 relative">
                 <Label
                   htmlFor="subjectRole"
                   className="text-label font-sans font-medium uppercase tracking-label text-ink-soft"
@@ -226,11 +370,58 @@ export default function NewProjectPage() {
                   id="subjectRole"
                   value={subjectRole}
                   onChange={(e) => setSubjectRole(e.target.value)}
+                  onFocus={() => setShowRoleSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowRoleSuggestions(false), 200)}
                   placeholder="e.g. Product Manager"
                   className="h-14 text-base sm:text-base rounded-none border-3 border-ink bg-paper text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
+                {showRoleSuggestions && filteredRoles.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-paper border-3 border-ink max-h-60 overflow-y-auto">
+                    {filteredRoles.map((role) => (
+                      <button
+                        key={role}
+                        type="button"
+                        className="w-full text-left px-5 py-3 text-base hover:bg-ink/5 transition-colors"
+                        onMouseDown={() => {
+                          setSubjectRole(role);
+                          setShowRoleSuggestions(false);
+                        }}
+                      >
+                        {role}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
+
+            {similarProjects && similarProjects.length > 0 && (
+              <div className="border-l-4 border-amber-500 bg-amber-50 pl-6 pr-6 py-4" role="alert">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div className="space-y-2">
+                    <p className="text-body font-medium text-amber-900">
+                      Similar project{similarProjects.length > 1 ? "s" : ""} found
+                    </p>
+                    <p className="text-body-sm text-amber-800">
+                      You already have {similarProjects.length} project{similarProjects.length > 1 ? "s" : ""} for &quot;{subjectName}&quot; using this survey type:
+                    </p>
+                    <ul className="text-body-sm text-amber-800 list-disc list-inside">
+                      {similarProjects.map((p) => (
+                        <li key={p._id}>
+                          <Link
+                            href={`/admin/projects/${p._id}`}
+                            className="underline hover:text-amber-900"
+                          >
+                            {p.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {error && (
               <div className="border-l-4 border-accent-red pl-6 py-2" role="alert">

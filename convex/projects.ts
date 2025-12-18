@@ -82,10 +82,35 @@ export const getById = query({
   },
 });
 
+export const findSimilar = query({
+  args: {
+    templateId: v.id("templates"),
+    subjectName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
+    const allProjects = await ctx.db
+      .query("projects")
+      .filter((q) => q.eq(q.field("templateId"), args.templateId))
+      .collect();
+
+    // Find projects with similar subject name (case-insensitive match)
+    const normalizedInput = args.subjectName.toLowerCase().trim();
+    const similar = allProjects.filter((p) => {
+      const normalizedSubject = p.subjectName.toLowerCase().trim();
+      return normalizedSubject === normalizedInput;
+    });
+
+    return similar;
+  },
+});
+
 export const create = mutation({
   args: {
     templateId: v.id("templates"),
     name: v.string(),
+    description: v.optional(v.string()),
     subjectName: v.string(),
     subjectRole: v.optional(v.string()),
   },
@@ -95,6 +120,7 @@ export const create = mutation({
     const projectId = await ctx.db.insert("projects", {
       templateId: args.templateId,
       name: args.name,
+      description: args.description,
       subjectName: args.subjectName,
       subjectRole: args.subjectRole,
       status: "active",

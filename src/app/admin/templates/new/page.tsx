@@ -152,7 +152,7 @@ Be empathetic, professional, and focused on collecting actionable insights.`
             New Template
           </EditorialHeadline>
           <p className="text-body-lg text-ink-soft max-w-2xl">
-            Build a custom protocol: questions, relationship types, and the interviewer&apos;s
+            Build a custom survey template: questions, relationship types, and the interviewer&apos;s
             system prompt.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
@@ -213,7 +213,7 @@ Be empathetic, professional, and focused on collecting actionable insights.`
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe what this protocol is for…"
+                  placeholder="Describe what this survey template is for…"
                   rows={3}
                   required
                   className="min-h-[120px] resize-y rounded-none border-3 border-ink bg-paper px-5 py-4 text-base sm:text-base leading-relaxed text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"

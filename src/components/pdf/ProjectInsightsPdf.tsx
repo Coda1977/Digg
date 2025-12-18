@@ -58,7 +58,7 @@ export function ProjectInsightsPdf(props: {
 
         <View style={styles.meta}>
           <MetaRow label="Project" value={projectName} />
-          {templateName ? <MetaRow label="Protocol" value={templateName} /> : null}
+          {templateName ? <MetaRow label="Survey Type" value={templateName} /> : null}
           <MetaRow
             label="Insights generated"
             value={analysis ? formatDateTime(analysis.generatedAt) : "—"}
