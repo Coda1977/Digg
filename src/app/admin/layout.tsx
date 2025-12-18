@@ -9,10 +9,11 @@ import { useAuthActions } from "@convex-dev/auth/react";
 
 import { api } from "../../../convex/_generated/api";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditorialNav } from "@/components/admin/EditorialNav";
-import { EditorialLabel } from "@/components/editorial";
+import {
+  EditorialHeadline,
+  EditorialLabel,
+} from "@/components/editorial";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -56,17 +57,27 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   if (isLoading || user === undefined || waitingForRole) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="text-sm text-muted-foreground">Loading...</div>
+      <div className="min-h-screen bg-paper flex items-center justify-center px-5 sm:px-8">
+        <div className="w-full max-w-[900px] border-l-4 border-ink/20 pl-6 py-2 space-y-4">
+          <EditorialLabel>Digg Admin</EditorialLabel>
+          <EditorialHeadline as="h1" size="md">
+            Loading…
+          </EditorialHeadline>
+          <p className="text-body text-ink-soft">Fetching your admin session.</p>
+        </div>
       </div>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="text-sm text-muted-foreground">
-          Redirecting to login...
+      <div className="min-h-screen bg-paper flex items-center justify-center px-5 sm:px-8">
+        <div className="w-full max-w-[900px] border-l-4 border-ink/20 pl-6 py-2 space-y-4">
+          <EditorialLabel>Digg Admin</EditorialLabel>
+          <EditorialHeadline as="h1" size="md">
+            Redirecting…
+          </EditorialHeadline>
+          <p className="text-body text-ink-soft">Taking you to the login page.</p>
         </div>
       </div>
     );
@@ -74,90 +85,103 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-lg">Session missing</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Please sign in again.
-            </p>
-            <Button className="w-full" onClick={() => void signOut()}>
-              Sign out
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-paper flex items-center justify-center px-5 sm:px-8">
+        <div className="w-full max-w-[900px] border-l-4 border-accent-red pl-6 py-2 space-y-4">
+          <EditorialLabel accent>Session missing</EditorialLabel>
+          <EditorialHeadline as="h1" size="md">
+            Please sign in again
+          </EditorialHeadline>
+          <p className="text-body text-ink-soft">
+            Your session expired or couldn&apos;t be loaded.
+          </p>
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-ink text-paper font-medium hover:bg-accent-red hover:border-accent-red transition-colors"
+          >
+            Sign out
+          </button>
+        </div>
       </div>
     );
   }
 
   if (roleError) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-lg">Role sync failed</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-destructive" role="alert">
-              {roleError}
-            </p>
-            <Button className="w-full" onClick={() => void signOut()}>
-              Sign out
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-paper flex items-center justify-center px-5 sm:px-8">
+        <div className="w-full max-w-[900px] border-l-4 border-accent-red pl-6 py-2 space-y-4">
+          <EditorialLabel accent>Role sync failed</EditorialLabel>
+          <EditorialHeadline as="h1" size="md">
+            Can&apos;t load your admin role
+          </EditorialHeadline>
+          <p className="text-body text-accent-red" role="alert">
+            {roleError}
+          </p>
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-ink text-paper font-medium hover:bg-accent-red hover:border-accent-red transition-colors"
+          >
+            Sign out
+          </button>
+        </div>
       </div>
     );
   }
 
   if (user.role !== "admin") {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-lg">Not authorized</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              This account does not have admin access.
-            </p>
-            <Button className="w-full" onClick={() => void signOut()}>
-              Sign out
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-paper flex items-center justify-center px-5 sm:px-8">
+        <div className="w-full max-w-[900px] border-l-4 border-ink pl-6 py-2 space-y-4">
+          <EditorialLabel>Not authorized</EditorialLabel>
+          <EditorialHeadline as="h1" size="md">
+            This account can&apos;t access admin
+          </EditorialHeadline>
+          <p className="text-body text-ink-soft">
+            Sign out and sign in with an admin account.
+          </p>
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+          >
+            Sign out
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-paper">
-      <header className="border-b-3 border-ink/20 bg-paper sticky top-0 z-40">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6 flex items-center justify-between gap-4">
+      <header className="border-b-3 border-ink bg-paper sticky top-0 z-40">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8 py-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <EditorialNav onSignOut={() => void signOut()} />
             <Link href="/admin" className="block">
-              <EditorialLabel>Digg Admin</EditorialLabel>
+              <EditorialLabel className="text-ink">Digg Admin</EditorialLabel>
             </Link>
           </div>
           <div className="hidden sm:flex items-center gap-3">
-            <Button asChild variant="ghost" size="lg" className="hover:bg-ink/5">
-              <Link href="/admin">Dashboard</Link>
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
+            <Link
+              href="/admin"
+              className="text-[15px] font-medium text-ink hover:text-accent-red transition-colors"
+            >
+              Dashboard
+            </Link>
+            <button
+              type="button"
               onClick={() => void signOut()}
-              className="border-ink text-ink hover:bg-ink/5"
+              className="text-[15px] font-medium text-ink hover:text-accent-red transition-colors"
             >
               Sign out
-            </Button>
+            </button>
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-3 sm:px-4 py-6 sm:py-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-5 sm:px-8 py-6 sm:py-8">
+        {children}
+      </main>
     </div>
   );
 }

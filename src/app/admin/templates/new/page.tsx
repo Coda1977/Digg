@@ -4,14 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "convex/react";
 import Link from "next/link";
-import { Plus, Trash2, GripVertical } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
 import { api } from "../../../../../convex/_generated/api";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import {
+  EditorialHeadline,
+  EditorialLabel,
+  EditorialSection,
+  RuledDivider,
+} from "@/components/editorial";
 
 type Question = {
   text: string;
@@ -140,218 +144,269 @@ Be empathetic, professional, and focused on collecting actionable insights.`
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Create Custom Template</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Design your own feedback survey template
+    <div>
+      <EditorialSection spacing="lg">
+        <div className="max-w-[900px] mx-auto space-y-6">
+          <EditorialLabel>Templates</EditorialLabel>
+          <EditorialHeadline as="h1" size="lg">
+            New Template
+          </EditorialHeadline>
+          <p className="text-body-lg text-ink-soft max-w-2xl">
+            Build a custom protocol: questions, relationship types, and the interviewer&apos;s
+            system prompt.
           </p>
-        </div>
-        <Button asChild variant="outline" className="w-full sm:w-auto">
-          <Link href="/admin">Cancel</Link>
-        </Button>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Template Details</CardTitle>
-            <CardDescription>Basic information about your template</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium">
-                Template Name *
-              </label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Executive Leadership Feedback"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="description" className="text-sm font-medium">
-                Description *
-              </label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe the purpose and scope of this template..."
-                rows={3}
-                required
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Questions */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">Interview Questions</CardTitle>
-                <CardDescription>
-                  Add the questions that will guide the interview
-                </CardDescription>
-              </div>
-              <Button type="button" onClick={addQuestion} size="sm" variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Question
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {questions.map((question, index) => (
-              <div
-                key={question.tempId}
-                className="flex gap-3 p-4 border rounded-lg bg-muted/30"
-              >
-                <div className="flex items-start pt-3">
-                  <GripVertical className="h-5 w-5 text-muted-foreground" />
-                </div>
-
-                <div className="flex-1 space-y-3">
-                  <div className="flex items-start gap-2">
-                    <Badge variant="secondary" className="shrink-0">
-                      Q{index + 1}
-                    </Badge>
-                    <Textarea
-                      value={question.text}
-                      onChange={(e) =>
-                        updateQuestion(question.tempId, "text", e.target.value)
-                      }
-                      placeholder="Enter your question..."
-                      rows={2}
-                      className="flex-1"
-                    />
-                  </div>
-
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={question.collectMultiple}
-                      onChange={(e) =>
-                        updateQuestion(question.tempId, "collectMultiple", e.target.checked)
-                      }
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                    <span className="text-muted-foreground">
-                      Collect multiple responses (ask follow-up questions)
-                    </span>
-                  </label>
-                </div>
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeQuestion(question.tempId)}
-                  disabled={questions.length === 1}
-                  className="shrink-0"
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Relationship Options */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">Relationship Types</CardTitle>
-                <CardDescription>
-                  Define the relationships respondents can have with the subject
-                </CardDescription>
-              </div>
-              <Button
-                type="button"
-                onClick={addRelationshipOption}
-                size="sm"
-                variant="outline"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Option
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {relationshipOptions.map((option, index) => (
-              <div key={option.tempId} className="flex gap-3 items-center">
-                <Badge variant="outline" className="shrink-0 w-12 justify-center">
-                  {index + 1}
-                </Badge>
-                <Input
-                  value={option.label}
-                  onChange={(e) => updateRelationshipOption(option.tempId, e.target.value)}
-                  placeholder="e.g., Manager, Peer, Direct Report"
-                  className="flex-1"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeRelationshipOption(option.tempId)}
-                  disabled={relationshipOptions.length === 1}
-                  className="shrink-0"
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* System Prompt */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">AI Interviewer Prompt</CardTitle>
-            <CardDescription>
-              Instructions for the AI interviewer. Use {"{subjectName}"} as a placeholder.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              value={systemPrompt}
-              onChange={(e) => setSystemPrompt(e.target.value)}
-              rows={12}
-              className="font-mono text-sm"
-              required
-            />
-          </CardContent>
-        </Card>
-
-        {/* Error */}
-        {error && (
-          <div className="p-4 border border-destructive/50 bg-destructive/10 rounded-lg">
-            <p className="text-sm text-destructive">{error}</p>
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
+            <Link
+              href="/admin"
+              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+            >
+              Back to dashboard
+            </Link>
           </div>
-        )}
-
-        {/* Submit */}
-        <div className="flex gap-3">
-          <Button type="submit" disabled={creating} className="flex-1 sm:flex-initial">
-            {creating ? "Creating..." : "Create Template"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push("/admin")}
-            disabled={creating}
-          >
-            Cancel
-          </Button>
         </div>
-      </form>
+      </EditorialSection>
+
+      <RuledDivider weight="thick" spacing="sm" />
+
+      <EditorialSection spacing="md">
+        <div className="max-w-[900px] mx-auto space-y-10">
+          <div className="space-y-3">
+            <EditorialLabel>Template details</EditorialLabel>
+            <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+              Name and purpose
+            </h2>
+            <p className="text-body text-ink-soft max-w-2xl">
+              Give the template a clear name and a short description so you can find it
+              quickly later.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-10">
+            <div className="space-y-8">
+              <div className="space-y-3">
+                <Label
+                  htmlFor="name"
+                  className="text-label font-sans font-medium uppercase tracking-label text-ink-soft"
+                >
+                  Template name
+                </Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Executive leadership feedback"
+                  required
+                  className="h-14 text-base sm:text-base rounded-none border-3 border-ink bg-paper text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+              </div>
+
+              <RuledDivider weight="medium" spacing="xs" />
+
+              <div className="space-y-3">
+                <Label
+                  htmlFor="description"
+                  className="text-label font-sans font-medium uppercase tracking-label text-ink-soft"
+                >
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe what this protocol is for…"
+                  rows={3}
+                  required
+                  className="min-h-[120px] resize-y rounded-none border-3 border-ink bg-paper px-5 py-4 text-base sm:text-base leading-relaxed text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+              </div>
+            </div>
+
+            <RuledDivider weight="thick" spacing="sm" />
+
+            <div className="space-y-8">
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+                <div className="space-y-3">
+                  <EditorialLabel>Questions</EditorialLabel>
+                  <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+                    Interview questions
+                  </h2>
+                  <p className="text-body text-ink-soft max-w-2xl">
+                    Add one question at a time. The AI will ask follow-ups when answers are
+                    vague.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={addQuestion}
+                  className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+                >
+                  <Plus className="h-5 w-5" />
+                  Add question
+                </button>
+              </div>
+
+              <div className="space-y-8">
+                {questions.map((question, index) => (
+                  <article key={question.tempId} className="border-t-3 border-ink pt-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 flex flex-col sm:flex-row gap-4 flex-1">
+                        <div className="inline-flex items-center justify-center w-14 h-14 border-3 border-ink text-label font-sans font-semibold uppercase tracking-label">
+                          Q{index + 1}
+                        </div>
+
+                        <div className="flex-1 min-w-0 space-y-4">
+                          <Textarea
+                            value={question.text}
+                            onChange={(e) =>
+                              updateQuestion(question.tempId, "text", e.target.value)
+                            }
+                            placeholder="Enter the question…"
+                            rows={2}
+                            className="min-h-[96px] resize-y rounded-none border-3 border-ink bg-paper px-5 py-4 text-base sm:text-base leading-relaxed text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
+                          />
+
+                          <label className="flex items-start gap-3 text-body text-ink-soft">
+                            <input
+                              type="checkbox"
+                              checked={question.collectMultiple}
+                              onChange={(e) =>
+                                updateQuestion(
+                                  question.tempId,
+                                  "collectMultiple",
+                                  e.target.checked
+                                )
+                              }
+                              className="mt-1 h-5 w-5 rounded-none border-2 border-ink accent-ink"
+                            />
+                            <span>
+                              Collect multiple responses (the AI can ask follow-up questions).
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeQuestion(question.tempId)}
+                        disabled={questions.length === 1}
+                        className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-accent-red bg-transparent text-accent-red font-medium hover:bg-accent-red hover:text-paper transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                        aria-label={`Remove question ${index + 1}`}
+                      >
+                        <Trash2 className="h-5 w-5" />
+                        Remove
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+
+            <RuledDivider weight="thick" spacing="sm" />
+
+            <div className="space-y-8">
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+                <div className="space-y-3">
+                  <EditorialLabel>Relationships</EditorialLabel>
+                  <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+                    Relationship types
+                  </h2>
+                  <p className="text-body text-ink-soft max-w-2xl">
+                    Define the relationship options respondents can choose (e.g., manager,
+                    peer, direct report).
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={addRelationshipOption}
+                  className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+                >
+                  <Plus className="h-5 w-5" />
+                  Add option
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {relationshipOptions.map((option, index) => (
+                  <article key={option.tempId} className="border-t-3 border-ink pt-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex flex-col sm:flex-row gap-4 flex-1 min-w-0">
+                        <div className="inline-flex items-center justify-center w-14 h-14 border-3 border-ink text-label font-sans font-semibold uppercase tracking-label">
+                          {index + 1}
+                        </div>
+                        <Input
+                          value={option.label}
+                          onChange={(e) =>
+                            updateRelationshipOption(option.tempId, e.target.value)
+                          }
+                          placeholder="e.g. Manager"
+                          className="h-14 text-base sm:text-base rounded-none border-3 border-ink bg-paper text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeRelationshipOption(option.tempId)}
+                        disabled={relationshipOptions.length === 1}
+                        className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-accent-red bg-transparent text-accent-red font-medium hover:bg-accent-red hover:text-paper transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                        aria-label={`Remove relationship option ${index + 1}`}
+                      >
+                        <Trash2 className="h-5 w-5" />
+                        Remove
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+
+            <RuledDivider weight="thick" spacing="sm" />
+
+            <div className="space-y-8">
+              <div className="space-y-3">
+                <EditorialLabel>AI interviewer prompt</EditorialLabel>
+                <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+                  System prompt template
+                </h2>
+                <p className="text-body text-ink-soft max-w-2xl">
+                  Instructions for the AI interviewer. Use {"{subjectName}"} as a placeholder.
+                </p>
+              </div>
+
+              <Textarea
+                value={systemPrompt}
+                onChange={(e) => setSystemPrompt(e.target.value)}
+                rows={12}
+                className="min-h-[320px] resize-y rounded-none border-3 border-ink bg-paper px-5 py-4 font-mono text-sm leading-relaxed text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
+                required
+              />
+            </div>
+
+            {error && (
+              <div className="border-l-4 border-accent-red pl-6 py-2" role="alert">
+                <EditorialLabel accent>Fix this to continue</EditorialLabel>
+                <p className="mt-3 text-body text-accent-red">{error}</p>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={creating}
+                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-accent-red bg-accent-red text-paper font-medium hover:bg-[#B91C1C] hover:border-[#B91C1C] transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              >
+                {creating ? "Creating…" : "Create template"}
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push("/admin")}
+                disabled={creating}
+                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </EditorialSection>
     </div>
   );
 }
