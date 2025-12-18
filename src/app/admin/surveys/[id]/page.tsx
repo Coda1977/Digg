@@ -8,17 +8,13 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  EditorialHeadline,
+  EditorialLabel,
+  EditorialSection,
+  RuledDivider,
+} from "@/components/editorial";
 
 type Summary = {
   overview: string;
@@ -33,8 +29,24 @@ type UiMessage = {
   content: string;
 };
 
-function statusBadgeVariant(status: string): "default" | "secondary" {
-  return status === "completed" ? "default" : "secondary";
+function formatStatus(value: string) {
+  return value.replace(/_/g, " ");
+}
+
+function statusBadgeClass(status: string) {
+  const base =
+    "inline-flex items-center px-4 py-2 border-3 text-label font-sans font-semibold uppercase tracking-label";
+  if (status === "completed") return `${base} border-ink bg-ink text-paper`;
+  if (status === "in_progress") return `${base} border-ink bg-paper text-ink`;
+  return `${base} border-ink bg-paper text-ink`;
+}
+
+function sentimentBadgeClass(sentiment: string) {
+  const base =
+    "inline-flex items-center px-4 py-2 border-3 text-label font-sans font-semibold uppercase tracking-label";
+  if (sentiment === "negative") return `${base} border-accent-red text-accent-red`;
+  if (sentiment === "positive") return `${base} border-ink bg-ink text-paper`;
+  return `${base} border-ink text-ink`;
 }
 
 async function requestSurveySummary(input: {
@@ -137,159 +149,225 @@ export default function AdminSurveyDetailPage() {
 
   if (survey === undefined) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-10 w-44" />
+      <EditorialSection spacing="lg">
+        <div className="animate-pulse max-w-[900px] mx-auto space-y-6">
+          <div className="h-4 bg-ink/5 w-40" />
+          <div className="h-12 bg-ink/5 w-2/3" />
+          <div className="h-4 bg-ink/5 w-full max-w-xl" />
+          <RuledDivider weight="thick" spacing="sm" />
+          <div className="h-40 bg-ink/5 w-full" />
+          <div className="h-40 bg-ink/5 w-full" />
         </div>
-        <Skeleton className="h-40" />
-        <Skeleton className="h-64" />
-      </div>
+      </EditorialSection>
     );
   }
 
   if (survey === null) {
     return (
-      <Card className="max-w-xl">
-        <CardHeader>
-          <CardTitle className="text-lg">Survey not found</CardTitle>
-          <CardDescription>
-            This survey ID doesn&apos;t exist or you don&apos;t have access.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild variant="outline">
-            <Link href="/admin">Back to dashboard</Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <EditorialSection spacing="lg">
+        <div className="max-w-[900px] mx-auto border-l-4 border-accent-red pl-6 py-2 space-y-4">
+          <EditorialLabel accent>Not Found</EditorialLabel>
+          <h1 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+            Interview not found
+          </h1>
+          <p className="text-body text-ink-soft">
+            This interview ID doesn&apos;t exist or you don&apos;t have access.
+          </p>
+          <div className="pt-2">
+            <Link
+              href="/admin"
+              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+            >
+              Back to dashboard
+            </Link>
+          </div>
+        </div>
+      </EditorialSection>
     );
   }
 
   const canGenerateSummary =
     survey.status === "completed" && uiMessages && uiMessages.length > 0;
 
+  const respondentName = survey.respondentName ?? "Anonymous respondent";
+  const subjectName = survey.project.subjectName;
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold">Interview</h1>
-          <p className="text-sm text-muted-foreground">
-            {survey.project.name} - {survey.project.subjectName}
+    <div>
+      <EditorialSection spacing="lg">
+        <div className="max-w-[900px] mx-auto space-y-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <EditorialLabel>Interview</EditorialLabel>
+            <span className={statusBadgeClass(survey.status)}>
+              {formatStatus(survey.status)}
+            </span>
+            {relationshipLabel && (
+              <span className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
+                {relationshipLabel}
+              </span>
+            )}
+          </div>
+
+          <EditorialHeadline as="h1" size="lg">
+            {respondentName}
+          </EditorialHeadline>
+
+          <p className="text-body text-ink-soft">
+            {survey.project.name} · {subjectName}
           </p>
-          <div className="flex items-center gap-2">
-            <Badge variant={statusBadgeVariant(survey.status)}>{survey.status}</Badge>
-            <p className="text-xs text-muted-foreground truncate">
-              {survey.respondentName ?? "Anonymous respondent"}
-              {relationshipLabel ? ` - ${relationshipLabel}` : ""}
-            </p>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
+            <Link
+              href={`/admin/projects/${survey.project._id}/analysis`}
+              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-ink text-paper font-medium hover:bg-accent-red hover:border-accent-red transition-colors"
+            >
+              Back to interviews &amp; analysis
+            </Link>
+            <Link
+              href={`/admin/projects/${survey.project._id}`}
+              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+            >
+              Back to project
+            </Link>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline">
-            <Link href={`/admin/projects/${survey.project._id}`}>Back to project</Link>
-          </Button>
-        </div>
-      </div>
+      </EditorialSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Interview link</CardTitle>
-          <CardDescription>
-            This is the public link for this specific interview (useful for resending or resuming).
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
+      <RuledDivider weight="thick" spacing="sm" />
+
+      <EditorialSection spacing="md">
+        <div className="max-w-[900px] mx-auto space-y-8">
+          <div className="space-y-3">
+            <EditorialLabel>Interview link</EditorialLabel>
+            <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+              One-person link
+            </h2>
+            <p className="text-body text-ink-soft max-w-2xl">
+              This link opens this exact interview (useful to resend or resume). For a link
+              you can share broadly, use the project share link on the project page.
+            </p>
+          </div>
+
           {respondentLink && (
-            <div className="flex gap-2">
-              <Input readOnly value={respondentLink} />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => void navigator.clipboard.writeText(respondentLink)}
-              >
-                Copy
-              </Button>
-              <Button asChild type="button" variant="outline">
-                <a href={respondentLink} target="_blank" rel="noreferrer">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Input
+                readOnly
+                value={respondentLink}
+                className="h-14 text-base sm:text-base rounded-none border-3 border-ink bg-paper text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={() => void navigator.clipboard.writeText(respondentLink)}
+                  className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+                >
+                  Copy
+                </button>
+                <a
+                  href={respondentLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+                >
                   Open
                 </a>
-              </Button>
+              </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </EditorialSection>
 
-      <Card>
-        <CardHeader className="space-y-2">
-          <CardTitle className="text-lg">AI summary</CardTitle>
-          <CardDescription>
-            Generates a structured summary (themes, praise, improvements) from the transcript.
-          </CardDescription>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              onClick={() => void onGenerateSummary()}
-              disabled={!canGenerateSummary || summaryBusy}
-            >
-              {survey.summary ? "Regenerate summary" : "Generate summary"}
-            </Button>
-            {!canGenerateSummary && (
-              <p className="text-xs text-muted-foreground">
-                Available after the interview is completed.
+      <RuledDivider weight="thick" spacing="sm" />
+
+      <EditorialSection spacing="md">
+        <div className="max-w-[900px] mx-auto space-y-8">
+          <div className="space-y-3">
+            <EditorialLabel>AI summary</EditorialLabel>
+            <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+              Structured synthesis
+            </h2>
+            <p className="text-body text-ink-soft max-w-2xl">
+              Generates themes, praise, and improvements based on the transcript.
+            </p>
+          </div>
+
+          <div className="border-l-4 border-ink pl-6 py-2 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="space-y-1">
+                {survey.summary ? (
+                  <p className="text-body text-ink-soft">
+                    Summary saved. Regenerate if you want an updated take.
+                  </p>
+                ) : (
+                  <p className="text-body text-ink-soft">No summary saved yet.</p>
+                )}
+
+                {!canGenerateSummary && (
+                  <p className="text-body text-ink-soft">
+                    Available after the interview is completed.
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => void onGenerateSummary()}
+                disabled={!canGenerateSummary || summaryBusy}
+                className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-ink text-paper font-medium hover:bg-accent-red hover:border-accent-red transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              >
+                {summaryBusy
+                  ? "Generating..."
+                  : survey.summary
+                    ? "Regenerate summary"
+                    : "Generate summary"}
+              </button>
+            </div>
+
+            {summaryError && (
+              <p className="text-body text-accent-red" role="alert">
+                {summaryError}
               </p>
             )}
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {summaryError && (
-            <div className="text-sm text-destructive" role="alert">
-              {summaryError}
-            </div>
-          )}
 
-          {!survey.summary ? (
-            <p className="text-sm text-muted-foreground">
-              No summary saved yet.
-            </p>
-          ) : (
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Overview</p>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+          {survey.summary && (
+            <div className="space-y-8 border-t-3 border-ink pt-6">
+              <div className="flex flex-wrap items-center gap-3">
+                <EditorialLabel>Sentiment</EditorialLabel>
+                <span className={sentimentBadgeClass(survey.summary.sentiment)}>
+                  {survey.summary.sentiment}
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                <EditorialLabel>Overview</EditorialLabel>
+                <p className="text-body text-ink-soft whitespace-pre-wrap">
                   {survey.summary.overview}
                 </p>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Key themes</p>
-                  <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+              <div className="grid gap-10 md:grid-cols-2">
+                <div className="space-y-3">
+                  <EditorialLabel>Key themes</EditorialLabel>
+                  <ul className="list-disc pl-5 text-body text-ink-soft space-y-2">
                     {survey.summary.keyThemes.map((t, idx) => (
                       <li key={idx}>{t}</li>
                     ))}
                   </ul>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Sentiment</p>
-                  <p className="text-sm text-muted-foreground">
-                    {survey.summary.sentiment}
-                  </p>
-                </div>
-              </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Specific praise</p>
-                  <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+                <div className="space-y-3">
+                  <EditorialLabel>Specific praise</EditorialLabel>
+                  <ul className="list-disc pl-5 text-body text-ink-soft space-y-2">
                     {survey.summary.specificPraise.map((t, idx) => (
                       <li key={idx}>{t}</li>
                     ))}
                   </ul>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Areas for improvement</p>
-                  <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+
+                <div className="space-y-3 md:col-span-2">
+                  <EditorialLabel>Areas for improvement</EditorialLabel>
+                  <ul className="list-disc pl-5 text-body text-ink-soft space-y-2">
                     {survey.summary.areasForImprovement.map((t, idx) => (
                       <li key={idx}>{t}</li>
                     ))}
@@ -298,46 +376,70 @@ export default function AdminSurveyDetailPage() {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </EditorialSection>
 
-      <Card>
-        <CardHeader className="space-y-2">
-          <CardTitle className="text-lg">Transcript</CardTitle>
-          <CardDescription>Raw interview messages in order.</CardDescription>
-          <div className="flex items-center gap-2">
-            <Button type="button" variant="outline" onClick={onCopyTranscript}>
+      <RuledDivider weight="thick" spacing="sm" />
+
+      <EditorialSection spacing="md">
+        <div className="max-w-[900px] mx-auto space-y-8">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+            <div className="space-y-3">
+              <EditorialLabel>Transcript</EditorialLabel>
+              <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+                Raw interview messages
+              </h2>
+              <p className="text-body text-ink-soft max-w-2xl">
+                Full transcript in order (assistant questions and respondent answers).
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => void onCopyTranscript()}
+              className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+            >
               {copied ? "Copied" : "Copy transcript"}
-            </Button>
+            </button>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
+
           {!survey.messages || survey.messages.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No messages yet.</p>
+            <p className="text-body text-ink-soft">No messages yet.</p>
           ) : (
-            survey.messages.map((m) => (
-              <div
-                key={m._id}
-                className={
-                  m.role === "assistant"
-                    ? "flex justify-start"
-                    : "flex justify-end"
-                }
-              >
+            <div className="space-y-8">
+              {survey.messages.map((m) => (
                 <div
+                  key={m._id}
                   className={
                     m.role === "assistant"
-                      ? "max-w-[85%] rounded-lg bg-muted px-3 py-2 text-sm whitespace-pre-wrap"
-                      : "max-w-[85%] rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground whitespace-pre-wrap"
+                      ? "border-l-4 border-ink pl-6 py-2"
+                      : "bg-ink text-paper p-6 sm:ml-[60px]"
                   }
                 >
-                  {m.content}
+                  <p
+                    className={
+                      m.role === "assistant"
+                        ? "text-label font-sans font-semibold uppercase tracking-label text-ink-soft"
+                        : "text-label font-sans font-semibold uppercase tracking-label text-ink-lighter"
+                    }
+                  >
+                    {m.role === "assistant" ? "AI Interviewer" : "Respondent"}
+                  </p>
+                  <div
+                    className={
+                      m.role === "assistant"
+                        ? "mt-3 text-body-lg text-ink whitespace-pre-wrap leading-relaxed"
+                        : "mt-3 text-body-lg text-paper whitespace-pre-wrap leading-relaxed"
+                    }
+                  >
+                    {m.content}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </EditorialSection>
     </div>
   );
 }
