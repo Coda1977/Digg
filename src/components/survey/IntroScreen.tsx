@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,13 +30,6 @@ export function IntroScreen({
     relationshipOptions[0]?.id ?? ""
   );
   const [respondentName, setRespondentName] = useState("");
-
-  const relationshipLabel = useMemo(() => {
-    return (
-      relationshipOptions.find((r) => r.id === relationshipId)?.label ??
-      relationshipId
-    );
-  }, [relationshipId, relationshipOptions]);
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();

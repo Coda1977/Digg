@@ -549,7 +549,7 @@ export function ChatInterface({
           <DialogHeader>
             <DialogTitle>Are you ready to finish?</DialogTitle>
             <DialogDescription>
-              You won't be able to add more responses after submitting.
+              You won&apos;t be able to add more responses after submitting.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

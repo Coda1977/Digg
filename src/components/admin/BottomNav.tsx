@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, FolderOpen, LogOut, User } from "lucide-react";
+import { Home, FolderOpen, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BottomNavProps {

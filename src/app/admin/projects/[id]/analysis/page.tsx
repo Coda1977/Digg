@@ -22,18 +22,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectInsightsPdf } from "@/components/pdf/ProjectInsightsPdf";
 import { cn } from "@/lib/utils";
 
-type AnalysisSegment = {
-  relationshipType: string;
-  relationshipLabel: string;
-  overview: string;
-  keyThemes: string[];
-  sentiment: "positive" | "mixed" | "negative";
-  specificPraise: string[];
-  areasForImprovement: string[];
-  basedOnSurveyCount: number;
-  generatedAt: number;
-};
-
 type ProjectSummary = {
   overview: string;
   keyThemes: string[];
@@ -520,4 +508,3 @@ export default function ProjectAnalysisPage() {
     </div>
   );
 }
-
