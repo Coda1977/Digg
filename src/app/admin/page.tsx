@@ -86,6 +86,11 @@ export default function AdminDashboard() {
               </Link>
             </EditorialButton>
             <EditorialButton variant="outline" asChild>
+              <Link href="/admin/templates">
+                Manage Templates
+              </Link>
+            </EditorialButton>
+            <EditorialButton variant="outline" asChild>
               <Link href="/admin/templates/new">
                 <Plus className="h-5 w-5" />
                 New Template
