@@ -8,14 +8,16 @@ import { Plus, Trash2 } from "lucide-react";
 
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   EditorialHeadline,
   EditorialLabel,
   EditorialSection,
   RuledDivider,
+  EditorialInput,
+  EditorialTextarea,
+  EditorialButton,
+  EditorialBreadcrumbs,
 } from "@/components/editorial";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
@@ -83,7 +85,14 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
   if (!templateId || template === undefined) {
     return (
       <EditorialSection spacing="lg">
-        <div className="animate-pulse space-y-editorial-md">
+        <EditorialBreadcrumbs
+          items={[
+            { label: "Dashboard", href: "/admin" },
+            { label: "Templates", href: "/admin/templates" },
+            { label: "Edit Template" },
+          ]}
+        />
+        <div className="animate-pulse space-y-editorial-md mt-6">
           <div className="h-16 bg-ink/5 w-2/3" />
           <RuledDivider weight="thick" spacing="sm" />
           <div className="h-40 bg-ink/5" />
@@ -95,14 +104,18 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
   if (template === null) {
     return (
       <EditorialSection spacing="lg">
-        <div className="text-center py-editorial-lg">
+        <EditorialBreadcrumbs
+          items={[
+            { label: "Dashboard", href: "/admin" },
+            { label: "Templates", href: "/admin/templates" },
+            { label: "Not Found" },
+          ]}
+        />
+        <div className="text-center py-editorial-lg mt-6">
           <p className="text-body-lg text-ink-soft mb-6">Template not found</p>
-          <Link
-            href="/admin/templates"
-            className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-ink text-paper font-medium hover:bg-transparent hover:text-ink transition-colors"
-          >
-            Back to Templates
-          </Link>
+          <EditorialButton variant="outline" asChild>
+            <Link href="/admin/templates">Back to Templates</Link>
+          </EditorialButton>
         </div>
       </EditorialSection>
     );
@@ -111,16 +124,26 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
   if (template.isBuiltIn) {
     return (
       <EditorialSection spacing="lg">
-        <div className="text-center py-editorial-lg">
-          <p className="text-body-lg text-ink-soft mb-6">
-            Built-in templates cannot be edited
-          </p>
-          <Link
-            href="/admin/templates"
-            className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-ink text-paper font-medium hover:bg-transparent hover:text-ink transition-colors"
-          >
-            Back to Templates
-          </Link>
+        <EditorialBreadcrumbs
+          items={[
+            { label: "Dashboard", href: "/admin" },
+            { label: "Templates", href: "/admin/templates" },
+            { label: template.name },
+          ]}
+        />
+        <div className="text-center py-editorial-lg mt-6">
+          <div className="border-l-4 border-accent-red pl-6 py-4 text-left max-w-2xl mx-auto">
+            <EditorialLabel accent>Restricted</EditorialLabel>
+            <h1 className="font-serif font-bold text-headline-md mt-2">Built-in templates cannot be edited</h1>
+            <p className="text-body text-ink-soft mt-2">
+              These templates are provided by Digg and are read-only.
+            </p>
+          </div>
+          <div className="mt-8">
+            <EditorialButton variant="outline" asChild>
+              <Link href="/admin/templates">Back to Templates</Link>
+            </EditorialButton>
+          </div>
         </div>
       </EditorialSection>
     );
@@ -227,283 +250,234 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
   }
 
   return (
-    <div>
-      <EditorialSection spacing="lg">
-        <div className="max-w-[900px] mx-auto space-y-6">
-          <EditorialLabel>Templates</EditorialLabel>
+    <div className="max-w-[900px] mx-auto space-y-8">
+      {/* Header */}
+      <div className="space-y-6">
+        <EditorialBreadcrumbs
+          items={[
+            { label: "Dashboard", href: "/admin" },
+            { label: "Templates", href: "/admin/templates" },
+            { label: "Edit Template" },
+          ]}
+        />
+        <div>
           <EditorialHeadline as="h1" size="lg">
             Edit Template
           </EditorialHeadline>
-          <p className="text-body-lg text-ink-soft max-w-2xl">
-            Update your custom survey template: questions, relationship types, and the
-            interviewer&apos;s system prompt.
+          <p className="text-body-lg text-ink-soft mt-3">
+            Update your custom survey template: questions, relationship types, and system prompt.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <Link
-              href="/admin/templates"
-              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
-            >
-              Back to templates
-            </Link>
-          </div>
         </div>
-      </EditorialSection>
+      </div>
 
-      <RuledDivider weight="thick" spacing="sm" />
+      <RuledDivider weight="thick" />
 
-      <EditorialSection spacing="md">
-        <div className="max-w-[900px] mx-auto space-y-10">
-          <div className="space-y-3">
-            <EditorialLabel>Template details</EditorialLabel>
-            <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
-              Name and purpose
-            </h2>
-            <p className="text-body text-ink-soft max-w-2xl">
-              Give the template a clear name and a short description so you can find it
-              quickly later.
+      <form onSubmit={handleSubmit} className="space-y-12 pb-20">
+        {/* Section 1: Details */}
+        <section className="space-y-6">
+          <div className="space-y-2">
+            <EditorialLabel>01 · Details</EditorialLabel>
+            <p className="text-body text-ink-soft">
+              Basic info to help you identify this template.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-10">
-            <div className="space-y-8">
-              <div className="space-y-3">
-                <Label
-                  htmlFor="name"
-                  className="text-label font-sans font-medium uppercase tracking-label text-ink-soft"
-                >
-                  Template name
-                </Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Executive leadership feedback"
-                  required
-                  className="h-14 text-base sm:text-base rounded-none border-3 border-ink bg-paper text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              </div>
-
-              <RuledDivider weight="medium" spacing="xs" />
-
-              <div className="space-y-3">
-                <Label
-                  htmlFor="description"
-                  className="text-label font-sans font-medium uppercase tracking-label text-ink-soft"
-                >
-                  Description
-                </Label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe what this survey template is for…"
-                  rows={3}
-                  required
-                  className="min-h-[120px] resize-y rounded-none border-3 border-ink bg-paper px-5 py-4 text-base sm:text-base leading-relaxed text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              </div>
-            </div>
-
-            <RuledDivider weight="thick" spacing="sm" />
-
-            <div className="space-y-8">
-              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
-                <div className="space-y-3">
-                  <EditorialLabel>Questions</EditorialLabel>
-                  <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
-                    Survey questions
-                  </h2>
-                  <p className="text-body text-ink-soft max-w-2xl">
-                    The AI interviewer will explore these questions during the conversation.
-                    Use <code className="bg-ink/5 px-1">{"{subjectName}"}</code> as a placeholder.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={addQuestion}
-                  className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors flex-shrink-0"
-                >
-                  <Plus className="h-5 w-5" />
-                  Add question
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                {questions.map((q, idx) => (
-                  <div
-                    key={q.tempId}
-                    className="border-l-4 border-ink pl-6 py-4 space-y-4 bg-paper"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="flex-1 space-y-3">
-                        <Label
-                          htmlFor={`question-${q.tempId}`}
-                          className="text-label font-sans font-medium uppercase tracking-label text-ink-soft"
-                        >
-                          Question {idx + 1}
-                        </Label>
-                        <Textarea
-                          id={`question-${q.tempId}`}
-                          value={q.text}
-                          onChange={(e) =>
-                            updateQuestion(q.tempId, "text", e.target.value)
-                          }
-                          placeholder="What's the question you want to explore?"
-                          rows={2}
-                          className="min-h-[80px] resize-y rounded-none border-3 border-ink bg-paper px-5 py-4 text-base sm:text-base leading-relaxed text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeQuestion(q.tempId)}
-                        disabled={questions.length === 1}
-                        className="mt-8 p-2 text-accent-red hover:bg-accent-red/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                        aria-label="Remove question"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id={`collect-multiple-${q.tempId}`}
-                        checked={q.collectMultiple}
-                        onChange={(e) =>
-                          updateQuestion(q.tempId, "collectMultiple", e.target.checked)
-                        }
-                        className="h-5 w-5 border-3 border-ink text-ink focus:ring-accent-red"
-                      />
-                      <Label
-                        htmlFor={`collect-multiple-${q.tempId}`}
-                        className="text-body text-ink cursor-pointer"
-                      >
-                        Collect multiple responses for this question
-                      </Label>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <RuledDivider weight="thick" spacing="sm" />
-
-            <div className="space-y-8">
-              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
-                <div className="space-y-3">
-                  <EditorialLabel>Relationship types</EditorialLabel>
-                  <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
-                    Who can give feedback
-                  </h2>
-                  <p className="text-body text-ink-soft max-w-2xl">
-                    Define the different relationships people can have (e.g., Manager, Peer,
-                    Direct Report).
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={addRelationshipOption}
-                  className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors flex-shrink-0"
-                >
-                  <Plus className="h-5 w-5" />
-                  Add option
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {relationshipOptions.map((r, idx) => (
-                  <div
-                    key={r.tempId}
-                    className="flex items-center gap-4 border-l-4 border-ink pl-6 py-3 bg-paper"
-                  >
-                    <div className="flex-1 space-y-2">
-                      <Label
-                        htmlFor={`relationship-${r.tempId}`}
-                        className="text-label font-sans font-medium uppercase tracking-label text-ink-soft"
-                      >
-                        Option {idx + 1}
-                      </Label>
-                      <Input
-                        id={`relationship-${r.tempId}`}
-                        value={r.label}
-                        onChange={(e) =>
-                          updateRelationshipOption(r.tempId, e.target.value)
-                        }
-                        placeholder="e.g. Manager, Peer, Direct Report"
-                        className="h-12 text-base sm:text-base rounded-none border-3 border-ink bg-paper text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeRelationshipOption(r.tempId)}
-                      disabled={relationshipOptions.length === 1}
-                      className="p-2 text-accent-red hover:bg-accent-red/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                      aria-label="Remove option"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <RuledDivider weight="thick" spacing="sm" />
-
-            <div className="space-y-8">
-              <div className="space-y-3">
-                <EditorialLabel>AI interviewer prompt</EditorialLabel>
-                <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
-                  System instructions
-                </h2>
-                <p className="text-body text-ink-soft max-w-2xl">
-                  Define how the AI interviewer should behave. <strong className="text-ink">You MUST include {'{{questions}}'}</strong> in your prompt - this is where your questions from above will be injected.
-                </p>
-              </div>
-
-              <div className="border-l-4 border-accent-yellow bg-accent-yellow/10 pl-6 py-4 mb-6">
-                <p className="text-body text-ink font-medium mb-2">Available Placeholders:</p>
-                <ul className="text-body text-ink-soft space-y-1">
-                  <li><code className="bg-ink/5 px-1 font-mono">{'{{questions}}'}</code> - Your questions from above (REQUIRED)</li>
-                  <li><code className="bg-ink/5 px-1 font-mono">{'{{subjectName}}'}</code> - Person being reviewed (e.g. &quot;John&quot;)</li>
-                  <li><code className="bg-ink/5 px-1 font-mono">{'{{subjectRole}}'}</code> - Their role (e.g. &quot;Senior Engineer&quot;)</li>
-                  <li><code className="bg-ink/5 px-1 font-mono">{'{{relationship}}'}</code> - Respondent&apos;s relationship (e.g. &quot;Manager&quot;)</li>
-                </ul>
-              </div>
-
-              <Textarea
-                id="systemPrompt"
-                value={systemPrompt}
-                onChange={(e) => setSystemPrompt(e.target.value)}
-                placeholder="You are a skilled interviewer…"
-                rows={12}
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <Label
+                htmlFor="name"
+                className="uppercase tracking-widest text-xs font-bold text-ink-soft"
+              >
+                Template Name
+              </Label>
+              <EditorialInput
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Executive leadership feedback"
                 required
-                className="min-h-[300px] resize-y rounded-none border-3 border-ink bg-paper px-5 py-4 text-base sm:text-base leading-relaxed text-ink placeholder:text-ink-lighter focus-visible:border-accent-red focus-visible:ring-0 focus-visible:ring-offset-0 font-mono"
               />
             </div>
 
-            {error && (
-              <div className="border-l-4 border-accent-red bg-accent-red/10 px-6 py-4">
-                <p className="text-body text-accent-red">{error}</p>
-              </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row gap-3 pt-6">
-              <button
-                type="submit"
-                disabled={updating}
-                className="inline-flex items-center justify-center gap-2 min-h-[56px] px-10 border-3 border-ink bg-ink text-paper font-bold text-lg hover:bg-transparent hover:text-ink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            <div className="space-y-3">
+              <Label
+                htmlFor="description"
+                className="uppercase tracking-widest text-xs font-bold text-ink-soft"
               >
-                {updating ? "Saving…" : "Save changes"}
-              </button>
-              <Link
-                href="/admin/templates"
-                className="inline-flex items-center justify-center gap-2 min-h-[56px] px-10 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
-              >
-                Cancel
-              </Link>
+                Description
+              </Label>
+              <EditorialTextarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe what this survey template is for…"
+                rows={3}
+                required
+              />
             </div>
-          </form>
+          </div>
+        </section>
+
+        <RuledDivider weight="thin" />
+
+        {/* Section 2: Questions */}
+        <section className="space-y-8">
+          <div className="flex items-end justify-between">
+            <div className="space-y-2">
+              <EditorialLabel>02 · Questions</EditorialLabel>
+              <p className="text-body text-ink-soft max-w-xl">
+                The AI interviewer will explore these questions during the conversation.
+              </p>
+            </div>
+            <EditorialButton
+              type="button"
+              onClick={addQuestion}
+              variant="outline"
+              size="small"
+            >
+              <Plus className="h-4 w-4" />
+              Add Question
+            </EditorialButton>
+          </div>
+
+          <div className="space-y-4">
+            {questions.map((question, index) => (
+              <div
+                key={question.tempId}
+                className="flex gap-4 items-start bg-paper p-4 border border-ink/10 relative group"
+              >
+                <div className="pt-3">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-ink/5 text-xs font-bold text-ink-soft">
+                    {index + 1}
+                  </span>
+                </div>
+
+                <div className="flex-1 space-y-3">
+                  <EditorialTextarea
+                    value={question.text}
+                    onChange={(e) =>
+                      updateQuestion(question.tempId, "text", e.target.value)
+                    }
+                    placeholder="Enter the question…"
+                    rows={2}
+                  />
+                  <label className="flex items-center gap-2 text-body-sm text-ink-soft cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={question.collectMultiple}
+                      onChange={(e) =>
+                        updateQuestion(
+                          question.tempId,
+                          "collectMultiple",
+                          e.target.checked
+                        )
+                      }
+                      className="h-4 w-4 rounded-none border-2 border-ink accent-ink"
+                    />
+                    <span>Collect multiple responses (AI will prompt for more)</span>
+                  </label>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => removeQuestion(question.tempId)}
+                  disabled={questions.length === 1}
+                  className="p-2 text-ink-lighter hover:text-accent-red transition-colors disabled:opacity-0"
+                  title="Remove question"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <RuledDivider weight="thin" />
+
+        {/* Section 3: Relationships */}
+        <section className="space-y-8">
+          <div className="flex items-end justify-between">
+            <div className="space-y-2">
+              <EditorialLabel>03 · Relationships</EditorialLabel>
+              <p className="text-body text-ink-soft max-w-xl">
+                Who can give feedback using this template.
+              </p>
+            </div>
+            <EditorialButton
+              type="button"
+              onClick={addRelationshipOption}
+              variant="outline"
+              size="small"
+            >
+              <Plus className="h-4 w-4" />
+              Add Option
+            </EditorialButton>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relationshipOptions.map((option) => (
+              <div key={option.tempId} className="flex gap-2">
+                <EditorialInput
+                  value={option.label}
+                  onChange={(e) =>
+                    updateRelationshipOption(option.tempId, e.target.value)
+                  }
+                  placeholder="e.g. Manager"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeRelationshipOption(option.tempId)}
+                  disabled={relationshipOptions.length === 1}
+                  className="px-3 border-l text-ink-lighter hover:text-accent-red transition-colors disabled:opacity-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <RuledDivider weight="thin" />
+
+        {/* Section 4: Prompt */}
+        <section className="space-y-6">
+          <div className="space-y-2">
+            <EditorialLabel>04 · System Prompt</EditorialLabel>
+            <p className="text-body text-ink-soft">
+              <strong className="text-ink">Advanced:</strong> Define how the AI interviewer behaves. Must include <code className="bg-ink/5 px-1 font-mono text-sm">{'{{questions}}'}</code>.
+            </p>
+          </div>
+
+          <EditorialTextarea
+            value={systemPrompt}
+            onChange={(e) => setSystemPrompt(e.target.value)}
+            rows={12}
+            className="font-mono text-sm leading-relaxed"
+            required
+          />
+        </section>
+
+        {error && (
+          <div className="border-l-4 border-accent-red pl-6 py-2" role="alert">
+            <EditorialLabel accent>Error</EditorialLabel>
+            <p className="mt-1 text-body text-accent-red">{error}</p>
+          </div>
+        )}
+
+        <div className="flex items-center gap-4 fixed bottom-0 left-0 right-0 p-4 bg-paper/80 backdrop-blur-md border-t border-ink/10 sm:static sm:bg-transparent sm:border-0 sm:p-0">
+          <EditorialButton
+            type="submit"
+            disabled={updating}
+            variant="primary"
+            className="w-full sm:w-auto"
+          >
+            {updating ? "Saving…" : "Save Changes"}
+          </EditorialButton>
+          <EditorialButton variant="ghost" asChild className="hidden sm:inline-flex">
+            <Link href="/admin/templates">Cancel</Link>
+          </EditorialButton>
         </div>
-      </EditorialSection>
+      </form>
     </div>
   );
 }

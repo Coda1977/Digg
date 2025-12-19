@@ -14,6 +14,7 @@ import {
   EditorialSection,
   RuledDivider,
   EditorialButton,
+  EditorialBreadcrumbs,
   EditorialInput,
   StatusBadge,
   MessageBubble,
@@ -148,7 +149,16 @@ export default function AdminSurveyDetailPage() {
     <div>
       <EditorialSection spacing="lg">
         <div className="max-w-[900px] mx-auto space-y-6">
-          <div className="flex flex-wrap items-center gap-3">
+          <EditorialBreadcrumbs
+            items={[
+              { label: "Dashboard", href: "/admin" },
+              { label: "Projects", href: "/admin" },
+              { label: survey.project.name, href: `/admin/projects/${survey.project._id}` },
+              { label: "Analysis", href: `/admin/projects/${survey.project._id}/analysis` },
+              { label: respondentName },
+            ]}
+          />
+          <div className="flex flex-wrap items-center gap-3 mt-6">
             <EditorialLabel>Interview</EditorialLabel>
             <StatusBadge
               status={survey.status as "completed" | "in_progress" | "not_started"}
@@ -167,19 +177,6 @@ export default function AdminSurveyDetailPage() {
           <p className="text-body text-ink-soft">
             {survey.project.name} · {subjectName}
           </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <EditorialButton variant="secondary" asChild>
-              <Link href={`/admin/projects/${survey.project._id}/analysis`}>
-                Back to interviews &amp; analysis
-              </Link>
-            </EditorialButton>
-            <EditorialButton variant="outline" asChild>
-              <Link href={`/admin/projects/${survey.project._id}`}>
-                Back to project
-              </Link>
-            </EditorialButton>
-          </div>
         </div>
       </EditorialSection>
 

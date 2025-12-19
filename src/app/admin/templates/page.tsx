@@ -13,6 +13,7 @@ import {
   EditorialLabel,
   RuledDivider,
   EditorialButton,
+  EditorialBreadcrumbs,
 } from "@/components/editorial";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import {
@@ -37,13 +38,18 @@ function TemplatesPage() {
 
   if (templates === undefined) {
     return (
-      <EditorialSection spacing="lg">
-        <div className="animate-pulse space-y-editorial-md">
-          <div className="h-16 bg-ink/5 w-2/3" />
-          <RuledDivider weight="thick" spacing="sm" />
-          <div className="h-40 bg-ink/5" />
-        </div>
-      </EditorialSection>
+      <>
+        <EditorialSection spacing="lg">
+          <EditorialBreadcrumbs
+            items={[{ label: "Admin", href: "/admin" }, { label: "Templates" }]}
+          />
+          <div className="animate-pulse space-y-editorial-md mt-6">
+            <div className="h-16 bg-ink/5 w-2/3" />
+            <RuledDivider weight="thick" spacing="sm" />
+            <div className="h-40 bg-ink/5" />
+          </div>
+        </EditorialSection>
+      </>
     );
   }
 
@@ -79,7 +85,10 @@ function TemplatesPage() {
     <div>
       {/* Hero Section */}
       <EditorialSection spacing="lg">
-        <div className="space-y-6">
+        <EditorialBreadcrumbs
+          items={[{ label: "Admin", href: "/admin" }, { label: "Templates" }]}
+        />
+        <div className="space-y-6 mt-6">
           <EditorialLabel>Digg Admin</EditorialLabel>
           <EditorialHeadline as="h1" size="xl">
             Survey Templates
@@ -130,24 +139,23 @@ function TemplatesPage() {
                         </div>
                       </div>
                       <div className="flex gap-2 flex-shrink-0">
-                        <Button
+                        <EditorialButton
                           variant="outline"
-                          size="sm"
+                          size="small"
                           onClick={() => router.push(`/admin/templates/${template._id}/edit`)}
-                          className="border-2 border-ink/20 hover:border-ink hover:bg-ink hover:text-paper"
                         >
                           <Pencil className="h-4 w-4" />
                           Edit
-                        </Button>
-                        <Button
+                        </EditorialButton>
+                        <EditorialButton
                           variant="outline"
-                          size="sm"
+                          size="small"
                           onClick={() => handleDeleteClick(template._id)}
-                          className="border-2 border-accent-red/20 text-accent-red hover:border-accent-red hover:bg-accent-red hover:text-paper"
+                          className="text-accent-red border-accent-red/20 hover:bg-accent-red hover:text-paper"
                         >
                           <Trash2 className="h-4 w-4" />
                           Delete
-                        </Button>
+                        </EditorialButton>
                       </div>
                     </div>
                   </div>

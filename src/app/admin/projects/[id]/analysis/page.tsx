@@ -14,6 +14,8 @@ import {
   EditorialLabel,
   EditorialSection,
   RuledDivider,
+  EditorialButton,
+  EditorialBreadcrumbs,
 } from "@/components/editorial";
 import {
   formatEnumLabel,
@@ -235,12 +237,11 @@ export default function ProjectAnalysisPage() {
             This project ID doesn&apos;t exist or you don&apos;t have access.
           </p>
           <div className="pt-2">
-            <Link
-              href="/admin"
-              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
-            >
-              Back to dashboard
-            </Link>
+            <EditorialButton asChild variant="outline">
+              <Link href="/admin">
+                Back to dashboard
+              </Link>
+            </EditorialButton>
           </div>
         </div>
       </EditorialSection>
@@ -257,7 +258,15 @@ export default function ProjectAnalysisPage() {
     <div>
       <EditorialSection spacing="lg">
         <div className="max-w-[900px] mx-auto space-y-6">
-          <div className="flex flex-wrap items-center gap-3">
+          <EditorialBreadcrumbs
+            items={[
+              { label: "Dashboard", href: "/admin" },
+              { label: "Projects", href: "/admin" },
+              { label: project.name, href: `/admin/projects/${projectId}` },
+              { label: "Analysis" },
+            ]}
+          />
+          <div className="flex flex-wrap items-center gap-3 mt-6">
             <EditorialLabel>Interviews &amp; analysis</EditorialLabel>
             <span className={statusBadgeClass(project.status)}>
               {formatEnumLabel(project.status)}
@@ -305,21 +314,6 @@ export default function ProjectAnalysisPage() {
               </div>
             </div>
           )}
-
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <Link
-              href={`/admin/projects/${projectId}`}
-              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
-            >
-              Back to project
-            </Link>
-            <Link
-              href="/admin"
-              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
-            >
-              Dashboard
-            </Link>
-          </div>
         </div>
       </EditorialSection>
 
@@ -363,23 +357,23 @@ export default function ProjectAnalysisPage() {
                   />
                 }
                 fileName={pdfFileName}
-                className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
               >
                 {({ loading }) => (loading ? "Preparing PDF..." : "Download PDF")}
               </PDFDownloadLink>
 
-              <button
+              <EditorialButton
                 type="button"
                 onClick={() => void onGenerateInsights()}
                 disabled={generatingInsights}
-                className="inline-flex items-center justify-center min-h-[48px] px-7 py-3 border-3 border-ink bg-ink text-paper font-medium hover:bg-accent-red hover:border-accent-red transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                variant="primary"
               >
                 {generatingInsights
                   ? "Generating..."
                   : analysis
                     ? "Regenerate insights"
                     : "Generate insights"}
-              </button>
+              </EditorialButton>
             </div>
 
             {insightsError && (
@@ -393,30 +387,28 @@ export default function ProjectAnalysisPage() {
             <div className="space-y-8">
               {project.segmentedAnalysis && project.segmentedAnalysis.length > 0 && (
                 <div className="flex flex-wrap gap-3 border-t-3 border-ink pt-6">
-                  <button
+                  <EditorialButton
                     type="button"
                     onClick={() => setActiveSegment(null)}
-                    className={
-                      activeSegment === null
-                        ? "inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-ink text-paper font-medium"
-                        : "inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
-                    }
+                    variant={activeSegment === null ? "primary" : "outline"}
+                    size="small"
                   >
                     Overall ({analysis.basedOnSurveyCount})
-                  </button>
+                  </EditorialButton>
                   {project.segmentedAnalysis.map((segment) => (
-                    <button
+                    <EditorialButton
                       key={segment.relationshipType}
                       type="button"
                       onClick={() => setActiveSegment(segment.relationshipType)}
-                      className={
+                      variant={
                         activeSegment === segment.relationshipType
-                          ? "inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-ink text-paper font-medium"
-                          : "inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
+                          ? "primary"
+                          : "outline"
                       }
+                      size="small"
                     >
                       {segment.relationshipLabel} ({segment.basedOnSurveyCount})
-                    </button>
+                    </EditorialButton>
                   ))}
                 </div>
               )}
@@ -424,8 +416,8 @@ export default function ProjectAnalysisPage() {
               {(() => {
                 const activeAnalysis = activeSegment
                   ? project.segmentedAnalysis?.find(
-                      (segment) => segment.relationshipType === activeSegment
-                    )
+                    (segment) => segment.relationshipType === activeSegment
+                  )
                   : analysis;
 
                 if (!activeAnalysis) return null;
@@ -533,12 +525,11 @@ export default function ProjectAnalysisPage() {
                       </div>
 
                       <div className="flex flex-col sm:flex-row gap-3">
-                        <Link
-                          href={`/admin/surveys/${survey._id}`}
-                          className="inline-flex items-center justify-center min-h-[44px] px-6 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
-                        >
-                          Transcript &amp; summary
-                        </Link>
+                        <EditorialButton asChild variant="outline" size="small">
+                          <Link href={`/admin/surveys/${survey._id}`}>
+                            Transcript &amp; summary
+                          </Link>
+                        </EditorialButton>
                       </div>
                     </div>
                   </article>
