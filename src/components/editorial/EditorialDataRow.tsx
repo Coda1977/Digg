@@ -32,7 +32,7 @@ export function EditorialDataRow({
             {status && (
                 <div className="flex-shrink-0 min-w-[100px]">
                     {typeof status === "string" ? (
-                        <EditorialLabel size="xs">{status}</EditorialLabel>
+                        <EditorialLabel className="text-xs">{status}</EditorialLabel>
                     ) : (
                         status
                     )}
