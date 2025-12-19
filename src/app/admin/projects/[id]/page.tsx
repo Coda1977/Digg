@@ -16,6 +16,8 @@ import {
   EditorialButton,
   EditorialInput,
   StatusBadge,
+  EditorialBreadcrumbs, // Added
+  EditorialDataRow, // Added
 } from "@/components/editorial";
 
 export default function ProjectDetailPage() {
@@ -133,237 +135,173 @@ export default function ProjectDetailPage() {
   const relationshipOptions = project.template?.relationshipOptions ?? [];
 
   return (
-    <div>
-      <EditorialSection spacing="lg">
-        <div className="max-w-[900px] mx-auto space-y-6">
-          <div className="flex flex-wrap items-center gap-3">
-            <EditorialLabel>Project</EditorialLabel>
-            <StatusBadge status={project.status as "active" | "closed"} />
-          </div>
+    <div className="max-w-[900px] mx-auto space-y-12">
+      {/* Header Section */}
+      <section className="space-y-6">
+        <EditorialBreadcrumbs
+          items={[
+            { label: "Dashboard", href: "/admin" },
+            { label: project.subjectName },
+          ]}
+        />
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <EditorialHeadline as="h1" size="lg">
+                  {project.subjectName}
+                </EditorialHeadline>
+                <StatusBadge status={project.status as "active" | "closed"} />
+              </div>
+              <div className="flex items-center gap-2 text-body text-ink-soft">
+                {project.subjectRole && <span>{project.subjectRole}</span>}
+                {project.template?.name && <span>• {project.template.name}</span>}
+              </div>
+            </div>
 
-          <EditorialHeadline as="h1" size="lg">
-            {project.subjectName}
-          </EditorialHeadline>
-
-          {project.subjectRole && (
-            <p className="text-body-lg text-ink-soft">{project.subjectRole}</p>
-          )}
-
-          <p className="text-body text-ink-soft">
-            {project.name}
-            {project.template?.name ? ` · ${project.template.name}` : ""}
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <EditorialButton variant="secondary" asChild>
-              <Link href={`/admin/projects/${projectId}/analysis`}>
-                Interviews &amp; analysis
-              </Link>
-            </EditorialButton>
-            <EditorialButton variant="outline" asChild>
-              <Link href="/admin">Back to dashboard</Link>
-            </EditorialButton>
-          </div>
-        </div>
-      </EditorialSection>
-
-      <RuledDivider weight="thick" spacing="sm" />
-
-      {error && (
-        <EditorialSection spacing="md">
-          <div className="max-w-[900px] mx-auto border-l-4 border-accent-red pl-6 py-2">
-            <EditorialLabel accent>Something went wrong</EditorialLabel>
-            <p className="mt-3 text-body text-accent-red" role="alert">
-              {error}
-            </p>
-          </div>
-        </EditorialSection>
-      )}
-
-      <EditorialSection spacing="md">
-        <div className="max-w-[900px] mx-auto space-y-8">
-          <div className="space-y-3">
-            <EditorialLabel>Share Link</EditorialLabel>
-            <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
-              Send one link to everyone
-            </h2>
-            <p className="text-body text-ink-soft max-w-2xl">
-              This is the one link you share. Each person who opens it gets their own
-              private interview, so answers don&apos;t mix.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <EditorialInput readOnly value={projectShareLink} />
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex gap-2">
+              <EditorialButton variant="secondary" asChild>
+                <Link href={`/admin/projects/${projectId}/analysis`}>
+                  View Analysis
+                </Link>
+              </EditorialButton>
               <EditorialButton
                 type="button"
                 variant="outline"
-                onClick={() => void navigator.clipboard.writeText(projectShareLink)}
+                onClick={() => void onToggleStatus()}
+                disabled={busy}
               >
-                Copy
-              </EditorialButton>
-              <EditorialButton variant="outline" asChild>
-                <a href={projectShareLink} target="_blank" rel="noreferrer">
-                  Open
-                </a>
+                {project.status === "active" ? "Close" : "Reopen"}
               </EditorialButton>
             </div>
           </div>
         </div>
-      </EditorialSection>
+      </section>
 
-      <RuledDivider weight="thick" spacing="sm" />
+      <RuledDivider />
 
-      <EditorialSection spacing="md">
-        <div className="max-w-[900px] mx-auto space-y-8">
-          <div className="space-y-3">
-            <EditorialLabel>Interviews</EditorialLabel>
-            <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
-              Responses and transcripts
-            </h2>
-            <p className="text-body text-ink-soft max-w-2xl">
-              Each interview is one person&apos;s response. Use the links below to resend
-              a specific interview link or open transcripts.
+      {error && (
+        <div className="border-l-4 border-accent-red pl-6 py-2" role="alert">
+          <p className="text-body text-accent-red">{error}</p>
+        </div>
+      )}
+
+      {/* Share Section - Compact */}
+      <section className="bg-paper border border-ink/10 p-6 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <EditorialLabel>Share Project</EditorialLabel>
+            <p className="text-body text-ink-soft mt-1">
+              Send this link to anyone to collect their feedback.
             </p>
           </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-body text-ink-soft max-w-xl">
-              Optional: create an individual invite link (useful for reminders).
-            </p>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <EditorialInput readOnly value={projectShareLink} className="flex-1 md:w-[300px]" />
             <EditorialButton
               type="button"
               variant="outline"
-              onClick={() => void onCreateInviteLink()}
-              disabled={busy}
+              onClick={() => void navigator.clipboard.writeText(projectShareLink)}
             >
-              {busy ? "Working…" : "Create invite link"}
+              Copy
             </EditorialButton>
           </div>
+        </div>
+      </section>
 
-          {newSurveyLink && (
-            <div className="border-l-4 border-ink pl-6 py-2 space-y-4">
-              <EditorialLabel>Invite link copied</EditorialLabel>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <EditorialInput readOnly value={newSurveyLink} />
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <EditorialButton
-                    type="button"
-                    variant="outline"
-                    onClick={() => void navigator.clipboard.writeText(newSurveyLink)}
-                  >
-                    Copy
-                  </EditorialButton>
-                  <EditorialButton variant="outline" asChild>
-                    <a href={newSurveyLink} target="_blank" rel="noreferrer">
-                      Open
-                    </a>
-                  </EditorialButton>
-                </div>
-              </div>
+      {/* Interviews List */}
+      <section className="space-y-6">
+        <div className="flex items-end justify-between">
+          <EditorialLabel>Interviews ({surveys ? surveys.length : 0})</EditorialLabel>
+          <button
+            type="button"
+            onClick={() => void onCreateInviteLink()}
+            disabled={busy}
+            className="text-label font-medium text-ink hover:text-accent-red transition-colors disabled:opacity-50"
+          >
+            + Create individual invite
+          </button>
+        </div>
+
+        {newSurveyLink && (
+          <div className="bg-ink/5 p-4 border border-ink/10 flex items-center justify-between gap-4 mb-6">
+            <span className="text-body text-ink">New invite link created:</span>
+            <div className="flex items-center gap-2">
+              <code className="text-sm bg-paper px-2 py-1 rounded">{newSurveyLink}</code>
+              <button
+                onClick={() => void navigator.clipboard.writeText(newSurveyLink)}
+                className="text-label underline"
+              >
+                Copy
+              </button>
             </div>
-          )}
+          </div>
+        )}
 
-          {!surveys || surveys.length === 0 ? (
+        {!surveys || surveys.length === 0 ? (
+          <div className="py-12 text-center border-t border-ink/10">
             <p className="text-body text-ink-soft">
               No interviews yet. Share the link above to start collecting responses.
             </p>
-          ) : (
-            <div className="space-y-8">
-              {surveys.map((s) => {
-                const surveyLink = origin
-                  ? `${origin}/survey/${s.uniqueId}`
-                  : `/survey/${s.uniqueId}`;
-
-                const relationshipLabel = s.relationship
-                  ? relationshipOptions.find((r) => r.id === s.relationship)?.label ??
-                    s.relationship
-                  : null;
-
-                return (
-                  <article key={s._id} className="border-t-3 border-ink pt-6">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0 space-y-2">
-                        <div className="flex flex-wrap items-center gap-3">
-                          <StatusBadge
-                            status={
-                              s.status as "completed" | "in_progress" | "not_started"
-                            }
-                          />
-                          <p className="text-body font-medium text-ink truncate">
-                            {s.respondentName ?? "Anonymous respondent"}
-                          </p>
-                        </div>
-                        <p className="text-body text-ink-soft truncate">
-                          {relationshipLabel
-                            ? `Relationship · ${relationshipLabel}`
-                            : "Relationship · Not selected yet"}{" "}
-                          · /survey/{s.uniqueId}
-                        </p>
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        <EditorialButton
-                          type="button"
-                          variant="outline"
-                          size="small"
-                          onClick={() => void navigator.clipboard.writeText(surveyLink)}
-                        >
-                          Copy interview link
-                        </EditorialButton>
-                        <EditorialButton variant="outline" size="small" asChild>
-                          <a href={surveyLink} target="_blank" rel="noreferrer">
-                            Open
-                          </a>
-                        </EditorialButton>
-                        <EditorialButton variant="outline" size="small" asChild>
-                          <Link href={`/admin/surveys/${s._id}`}>Transcript</Link>
-                        </EditorialButton>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </EditorialSection>
-
-      <RuledDivider weight="thick" spacing="sm" />
-
-      <EditorialSection spacing="md">
-        <div className="max-w-[900px] mx-auto space-y-8">
-          <div className="space-y-3">
-            <EditorialLabel>Project actions</EditorialLabel>
-            <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
-              Controls
-            </h2>
-            <p className="text-body text-ink-soft max-w-2xl">
-              Close the project to stop new interviews. Delete removes everything.
-            </p>
           </div>
+        ) : (
+          <div>
+            {surveys.map((s) => {
+              const relationshipLabel = s.relationship
+                ? relationshipOptions.find((r) => r.id === s.relationship)?.label ??
+                s.relationship
+                : "Unknown Relationship";
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <EditorialButton
-              type="button"
-              variant="outline"
-              onClick={() => void onToggleStatus()}
-              disabled={busy}
-            >
-              {project.status === "active" ? "Close project" : "Reopen project"}
-            </EditorialButton>
-            <EditorialButton
-              type="button"
-              variant="primary"
-              onClick={() => void onDeleteProject()}
-              disabled={busy}
-            >
-              Delete project
-            </EditorialButton>
+              const surveyLink = origin
+                ? `${origin}/survey/${s.uniqueId}`
+                : `/survey/${s.uniqueId}`;
+
+              return (
+                <EditorialDataRow
+                  key={s._id}
+                  status={
+                    <StatusBadge status={s.status as "completed" | "in_progress" | "not_started"} />
+                  }
+                  title={s.respondentName || "Anonymous"}
+                  meta={
+                    <>
+                      <span>{relationshipLabel}</span>
+                      <span className="text-ink-lighter font-mono text-xs">{s.uniqueId}</span>
+                    </>
+                  }
+                  actions={
+                    <>
+                      <EditorialButton
+                        type="button"
+                        variant="outline"
+                        size="small"
+                        onClick={() => void navigator.clipboard.writeText(surveyLink)}
+                      >
+                        Copy Link
+                      </EditorialButton>
+                      <EditorialButton variant="outline" size="small" asChild>
+                        <Link href={`/admin/surveys/${s._id}`}>Transcript</Link>
+                      </EditorialButton>
+                    </>
+                  }
+                />
+              );
+            })}
           </div>
-        </div>
-      </EditorialSection>
+        )}
+      </section>
+
+      <RuledDivider weight="thin" />
+
+      <section className="pt-4 pb-12">
+        <button
+          type="button"
+          onClick={() => void onDeleteProject()}
+          disabled={busy}
+          className="text-label text-accent-red hover:text-red-700 transition-colors"
+        >
+          Delete this project
+        </button>
+      </section>
     </div>
   );
 }

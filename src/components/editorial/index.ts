@@ -10,3 +10,5 @@ export { EditorialSelect } from "./EditorialSelect";
 export { StatusBadge } from "./StatusBadge";
 export { TemplateCard } from "./TemplateCard";
 export { MessageBubble } from "./MessageBubble";
+export { EditorialBreadcrumbs } from "./EditorialBreadcrumbs";
+export { EditorialDataRow } from "./EditorialDataRow";

@@ -20,6 +20,7 @@ import {
   EditorialInput,
   EditorialTextarea,
   TemplateCard,
+  EditorialBreadcrumbs, // Added
 } from "@/components/editorial";
 import { getErrorMessage } from "@/lib/errorHandling";
 
@@ -141,90 +142,145 @@ export default function NewProjectPage() {
   }
 
   return (
-    <div>
-      <EditorialSection spacing="lg">
-        <div className="max-w-[900px] mx-auto space-y-6">
-          <EditorialLabel>Projects</EditorialLabel>
+    <div className="max-w-[800px] mx-auto space-y-8">
+      {/* Breadcrumbs & Header */}
+      <div className="space-y-6">
+        <EditorialBreadcrumbs
+          items={[
+            { label: "Dashboard", href: "/admin" },
+            { label: "New Project" },
+          ]}
+        />
+        <div>
           <EditorialHeadline as="h1" size="lg">
             New Project
           </EditorialHeadline>
-          <p className="text-body-lg text-ink-soft max-w-2xl">
-            Create a feedback project using one of the survey types (templates).
+          <p className="text-body-lg text-ink-soft mt-3">
+            Configure your feedback project in 3 steps.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <EditorialButton variant="outline" asChild>
-              <Link href="/admin">Back to dashboard</Link>
+        </div>
+      </div>
+
+      <RuledDivider weight="thick" />
+
+      {templatesEmpty && (
+        <div className="border-l-4 border-accent-red pl-6 py-4 space-y-4 bg-paper">
+          <EditorialLabel accent>Setup Required</EditorialLabel>
+          <h2 className="font-serif font-bold text-headline-sm">
+            No templates found
+          </h2>
+          <p className="text-body text-ink-soft">
+            You need to seed the built-in survey templates first.
+          </p>
+          <div className="pt-2">
+            <EditorialButton
+              type="button"
+              onClick={() => void onSeed()}
+              disabled={submitting}
+              variant="primary"
+            >
+              <Plus className="h-5 w-5" />
+              Seed templates
             </EditorialButton>
           </div>
         </div>
-      </EditorialSection>
-
-      <RuledDivider weight="thick" spacing="sm" />
-
-      {templatesEmpty && (
-        <EditorialSection spacing="md">
-          <div className="max-w-[900px] mx-auto border-l-4 border-accent-red pl-6 py-2 space-y-4">
-            <EditorialLabel accent>Setup</EditorialLabel>
-            <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
-              No templates found
-            </h2>
-            <p className="text-body text-ink-soft">
-              You probably haven&apos;t seeded the 4 built-in survey templates yet.
-            </p>
-            <div className="pt-2">
-              <EditorialButton
-                type="button"
-                onClick={() => void onSeed()}
-                disabled={submitting}
-                variant="primary"
-              >
-                <Plus className="h-5 w-5" />
-                Seed templates
-              </EditorialButton>
-            </div>
-          </div>
-        </EditorialSection>
       )}
 
-      <EditorialSection spacing="md" ruled>
-        <div className="max-w-[900px] mx-auto space-y-8">
-          <div className="space-y-3">
-            <EditorialLabel>1. Choose Survey Type</EditorialLabel>
-            <p className="text-body text-ink-soft max-w-2xl">
-              Select the type of feedback you want to collect. Each template includes specific questions and interview prompts.
-            </p>
+      {/* Main Form */}
+      <form onSubmit={onSubmit} className="space-y-12 pb-20">
+
+        {/* Step 1: Template */}
+        <section className="space-y-6">
+          <div className="space-y-2">
+            <EditorialLabel>01 · Survey Type</EditorialLabel>
+            <p className="text-body text-ink-soft">Select the template that best fits your needs.</p>
           </div>
 
-          <form className="space-y-8" onSubmit={onSubmit}>
-            {/* Template Selection */}
-            <div className="space-y-6">
-              {sortedTemplates?.map((template) => (
-                <TemplateCard
-                  key={template._id}
-                  selected={templateId === template._id}
-                  title={template.name}
-                  description={template.description}
-                  onSelect={() => setTemplateId(template._id)}
-                />
-              ))}
-            </div>
+          <div className="space-y-4">
+            {sortedTemplates?.map((template) => (
+              <TemplateCard
+                key={template._id}
+                selected={templateId === template._id}
+                title={template.name}
+                description={template.description}
+                onSelect={() => setTemplateId(template._id)}
+              />
+            ))}
+          </div>
+        </section>
 
-            <RuledDivider weight="medium" spacing="xs" />
+        <RuledDivider weight="thin" />
 
+        {/* Step 2: Subject */}
+        <section className="space-y-6">
+          <div className="space-y-2">
+            <EditorialLabel>02 · Subject</EditorialLabel>
+            <p className="text-body text-ink-soft">Who is this feedback for?</p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-3">
-              <EditorialLabel>2. Project Details</EditorialLabel>
-              <p className="text-body text-ink-soft max-w-2xl">
-                Name your project and optionally add a description for context.
-              </p>
+              <Label htmlFor="subjectName" className="uppercase tracking-widest text-xs font-bold text-ink-soft">Name</Label>
+              <EditorialInput
+                id="subjectName"
+                value={subjectName}
+                onChange={(e) => setSubjectName(e.target.value)}
+                placeholder="e.g. Jane Doe"
+                required
+              />
             </div>
+            <div className="space-y-3 relative">
+              <Label htmlFor="subjectRole" className="uppercase tracking-widest text-xs font-bold text-ink-soft">Role (Optional)</Label>
+              <EditorialInput
+                id="subjectRole"
+                value={subjectRole}
+                onChange={(e) => setSubjectRole(e.target.value)}
+                onFocus={() => setShowRoleSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowRoleSuggestions(false), 200)}
+                placeholder="e.g. Product Manager"
+              />
+              {showRoleSuggestions && filteredRoles.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-paper border-3 border-ink max-h-60 overflow-y-auto shadow-lg">
+                  {filteredRoles.map((role) => (
+                    <button
+                      key={role}
+                      type="button"
+                      className="w-full text-left px-5 py-3 text-base hover:bg-ink/5 transition-colors"
+                      onMouseDown={() => {
+                        setSubjectRole(role);
+                        setShowRoleSuggestions(false);
+                      }}
+                    >
+                      {role}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
 
+          {similarProjects && similarProjects.length > 0 && (
+            <div className="flex gap-3 bg-amber-50 p-4 border border-amber-200">
+              <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0" />
+              <div className="text-sm text-amber-800">
+                <strong>Note:</strong> You already have {similarProjects.length} active project{similarProjects.length > 1 ? "s" : ""} for {subjectName} with this template.
+              </div>
+            </div>
+          )}
+        </section>
+
+        <RuledDivider weight="thin" />
+
+        {/* Step 3: Project Details */}
+        <section className="space-y-6">
+          <div className="space-y-2">
+            <EditorialLabel>03 · Details</EditorialLabel>
+            <p className="text-body text-ink-soft">Finalize the project settings.</p>
+          </div>
+
+          <div className="space-y-6">
             <div className="space-y-3">
-              <Label
-                htmlFor="name"
-                className="text-label font-sans font-medium uppercase tracking-label text-ink-soft"
-              >
-                Project name
-              </Label>
+              <Label htmlFor="name" className="uppercase tracking-widest text-xs font-bold text-ink-soft">Project Name</Label>
               <EditorialInput
                 id="name"
                 value={name}
@@ -232,137 +288,43 @@ export default function NewProjectPage() {
                   setName(e.target.value);
                   setUserModifiedName(true);
                 }}
-                placeholder="e.g. 360 feedback for Jane Doe"
+                placeholder="e.g. 360 Feedback for Jane Doe"
                 required
               />
             </div>
 
             <div className="space-y-3">
-              <Label
-                htmlFor="description"
-                className="text-label font-sans font-medium uppercase tracking-label text-ink-soft"
-              >
-                Description (optional)
-              </Label>
+              <Label htmlFor="description" className="uppercase tracking-widest text-xs font-bold text-ink-soft">Description (Optional)</Label>
               <EditorialTextarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="e.g. Q1 2025 performance review cycle"
+                placeholder="Internal notes about this review cycle..."
                 rows={3}
               />
             </div>
+          </div>
+        </section>
 
-            <RuledDivider weight="medium" spacing="xs" />
+        {error && (
+          <p className="text-accent-red font-medium" role="alert">{error}</p>
+        )}
 
-            <div className="space-y-3">
-              <EditorialLabel>3. Subject Information</EditorialLabel>
-              <p className="text-body text-ink-soft max-w-2xl">
-                Enter details about the person receiving feedback.
-              </p>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-3">
-                <Label
-                  htmlFor="subjectName"
-                  className="text-label font-sans font-medium uppercase tracking-label text-ink-soft"
-                >
-                  Subject name
-                </Label>
-                <EditorialInput
-                  id="subjectName"
-                  value={subjectName}
-                  onChange={(e) => setSubjectName(e.target.value)}
-                  placeholder="e.g. Jane Doe"
-                  required
-                />
-              </div>
-              <div className="space-y-3 relative">
-                <Label
-                  htmlFor="subjectRole"
-                  className="text-label font-sans font-medium uppercase tracking-label text-ink-soft"
-                >
-                  Subject role (optional)
-                </Label>
-                <EditorialInput
-                  id="subjectRole"
-                  value={subjectRole}
-                  onChange={(e) => setSubjectRole(e.target.value)}
-                  onFocus={() => setShowRoleSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowRoleSuggestions(false), 200)}
-                  placeholder="e.g. Product Manager"
-                />
-                {showRoleSuggestions && filteredRoles.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-paper border-3 border-ink max-h-60 overflow-y-auto">
-                    {filteredRoles.map((role) => (
-                      <button
-                        key={role}
-                        type="button"
-                        className="w-full text-left px-5 py-3 text-base hover:bg-ink/5 transition-colors"
-                        onMouseDown={() => {
-                          setSubjectRole(role);
-                          setShowRoleSuggestions(false);
-                        }}
-                      >
-                        {role}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {similarProjects && similarProjects.length > 0 && (
-              <div className="border-l-4 border-amber-500 bg-amber-50 pl-6 pr-6 py-4" role="alert">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <div className="space-y-2">
-                    <p className="text-body font-medium text-amber-900">
-                      Similar project{similarProjects.length > 1 ? "s" : ""} found
-                    </p>
-                    <p className="text-body-sm text-amber-800">
-                      You already have {similarProjects.length} project{similarProjects.length > 1 ? "s" : ""} for &quot;{subjectName}&quot; using this survey type:
-                    </p>
-                    <ul className="text-body-sm text-amber-800 list-disc list-inside">
-                      {similarProjects.map((p) => (
-                        <li key={p._id}>
-                          <Link
-                            href={`/admin/projects/${p._id}`}
-                            className="underline hover:text-amber-900"
-                          >
-                            {p.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {error && (
-              <div className="border-l-4 border-accent-red pl-6 py-2" role="alert">
-                <p className="text-body text-accent-red">{error}</p>
-              </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <EditorialButton
-                type="submit"
-                disabled={!canSubmit}
-                variant="primary"
-              >
-                <Plus className="h-5 w-5" />
-                {submitting ? "Creating…" : "Create project"}
-              </EditorialButton>
-              <EditorialButton variant="outline" asChild>
-                <Link href="/admin">Cancel</Link>
-              </EditorialButton>
-            </div>
-          </form>
+        <div className="flex items-center gap-4 fixed bottom-0 left-0 right-0 p-4 bg-paper/80 backdrop-blur-md border-t border-ink/10 sm:static sm:bg-transparent sm:border-0 sm:p-0">
+          <EditorialButton
+            type="submit"
+            disabled={!canSubmit}
+            variant="primary"
+            className="w-full sm:w-auto"
+          >
+            <Plus className="h-5 w-5" />
+            {submitting ? "Creating…" : "Create Project"}
+          </EditorialButton>
+          <EditorialButton variant="ghost" asChild className="hidden sm:inline-flex">
+            <Link href="/admin">Cancel</Link>
+          </EditorialButton>
         </div>
-      </EditorialSection>
+      </form>
     </div>
   );
 }

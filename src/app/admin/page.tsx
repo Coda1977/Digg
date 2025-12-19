@@ -11,7 +11,7 @@ import {
   EditorialHeadline,
   EditorialLabel,
   RuledDivider,
-  EditorialCard,
+  EditorialDataRow, // Changed from EditorialCard
   EditorialButton,
   EditorialInput,
   StatusBadge,
@@ -67,125 +67,107 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div>
+    <div className="space-y-12 sm:space-y-16">
       {/* Hero Section */}
-      <EditorialSection spacing="lg">
+      <section className="space-y-6">
         <div className="space-y-6">
           <EditorialLabel>Digg Admin</EditorialLabel>
           <EditorialHeadline as="h1" size="xl">
             Dashboard
           </EditorialHeadline>
-          <p className="text-body-lg text-ink-soft max-w-2xl">
-            Manage your feedback projects, create new surveys, and analyze insights.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <EditorialButton variant="primary" asChild>
-              <Link href="/admin/projects/new">
-                <Plus className="h-5 w-5" />
-                New Project
-              </Link>
-            </EditorialButton>
-            <EditorialButton variant="outline" asChild>
-              <Link href="/admin/templates">
-                Manage Templates
-              </Link>
-            </EditorialButton>
-            <EditorialButton variant="outline" asChild>
-              <Link href="/admin/templates/new">
-                <Plus className="h-5 w-5" />
-                New Template
-              </Link>
-            </EditorialButton>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <p className="text-body-lg text-ink-soft max-w-2xl">
+              Manage your feedback projects, create new surveys, and analyze insights.
+            </p>
+            <div className="flex gap-3">
+              <EditorialButton variant="primary" asChild>
+                <Link href="/admin/projects/new">
+                  <Plus className="h-5 w-5" />
+                  New Project
+                </Link>
+              </EditorialButton>
+              <EditorialButton variant="outline" asChild>
+                <Link href="/admin/templates/new">
+                  <Plus className="h-5 w-5" />
+                  New Template
+                </Link>
+              </EditorialButton>
+            </div>
           </div>
         </div>
-      </EditorialSection>
+      </section>
 
       <RuledDivider />
 
       {/* Stats Section */}
-      <EditorialSection spacing="md" ruled>
-        <div className="space-y-editorial-xs">
-          <EditorialLabel>Project Statistics</EditorialLabel>
-          <div className="grid grid-cols-3 gap-editorial-xs">
-            <div>
-              <div className="font-serif font-bold text-ink leading-none text-[56px] sm:text-[72px]">
-                {activeProjects.length}
-              </div>
-              <p className="text-body text-ink-soft mt-2">Active Projects</p>
+      <section className="space-y-6">
+        <EditorialLabel>Project Statistics</EditorialLabel>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+          <div>
+            <div className="font-serif font-bold text-ink leading-none text-[48px] sm:text-[64px]">
+              {activeProjects.length}
             </div>
-            <div>
-              <div className="font-serif font-bold text-ink leading-none text-[56px] sm:text-[72px]">
-                {totalSurveys}
-              </div>
-              <p className="text-body text-ink-soft mt-2">Total Surveys</p>
+            <p className="text-body text-ink-soft mt-1">Active Projects</p>
+          </div>
+          <div>
+            <div className="font-serif font-bold text-ink leading-none text-[48px] sm:text-[64px]">
+              {totalSurveys}
             </div>
-            <div>
-              <div className="font-serif font-bold text-ink leading-none text-[56px] sm:text-[72px]">
-                {completedSurveys}
-              </div>
-              <p className="text-body text-ink-soft mt-2">Completed</p>
+            <p className="text-body text-ink-soft mt-1">Total Surveys</p>
+          </div>
+          <div>
+            <div className="font-serif font-bold text-ink leading-none text-[48px] sm:text-[64px]">
+              {completedSurveys}
             </div>
+            <p className="text-body text-ink-soft mt-1">Completed</p>
           </div>
         </div>
-      </EditorialSection>
+      </section>
 
       {/* Search and Filters */}
-      <EditorialSection spacing="md" ruled>
-        <div className="space-y-6">
-          <EditorialLabel>Filter Projects</EditorialLabel>
-
-          <div className="flex flex-col sm:flex-row gap-4">
-            {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-ink-soft pointer-events-none" />
-              <EditorialInput
-                type="search"
-                placeholder="Search by name, subject, or role..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12"
-              />
-            </div>
-
-            {/* Status Filter */}
-            <div className="flex gap-2">
-              {(["all", "active", "closed"] as const).map((value) => {
-                const label =
-                  value === "all" ? "All" : value === "active" ? "Active" : "Closed";
-                const active = statusFilter === value;
-                return (
-                  <EditorialButton
-                    key={value}
-                    type="button"
-                    onClick={() => setStatusFilter(value)}
-                    variant={active ? "secondary" : "outline"}
-                    size="default"
-                  >
-                    {label}
-                  </EditorialButton>
-                );
-              })}
+      <section className="space-y-6">
+        <div className="bg-paper border-y border-ink/10 py-8 space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <EditorialLabel>Projects</EditorialLabel>
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* Status Filter */}
+              <div className="flex gap-2">
+                {(["all", "active", "closed"] as const).map((value) => {
+                  const label =
+                    value === "all" ? "All" : value === "active" ? "Active" : "Closed";
+                  const active = statusFilter === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setStatusFilter(value)}
+                      className={`text-label font-medium px-3 py-1 transition-colors ${active ? "text-ink underline decoration-2 underline-offset-4" : "text-ink-soft hover:text-ink"
+                        }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          {/* Filter Results */}
-          {filteredProjects && filteredProjects.length !== projects.length && (
-            <p className="text-label text-ink-soft">
-              Showing {filteredProjects.length} of {projects.length} projects
-            </p>
-          )}
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-ink-soft pointer-events-none" />
+            <EditorialInput
+              type="search"
+              placeholder="Search by name, subject, or role..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12"
+            />
+          </div>
         </div>
-      </EditorialSection>
 
-      {/* Projects List */}
-      <EditorialSection spacing="md" ruled>
-        <div className="space-y-editorial-xs">
-          <EditorialLabel>
-            {searchQuery || statusFilter !== "all" ? "Filtered Projects" : "Recent Projects"}
-          </EditorialLabel>
-
+        {/* Projects List */}
+        <div>
           {!filteredProjects || filteredProjects.length === 0 ? (
-            <div className="py-editorial-md text-center border-t-3 border-ink/10 mt-8">
+            <div className="py-16 text-center">
               {projects.length === 0 ? (
                 <div className="space-y-6">
                   <p className="text-body-lg text-ink-soft max-w-md mx-auto">
@@ -205,53 +187,37 @@ export default function AdminDashboard() {
               )}
             </div>
           ) : (
-            <div className="space-y-editorial-xs mt-8">
+            <div>
               {filteredProjects.map((project) => (
-                <EditorialCard
+                <EditorialDataRow
                   key={project._id}
-                  eyebrow={
+                  onClick={() => router.push(`/admin/projects/${project._id}`)}
+                  status={
                     <StatusBadge
                       status={project.status as "active" | "closed"}
                     />
                   }
-                  headline={project.subjectName}
-                  onClick={() => router.push(`/admin/projects/${project._id}`)}
-                  description={
-                    <div className="space-y-3">
-                      {project.subjectRole && (
-                        <p className="text-body text-ink">{project.subjectRole}</p>
-                      )}
-                      <div className="flex flex-wrap items-center gap-4 text-body text-ink-soft">
-                        <span className="inline-flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4" />
-                          {project.stats.completed} completed
-                        </span>
-                        {project.stats.inProgress > 0 && (
-                          <span className="inline-flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            {project.stats.inProgress} in progress
-                          </span>
-                        )}
-                      </div>
+                  title={project.subjectName}
+                  meta={
+                    <>
+                      {project.subjectRole && <span>{project.subjectRole}</span>}
                       {project.template?.name && (
-                        <p className="text-label text-ink-soft uppercase tracking-label">
-                          Template · {project.template.name}
-                        </p>
+                        <span className="text-ink-lighter">• {project.template.name}</span>
                       )}
-                    </div>
+                      <span className="text-ink-lighter flex items-center gap-1 ml-2">
+                        <CheckCircle2 className="h-4 w-4" /> {project.stats.completed}
+                      </span>
+                    </>
                   }
-                  action={
-                    <span className="inline-flex items-center gap-2 text-ink font-medium">
-                      View Project
-                      <ArrowRight className="h-4 w-4" />
-                    </span>
+                  actions={
+                    <ArrowRight className="h-5 w-5 text-ink-lighter group-hover:text-ink transition-colors" />
                   }
                 />
               ))}
             </div>
           )}
         </div>
-      </EditorialSection>
+      </section>
     </div>
   );
 }
