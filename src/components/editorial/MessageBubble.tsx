@@ -45,8 +45,8 @@ function parseMarkdown(text: string): React.ReactNode[] {
 const messageBubbleVariants = cva("mb-10 animate-in fade-in slide-in-from-bottom-2 duration-300", {
   variants: {
     variant: {
-      assistant: "border-l-4 border-ink pl-6 py-1",
-      user: "bg-ink text-paper px-6 py-5 ml-0 md:ml-15",
+      assistant: "",
+      user: "bg-ink text-paper px-6 py-5",
     },
   },
   defaultVariants: {
@@ -59,6 +59,7 @@ export interface MessageBubbleProps
     VariantProps<typeof messageBubbleVariants> {
   role?: string;
   showRole?: boolean;
+  direction?: 'ltr' | 'rtl';
 }
 
 const MessageBubble = React.forwardRef<HTMLDivElement, MessageBubbleProps>(
@@ -68,6 +69,7 @@ const MessageBubble = React.forwardRef<HTMLDivElement, MessageBubbleProps>(
       variant,
       role,
       showRole = true,
+      direction = 'ltr',
       children,
       ...props
     },
@@ -81,10 +83,19 @@ const MessageBubble = React.forwardRef<HTMLDivElement, MessageBubbleProps>(
       ? parseMarkdown(children)
       : children;
 
+    const isRtl = direction === 'rtl';
+
     return (
       <div
         ref={ref}
-        className={cn(messageBubbleVariants({ variant, className }))}
+        className={cn(
+          messageBubbleVariants({ variant, className }),
+          variant === "assistant" && !isRtl && "border-l-4 border-ink pl-6 py-1",
+          variant === "assistant" && isRtl && "border-r-4 border-ink pr-6 py-1",
+          variant === "user" && !isRtl && "ml-0 md:ml-15",
+          variant === "user" && isRtl && "mr-0 md:mr-15"
+        )}
+        dir={direction}
         {...props}
       >
         {showRole && (

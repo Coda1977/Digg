@@ -25,6 +25,7 @@ import {
 import { postJson } from "@/lib/http";
 import { chatResponseSchema } from "@/lib/schemas";
 import type { UiMessage } from "@/types/message";
+import { getTextDirection, detectLanguageFromMessages } from "@/lib/language";
 
 type WebSpeechRecognitionAlternative = { transcript: string };
 
@@ -170,6 +171,15 @@ export function ChatInterface({
     // Cap at 95% until survey is actually completed
     return Math.min(95, calculated);
   }, [uiMessages, template.questions.length]);
+
+  const currentLanguage = useMemo(() => {
+    if (!uiMessages) return 'en';
+    return detectLanguageFromMessages(uiMessages);
+  }, [uiMessages]);
+
+  const textareaDirection = useMemo(() => {
+    return getTextDirection(draft);
+  }, [draft]);
 
   useEffect(() => {
     if (!scrollRef.current) return;
@@ -459,11 +469,11 @@ export function ChatInterface({
           >
             <div className="mx-auto max-w-[900px] space-y-8 sm:space-y-10">
               {!uiMessages ? (
-                <MessageBubble variant="assistant">
+                <MessageBubble variant="assistant" direction="ltr">
                   Loading conversation…
                 </MessageBubble>
               ) : uiMessages.length === 0 ? (
-                <MessageBubble variant="assistant">
+                <MessageBubble variant="assistant" direction="ltr">
                   Starting interview…
                 </MessageBubble>
               ) : (
@@ -471,6 +481,7 @@ export function ChatInterface({
                   <MessageBubble
                     key={idx}
                     variant={m.role === "assistant" ? "assistant" : "user"}
+                    direction={getTextDirection(m.content)}
                   >
                     {m.content}
                   </MessageBubble>
@@ -478,14 +489,18 @@ export function ChatInterface({
               )}
 
               {generating && uiMessages && (
-                <MessageBubble variant="assistant" role="AI Interviewer">
+                <MessageBubble
+                  variant="assistant"
+                  role="AI Interviewer"
+                  direction={currentLanguage === 'he' ? 'rtl' : 'ltr'}
+                >
                   <div className="flex items-center gap-3 text-body text-ink-soft">
                     <span className="inline-flex items-center gap-1" aria-hidden="true">
                       <span className="h-1.5 w-1.5 rounded-full bg-ink-soft animate-bounce [animation-delay:-0.32s]" />
                       <span className="h-1.5 w-1.5 rounded-full bg-ink-soft animate-bounce [animation-delay:-0.16s]" />
                       <span className="h-1.5 w-1.5 rounded-full bg-ink-soft animate-bounce" />
                     </span>
-                    <span>Thinking…</span>
+                    <span>{currentLanguage === 'he' ? 'חושב…' : 'Thinking…'}</span>
                   </div>
                 </MessageBubble>
               )}
@@ -515,11 +530,13 @@ export function ChatInterface({
               }}
               placeholder={
                 listening
-                  ? "Listening… (press Voice to stop)"
-                  : "Your response…"
+                  ? currentLanguage === 'he' ? "מקשיב… (לחץ על קול כדי לעצור)" : "Listening… (press Voice to stop)"
+                  : currentLanguage === 'he' ? "התשובה שלך…" : "Your response…"
               }
               disabled={generating || !uiMessages || listening}
               className="min-h-[70px] max-h-[180px] resize-y"
+              dir={textareaDirection}
+              style={{ textAlign: textareaDirection === 'rtl' ? 'right' : 'left' }}
             />
 
             {error && (
@@ -540,7 +557,9 @@ export function ChatInterface({
                   className="flex-1"
                 >
                   {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                  {listening ? "Stop" : "Voice"}
+                  {listening
+                    ? (currentLanguage === 'he' ? "עצור" : "Stop")
+                    : (currentLanguage === 'he' ? "קול" : "Voice")}
                 </EditorialButton>
 
                 <EditorialButton
@@ -549,7 +568,7 @@ export function ChatInterface({
                   disabled={generating || !draft.trim()}
                   className="flex-1"
                 >
-                  {generating ? "…" : "Send"}
+                  {generating ? "…" : (currentLanguage === 'he' ? "שלח" : "Send")}
                 </EditorialButton>
               </div>
 
@@ -560,7 +579,7 @@ export function ChatInterface({
                 disabled={generating}
                 className="w-full"
               >
-                Finish Survey
+                {currentLanguage === 'he' ? "סיים סקר" : "Finish Survey"}
               </EditorialButton>
             </div>
           </form>
@@ -569,11 +588,15 @@ export function ChatInterface({
 
       {/* Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent>
+        <DialogContent dir={currentLanguage === 'he' ? 'rtl' : 'ltr'}>
           <DialogHeader>
-            <DialogTitle>Are you ready to finish?</DialogTitle>
+            <DialogTitle>
+              {currentLanguage === 'he' ? 'האם אתה מוכן לסיים?' : 'Are you ready to finish?'}
+            </DialogTitle>
             <DialogDescription>
-              You won&apos;t be able to add more responses after submitting.
+              {currentLanguage === 'he'
+                ? 'לא תוכל להוסיף תשובות נוספות לאחר השליחה.'
+                : "You won't be able to add more responses after submitting."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -582,7 +605,7 @@ export function ChatInterface({
               onClick={() => setShowConfirmDialog(false)}
               disabled={generating}
             >
-              Continue Editing
+              {currentLanguage === 'he' ? 'המשך עריכה' : 'Continue Editing'}
             </EditorialButton>
             <EditorialButton
               variant="secondary"
@@ -592,7 +615,7 @@ export function ChatInterface({
               }}
               disabled={generating}
             >
-              Finish Survey
+              {currentLanguage === 'he' ? 'סיים סקר' : 'Finish Survey'}
             </EditorialButton>
           </DialogFooter>
         </DialogContent>
