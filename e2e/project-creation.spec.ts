@@ -64,7 +64,7 @@ test.describe('Project Creation Flow', () => {
 
     test.skip('should show share link after creation', async ({ page }) => {
         // Navigate to an existing project
-        await page.goto('/admin/projects/test-project-id');
+        await page.goto('/admin/projects/k17dz96h2dgvsm5rke25af54rh7xcbzn');
 
         // Should show share link
         await expect(page.getByText(/share/i)).toBeVisible();
@@ -98,7 +98,7 @@ test.describe('Project Management', () => {
         // Grant clipboard permissions
         await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
-        await page.goto('/admin/projects/test-project-id');
+        await page.goto('/admin/projects/k17dz96h2dgvsm5rke25af54rh7xcbzn');
 
         // Click copy button
         await page.getByRole('button', { name: /copy/i }).click();

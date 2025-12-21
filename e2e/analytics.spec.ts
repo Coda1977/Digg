@@ -15,7 +15,7 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Analytics Flow', () => {
-    const TEST_PROJECT_ID = 'test-project-id'; // TODO: Replace with real ID
+    const TEST_PROJECT_ID = 'k17dz96h2dgvsm5rke25af54rh7xcbzn';
 
     test.skip('should navigate to analysis page from project', async ({ page }) => {
         await page.goto(`/admin/projects/${TEST_PROJECT_ID}`);
@@ -82,14 +82,14 @@ test.describe('Analytics Flow', () => {
 test.describe('Individual Survey Analysis', () => {
     test.skip('should display survey transcript', async ({ page }) => {
         // Navigate to individual survey
-        await page.goto('/admin/surveys/test-survey-id');
+        await page.goto('/admin/surveys/rJWgMFBrXN');
 
         // Should show transcript
         await expect(page.getByText(/transcript/i)).toBeVisible();
     });
 
     test.skip('should generate survey summary', async ({ page }) => {
-        await page.goto('/admin/surveys/test-survey-id');
+        await page.goto('/admin/surveys/rJWgMFBrXN');
 
         // Click generate summary
         await page.getByRole('button', { name: /generate|summarize/i }).click();
@@ -99,7 +99,7 @@ test.describe('Individual Survey Analysis', () => {
     });
 
     test.skip('should flag survey for review', async ({ page }) => {
-        await page.goto('/admin/surveys/test-survey-id');
+        await page.goto('/admin/surveys/rJWgMFBrXN');
 
         // Click flag button
         await page.getByRole('button', { name: /flag/i }).click();
@@ -111,14 +111,14 @@ test.describe('Individual Survey Analysis', () => {
 
 test.describe('Analytics Accessibility', () => {
     test.skip('should have proper heading hierarchy', async ({ page }) => {
-        await page.goto(`/admin/projects/test-project-id/analysis`);
+        await page.goto(`/admin/projects/k17dz96h2dgvsm5rke25af54rh7xcbzn/analysis`);
 
         // Check for h1
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     });
 
     test.skip('should have accessible sentiment badges', async ({ page }) => {
-        await page.goto(`/admin/projects/test-project-id/analysis`);
+        await page.goto(`/admin/projects/k17dz96h2dgvsm5rke25af54rh7xcbzn/analysis`);
 
         // Sentiment indicators should be readable
         const badges = page.locator('[class*="badge"], [class*="sentiment"]');
