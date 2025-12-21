@@ -20,6 +20,23 @@ AI-powered feedback surveys with four built-in protocols (templates), backed by 
    - If `ADMIN_EMAILS` is unset, the first signed-in user becomes admin.
 4. Run Next: `npm run dev`
 
+## Running tests
+
+### Unit Tests (Vitest)
+```bash
+npm run test        # Runs unit tests in watch mode
+npm run test:ui     # Opens Vitest UI
+```
+
+### E2E Tests (Playwright)
+```bash
+# Against local dev server
+npm run test:e2e
+
+# Against production
+$env:BASE_URL='https://digg-teal.vercel.app'; npm run test:e2e
+```
+
 ## First run (in the browser)
 
 1. Go to `/admin/login` and sign up.

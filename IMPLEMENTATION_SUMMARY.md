@@ -1,7 +1,7 @@
 # Digg Application - Implementation Summary
 
 **Date**: December 2025
-**Status**: Phases 1, 2, 3, 4 & Editorial Redesign Complete - Production Ready
+**Status**: Phases 1-7 & Editorial Redesign Complete - Production Ready and Tested
 
 ---
 
@@ -348,6 +348,63 @@ Created reusable components in `src/components/editorial/`:
 
 ---
 
+### Phase 6: Template Architecture Refactor
+
+#### 1. Unified "Digg Interviewer Core"
+- **Implemented**: A central repository for interviewing methodology in `convex/lib/diggCore.ts`.
+- **Features**:
+  - Consolidated methodology, formatting rules, and safety guardrails.
+  - Ensures consistent, high-quality AI behavior across all templates (built-in and custom).
+  - Explicitly prevents "theatrical" or script-like AI responses.
+
+#### 2. Automatic Question Injection
+- **Refactored**: `src/app/api/chat/route.ts` to automatically append questions to the system prompt.
+- **Benefits**:
+  - Removed the mandatory `{{questions}}` placeholder from the UI.
+  - Reduced user "double-entry" error and simplified the template creation process.
+- **Backwards Compatibility**: Legacy mode preserves support for older templates manually using the placeholder.
+
+#### 3. Simplified Template UI
+- **Renamed**: "System Prompt" → "Interviewer Persona (Optional)".
+- **Changes**:
+  - Prompt field is now focused on "Interviewer Style" rather than technical logic.
+  - Default value changed to empty (relying on Core methodology).
+  - Removed technical validation requirements for end-users.
+- **Files**:
+  - `convex/lib/diggCore.ts` (NEW)
+  - `src/app/api/chat/route.ts` (Refactored)
+  - `src/app/admin/templates/new/page.tsx` (Updated UI)
+  - `src/app/admin/templates/[id]/edit/page.tsx` (Updated UI)
+
+---
+
+### Phase 7: Testing Infrastructure
+
+#### 1. Unit Testing with Vitest
+- **Setup**: Comprehensive Vitest configuration with `jsdom` and React support.
+- **Coverage**:
+  - `schemas.test.ts`: 13 tests for Zod validation contracts.
+  - `editorialBadges.test.ts`: 9 tests for UI utility functions.
+  - `diggCore.test.ts`: 7 tests verifying core interviewer methodology.
+- **Result**: 29/29 passing unit tests.
+
+#### 2. E2E Testing with Playwright
+- **Setup**: Playwright configuration for cross-browser testing with auto-dev-server.
+- **Flows covered**:
+  - **Respondent Survey**: Validating the full interview experience.
+  - **Template Creation**: Admin workflow for new protocols.
+  - **Project Creation**: Admin workflow for launching research.
+  - **Analytics Flow**: Verification of insight generation and summaries.
+- **Features**:
+  - Production URL testing support via `BASE_URL` env var.
+  - Screenshot and trace capturing on failure.
+- **Files**:
+  - `vitest.config.ts`, `playwright.config.ts` (NEW)
+  - `e2e/*.spec.ts` (4 NEW test files)
+  - `src/lib/__tests__/*.test.ts` (Unit tests)
+
+---
+
 ## 🔧 TECHNICAL IMPROVEMENTS
 
 ### Accessibility
@@ -388,18 +445,7 @@ Created reusable components in `src/components/editorial/`:
 - Create AdminPageLayout component
 - Extract shared patterns
 
-#### 8. Testing Framework
-- Install Vitest or Jest
-- Add unit tests for utilities
-- Add integration tests for Convex functions
-- Add E2E tests with Playwright
-
-#### 9. Data Validation Library
-- Install Zod
-- Validate all API inputs
-- Share schemas between frontend and backend
-
-#### 10. CORS Configuration
+#### 8. CORS Configuration
 - Currently wide open
 - Add proper origin restrictions
 
