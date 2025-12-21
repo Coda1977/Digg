@@ -7,7 +7,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Doc } from "../../../../convex/_generated/dataModel";
 import { checkRateLimit, createRateLimitResponse } from "@/lib/ratelimit";
 import { chatRequestSchema, validateSchema } from "@/lib/schemas";
-import { DIGG_INTERVIEWER_CORE } from "../../../../convex/lib/diggCore";
+import { DIGG_INTERVIEWER_CORE } from "../../../../convex/lib/diggCoreV2";
 
 export const runtime = "nodejs";
 
