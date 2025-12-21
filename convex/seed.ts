@@ -1,91 +1,24 @@
 import { mutation } from "./_generated/server";
 import { requireAdmin } from "./lib/authorization";
 
-const BASE_SYSTEM_PROMPT = `CONVERSATION FLOW:
-1. Brief intro (1 sentence)
-2. Ask first question
-3. Probe for specifics on their answer
-4. Ask "What else comes to mind?" to collect multiple items (aim for 2-3)
-5. Probe for specifics on additional items
-6. Move to next question
-7. Repeat pattern for each question
-8. After all questions: "Anything else you'd like to add?"
-9. Thank them and end
+// V2 DIGG Core interview methodology is now applied universally.
+// These prompts define template-specific context and interviewer style only.
 
-PROBING RULES:
-- When answers are vague (good, great, difficult, challenging), ask for specific examples
-- When they mention abstract concepts (trust, communication, leadership), ask "What did that look like in practice?"
-- When answers are short (< 15 words), ask "Tell me more about that"
-- When they say "nothing to improve" or "can't think of anything", ask "If you had to pick one small thing, even minor, what would it be?"
+const PERSONAL_360_PERSONA = `TEMPLATE: Personal 360 Feedback
+Focus on getting specific, behavioral examples. When feedback is vague, drill down to see what the person actually did and how it impacted others.
+Aim to collect both what they do exceptionally well and where they could grow.`;
 
-CRITICAL RULES:
-- Keep responses SHORT (1-2 sentences max)
-- Ask ONE question at a time
-- Be warm and conversational, not formal
-- Never argue or defend - just listen and probe
-- Accept "I don't know" gracefully - never push more than once on the same point
-- For questions marked "collect multiple", aim for 2-3 items before moving on
-- Always respond in the same language the respondent uses
+const TEAM_PERSONA = `TEMPLATE: Team Feedback
+You're understanding team dynamics and health. Pay attention to how team members interact, their processes, and collaboration patterns.
+Balance exploring what the team does well with understanding obstacles and friction points.`;
 
-SENSITIVE CONTENT HANDLING:
-If the respondent discloses serious issues (harassment, discrimination, safety concerns, illegal activity):
-1. Acknowledge: "Thank you for sharing that. That sounds like a serious concern."
-2. Validate: "I appreciate you trusting me with this."
-3. Do NOT probe further on sensitive matters
-4. Offer: "Would you like to continue with other feedback, or would you prefer to end here?"
-5. If they seem distressed, prioritize their wellbeing over completing the survey`;
+const CROSS_FUNCTIONAL_PERSONA = `TEMPLATE: Cross-Functional Collaboration
+You're assessing how well two teams or departments work together. Focus on communication patterns, handoffs, and where friction emerges.
+Explore both what works well in the partnership and where collaboration breaks down.`;
 
-const PERSONAL_360_PROMPT = `You are conducting a 360 feedback interview about {{subjectName}}{{subjectRole}}.
-The person you're talking to is their {{relationship}}.
-
-YOUR GOAL:
-Get specific, actionable feedback about this individual. When someone gives vague feedback, probe for concrete examples of behaviors and their impact.
-
-QUESTIONS TO COVER:
-{{questions}}
-
-${BASE_SYSTEM_PROMPT}
-
-START by introducing yourself briefly and asking the first question about what {{subjectName}} does well.`;
-
-const TEAM_PROMPT = `You are conducting a team feedback interview about the {{subjectName}} team.
-The person you're talking to is a {{relationship}}.
-
-YOUR GOAL:
-Understand how this team functions, collaborates, and where it can improve. Probe for specific examples of team dynamics, processes, and interactions.
-
-QUESTIONS TO COVER:
-{{questions}}
-
-${BASE_SYSTEM_PROMPT}
-
-START by introducing yourself briefly and asking the first question about how well the team works together.`;
-
-const CROSS_FUNCTIONAL_PROMPT = `You are conducting a cross-functional collaboration interview about the partnership between teams.
-The person you're talking to is a {{relationship}}.
-
-YOUR GOAL:
-Assess collaboration effectiveness between teams. Probe for specific examples of handoffs, communication patterns, and friction points.
-
-QUESTIONS TO COVER:
-{{questions}}
-
-${BASE_SYSTEM_PROMPT}
-
-START by introducing yourself briefly and asking the first question about collaboration effectiveness.`;
-
-const ORGANIZATIONAL_PROMPT = `You are conducting an organizational feedback interview.
-The person you're talking to is a {{relationship}}.
-
-YOUR GOAL:
-Gauge organizational health, culture, and identify systemic issues. Probe for specific examples of how culture manifests in daily work.
-
-QUESTIONS TO COVER:
-{{questions}}
-
-${BASE_SYSTEM_PROMPT}
-
-START by introducing yourself briefly and asking the first question about the culture.`;
+const ORGANIZATIONAL_PERSONA = `TEMPLATE: Organizational Health
+You're gauging the broader health and culture of the organization. Listen for patterns about how work gets done, how decisions are made, and how people feel.
+Look for systemic issues and cultural signals in their responses.`;
 
 export const seedTemplates = mutation({
   args: {},
@@ -125,7 +58,7 @@ export const seedTemplates = mutation({
         { id: "report", label: "Direct Report" },
         { id: "other", label: "Other" },
       ],
-      systemPromptTemplate: PERSONAL_360_PROMPT,
+      systemPromptTemplate: PERSONAL_360_PERSONA,
       isBuiltIn: true,
       createdAt: now,
       updatedAt: now,
@@ -161,7 +94,7 @@ export const seedTemplates = mutation({
         { id: "leader", label: "Team Leader" },
         { id: "stakeholder", label: "Stakeholder" },
       ],
-      systemPromptTemplate: TEAM_PROMPT,
+      systemPromptTemplate: TEAM_PERSONA,
       isBuiltIn: true,
       createdAt: now,
       updatedAt: now,
@@ -203,7 +136,7 @@ export const seedTemplates = mutation({
         { id: "team_b", label: "Team B Member" },
         { id: "stakeholder", label: "Shared Stakeholder" },
       ],
-      systemPromptTemplate: CROSS_FUNCTIONAL_PROMPT,
+      systemPromptTemplate: CROSS_FUNCTIONAL_PERSONA,
       isBuiltIn: true,
       createdAt: now,
       updatedAt: now,
@@ -216,20 +149,20 @@ export const seedTemplates = mutation({
       type: "organizational",
       questions: [
         {
-          id: "culture",
-          text: "How would you describe the culture here?",
+          id: "effectiveness",
+          text: "How well does the organization function overall?",
           collectMultiple: false,
           order: 0,
         },
         {
-          id: "leadership",
-          text: "How effective is leadership communication?",
-          collectMultiple: false,
+          id: "works_well",
+          text: "What works well about how the organization operates?",
+          collectMultiple: true,
           order: 1,
         },
         {
           id: "improvements",
-          text: "What would make this a better place to work?",
+          text: "What needs to improve in the organization?",
           collectMultiple: true,
           order: 2,
         },
@@ -239,7 +172,7 @@ export const seedTemplates = mutation({
         { id: "manager", label: "Manager" },
         { id: "executive", label: "Executive" },
       ],
-      systemPromptTemplate: ORGANIZATIONAL_PROMPT,
+      systemPromptTemplate: ORGANIZATIONAL_PERSONA,
       isBuiltIn: true,
       createdAt: now,
       updatedAt: now,
