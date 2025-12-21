@@ -7,6 +7,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Doc } from "../../../../convex/_generated/dataModel";
 import { checkRateLimit, createRateLimitResponse } from "@/lib/ratelimit";
 import { chatRequestSchema, validateSchema } from "@/lib/schemas";
+import { DIGG_INTERVIEWER_CORE } from "../../../../convex/lib/diggCore";
 
 export const runtime = "nodejs";
 
@@ -83,6 +84,9 @@ export async function POST(req: Request) {
   }
 }
 
+/**
+ * Build the questions list text from template questions.
+ */
 function buildQuestionsText(template: Doc<"templates">, subjectName: string) {
   const sorted = [...template.questions].sort((a, b) => a.order - b.order);
   return sorted
@@ -94,6 +98,19 @@ function buildQuestionsText(template: Doc<"templates">, subjectName: string) {
     .join("\n");
 }
 
+/**
+ * Build the complete system prompt for a survey.
+ *
+ * Architecture:
+ * 1. DIGG_INTERVIEWER_CORE - Universal methodology and format rules
+ * 2. Context - Subject name, role, relationship
+ * 3. Persona - User-defined interviewer style (optional)
+ * 4. Questions - Auto-injected from template
+ *
+ * For backwards compatibility:
+ * - If template has systemPromptTemplate with {{questions}}, use legacy mode
+ * - Otherwise, use new unified architecture
+ */
 function buildSurveySystemPrompt(args: {
   template: Doc<"templates">;
   project: Doc<"projects">;
@@ -104,24 +121,24 @@ function buildSurveySystemPrompt(args: {
   const relationshipLabel =
     template.relationshipOptions.find((r) => r.id === relationshipId)?.label ??
     relationshipId ??
-    "unknown";
+    "colleague";
   const questionsText = buildQuestionsText(template, project.subjectName);
 
-  const customizedPrompt = template.systemPromptTemplate
-    .replaceAll("{{subjectName}}", project.subjectName)
-    .replaceAll("{{subjectRole}}", roleText)
-    .replaceAll("{{relationship}}", relationshipLabel)
-    .replaceAll("{{questions}}", questionsText);
+  // Legacy mode: if template uses {{questions}} placeholder, process it the old way
+  // This ensures existing built-in templates continue to work
+  if (template.systemPromptTemplate.includes("{{questions}}")) {
+    const customizedPrompt = template.systemPromptTemplate
+      .replaceAll("{{subjectName}}", project.subjectName)
+      .replaceAll("{{subjectRole}}", roleText)
+      .replaceAll("{{relationship}}", relationshipLabel)
+      .replaceAll("{{questions}}", questionsText);
 
-  // Universal context and formatting instruction applied to ALL templates
-  const universalInstruction = `
+    // Still append format rules to ensure consistent behavior
+    return `${customizedPrompt}
 
 ---
 
-CONTEXT:
-You are conducting a feedback interview. The person you're speaking with is providing honest, thoughtful feedback about someone or something. This is a real conversation, not a performance or theatrical scene.
-
-FORMATTING REQUIREMENT:
+FORMAT REQUIREMENT:
 You must respond in plain, natural conversational text only. Do NOT include:
 - Stage directions or actions (in asterisks, italics, or parentheses like *nods* or _smiles_)
 - Narrative descriptions of your tone, body language, or emotional state
@@ -129,6 +146,24 @@ You must respond in plain, natural conversational text only. Do NOT include:
 - Any theatrical, script-like, or performative elements
 
 Write only the actual words you would say in a real conversation. Nothing else.`;
+  }
 
-  return customizedPrompt + universalInstruction;
+  // New unified architecture: DIGG_CORE + persona + auto-injected questions
+  // The persona field is used for user-defined style customization
+  const persona = template.systemPromptTemplate?.trim() || "";
+
+  return `${DIGG_INTERVIEWER_CORE}
+
+---
+
+CONTEXT:
+You are interviewing about: ${project.subjectName}${roleText}
+The respondent is their: ${relationshipLabel}
+${persona ? `\nINTERVIEWER STYLE:\n${persona}` : ""}
+
+QUESTIONS TO COVER:
+${questionsText}
+
+START by introducing yourself briefly and asking the first question.`;
 }
+

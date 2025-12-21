@@ -48,7 +48,7 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [systemPrompt, setSystemPrompt] = useState("");
+  const [persona, setPersona] = useState("");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [relationshipOptions, setRelationshipOptions] = useState<RelationshipOption[]>([]);
 
@@ -60,7 +60,7 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
     if (template) {
       setName(template.name);
       setDescription(template.description);
-      setSystemPrompt(template.systemPromptTemplate);
+      setPersona(template.systemPromptTemplate || "");
       setQuestions(
         template.questions
           .sort((a, b) => a.order - b.order)
@@ -213,15 +213,7 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
       return;
     }
 
-    if (!systemPrompt.trim()) {
-      setError("System prompt is required");
-      return;
-    }
-
-    if (!systemPrompt.includes("{{questions}}")) {
-      setError('System prompt must include {{questions}} placeholder - otherwise your questions above won\'t be used by the AI!');
-      return;
-    }
+    // Note: persona is optional - Digg Core handles the methodology
 
     setUpdating(true);
     try {
@@ -238,7 +230,7 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
           id: r.id,
           label: r.label.trim(),
         })),
-        systemPromptTemplate: systemPrompt.trim(),
+        systemPromptTemplate: persona.trim(),
       });
 
       router.push("/admin/templates");
@@ -439,21 +431,21 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
 
         <RuledDivider weight="thin" />
 
-        {/* Section 4: Prompt */}
+        {/* Section 4: Persona (Optional) */}
         <section className="space-y-6">
           <div className="space-y-2">
-            <EditorialLabel>04 · System Prompt</EditorialLabel>
+            <EditorialLabel>04 · Interviewer Persona <span className="text-ink-soft font-normal">(Optional)</span></EditorialLabel>
             <p className="text-body text-ink-soft">
-              <strong className="text-ink">Advanced:</strong> Define how the AI interviewer behaves. Must include <code className="bg-ink/5 px-1 font-mono text-sm">{'{{questions}}'}</code>.
+              Customize the interviewer&apos;s style and tone. Leave blank for standard behavior.
+              Example: &quot;Be professional but empathetic. Focus on leadership examples.&quot;
             </p>
           </div>
 
           <EditorialTextarea
-            value={systemPrompt}
-            onChange={(e) => setSystemPrompt(e.target.value)}
-            rows={12}
-            className="font-mono text-sm leading-relaxed"
-            required
+            value={persona}
+            onChange={(e) => setPersona(e.target.value)}
+            rows={4}
+            placeholder="Optional: Add style guidance for the interviewer..."
           />
         </section>
 

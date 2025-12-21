@@ -36,44 +36,7 @@ export default function NewTemplatePage() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [systemPrompt, setSystemPrompt] = useState(
-    `You are conducting a feedback interview about {{subjectName}}{{subjectRole}}.
-The person you're talking to is their {{relationship}}.
-
-YOUR GOAL:
-Get specific, actionable feedback. When someone gives vague feedback, probe for concrete examples of behaviors and their impact.
-
-QUESTIONS TO COVER:
-{{questions}}
-
-CONVERSATION FLOW:
-1. Brief intro (1 sentence)
-2. Ask first question
-3. Probe for specifics on their answer
-4. Ask "What else comes to mind?" to collect multiple items (aim for 2-3)
-5. Probe for specifics on additional items
-6. Move to next question
-7. Repeat pattern for each question
-8. After all questions: "Anything else you'd like to add?"
-9. Thank them and end
-
-PROBING RULES:
-- When answers are vague (good, great, difficult, challenging), ask for specific examples
-- When they mention abstract concepts (trust, communication, leadership), ask "What did that look like in practice?"
-- When answers are short (< 15 words), ask "Tell me more about that"
-- When they say "nothing to improve" or "can't think of anything", ask "If you had to pick one small thing, even minor, what would it be?"
-
-CRITICAL RULES:
-- Keep responses SHORT (1-2 sentences max)
-- Ask ONE question at a time
-- Be warm and conversational, not formal
-- Never argue or defend - just listen and probe
-- Accept "I don't know" gracefully - never push more than once on the same point
-- For questions marked "collect multiple", aim for 2-3 items before moving on
-- Always respond in the same language the respondent uses
-
-START by introducing yourself briefly and asking the first question.`
-  );
+  const [persona, setPersona] = useState("");
   const [questions, setQuestions] = useState<Question[]>([
     { text: "", collectMultiple: false, tempId: crypto.randomUUID() },
   ]);
@@ -143,15 +106,7 @@ START by introducing yourself briefly and asking the first question.`
       return;
     }
 
-    if (!systemPrompt.trim()) {
-      setError("System prompt is required");
-      return;
-    }
-
-    if (!systemPrompt.includes("{{questions}}")) {
-      setError('System prompt must include {{questions}} placeholder - otherwise your questions above won\'t be used by the AI!');
-      return;
-    }
+    // Note: persona is optional - Digg Core handles the methodology
 
     setCreating(true);
     try {
@@ -165,7 +120,7 @@ START by introducing yourself briefly and asking the first question.`
         relationshipOptions: validRelationships.map((r) => ({
           label: r.label.trim(),
         })),
-        systemPromptTemplate: systemPrompt.trim(),
+        systemPromptTemplate: persona.trim(),
       });
 
       router.push("/admin");
@@ -353,21 +308,21 @@ START by introducing yourself briefly and asking the first question.`
 
         <RuledDivider weight="thin" />
 
-        {/* Section 4: Prompt */}
+        {/* Section 4: Persona (Optional) */}
         <section className="space-y-6">
           <div className="space-y-2">
-            <EditorialLabel>04 · System Prompt</EditorialLabel>
+            <EditorialLabel>04 · Interviewer Persona <span className="text-ink-soft font-normal">(Optional)</span></EditorialLabel>
             <p className="text-body text-ink-soft">
-              <strong className="text-ink">Advanced:</strong> Define how the AI interviewer behaves. Must include <code className="bg-ink/5 px-1 font-mono text-sm">{'{{questions}}'}</code>.
+              Customize the interviewer&apos;s style and tone. Leave blank for standard behavior.
+              Example: &quot;Be professional but empathetic. Focus on leadership examples.&quot;
             </p>
           </div>
 
           <EditorialTextarea
-            value={systemPrompt}
-            onChange={(e) => setSystemPrompt(e.target.value)}
-            rows={12}
-            className="font-mono text-sm leading-relaxed"
-            required
+            value={persona}
+            onChange={(e) => setPersona(e.target.value)}
+            rows={4}
+            placeholder="Optional: Add style guidance for the interviewer..."
           />
         </section>
 
