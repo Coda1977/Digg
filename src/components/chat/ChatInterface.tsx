@@ -176,6 +176,17 @@ export function ChatInterface({
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [uiMessages?.length, generating]);
 
+  // Auto-focus textarea after messages update
+  useEffect(() => {
+    if (generating) return;
+    if (!textareaRef.current) return;
+    // Small delay to ensure DOM is ready
+    const timeoutId = setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 100);
+    return () => clearTimeout(timeoutId);
+  }, [uiMessages?.length, generating]);
+
   useEffect(() => {
     return () => {
       const recognition = recognitionRef.current;
@@ -415,26 +426,26 @@ export function ChatInterface({
   return (
     <div className="h-screen flex flex-col bg-paper text-ink overflow-hidden">
       <header className="border-b border-ink/20 bg-paper flex-shrink-0">
-        <div className="mx-auto max-w-[900px] px-4 sm:px-6 py-2 sm:py-3">
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <h1 className="font-serif font-bold tracking-headline text-[16px] sm:text-[18px] leading-tight truncate">
-                {project.subjectName}
-              </h1>
-              <p className="text-[10px] text-ink-soft uppercase tracking-wider mt-0.5">
-                {template.name}
-              </p>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-[10px] text-ink-soft uppercase tracking-wider">
-                {Math.round(progress)}%
-              </span>
-              <div className="w-12 h-0.5 bg-ink/10 overflow-hidden">
-                <div
-                  className="h-full bg-ink transition-all duration-300 ease-out"
-                  style={{ width: `${progress}%` }}
-                />
+        <div className="mx-auto max-w-[900px] px-4 sm:px-6 py-3 sm:py-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <h1 className="font-serif font-bold tracking-headline text-[16px] sm:text-[18px] leading-tight truncate">
+                  {project.subjectName}
+                </h1>
+                <p className="text-[10px] text-ink-soft uppercase tracking-wider mt-0.5">
+                  {template.name}
+                </p>
               </div>
+              <span className="text-xs sm:text-sm font-medium text-ink-soft">
+                {Math.round(progress)}% complete
+              </span>
+            </div>
+            <div className="w-full h-2 bg-ink/10 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-accent-blue transition-all duration-500 ease-out rounded-full"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
         </div>
@@ -517,40 +528,40 @@ export function ChatInterface({
               </p>
             )}
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <EditorialButton
-                type="button"
-                variant={listening ? "primary" : "ghost"}
-                onClick={onToggleVoice}
-                disabled={generating || !uiMessages}
-                aria-pressed={listening}
-                aria-label={listening ? "Stop voice input" : "Start voice input"}
-                className="w-full sm:w-auto"
-              >
-                {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                {listening ? "Stop" : "Voice"}
-              </EditorialButton>
-
-              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
                 <EditorialButton
                   type="button"
-                  variant="outline"
-                  onClick={() => setShowConfirmDialog(true)}
-                  disabled={generating}
-                  className="w-full sm:w-auto"
+                  variant={listening ? "primary" : "ghost"}
+                  onClick={onToggleVoice}
+                  disabled={generating || !uiMessages}
+                  aria-pressed={listening}
+                  aria-label={listening ? "Stop voice input" : "Start voice input"}
+                  className="flex-1"
                 >
-                  Finish
+                  {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                  {listening ? "Stop" : "Voice"}
                 </EditorialButton>
 
                 <EditorialButton
                   type="submit"
                   variant="secondary"
                   disabled={generating || !draft.trim()}
-                  className="w-full sm:w-auto"
+                  className="flex-1"
                 >
                   {generating ? "…" : "Send"}
                 </EditorialButton>
               </div>
+
+              <EditorialButton
+                type="button"
+                variant="outline"
+                onClick={() => setShowConfirmDialog(true)}
+                disabled={generating}
+                className="w-full"
+              >
+                Finish Survey
+              </EditorialButton>
             </div>
           </form>
         </div>
