@@ -26,42 +26,7 @@ import { postJson } from "@/lib/http";
 import { chatResponseSchema } from "@/lib/schemas";
 import type { UiMessage } from "@/types/message";
 import { getTextDirection, detectLanguageFromMessages } from "@/lib/language";
-
-type WebSpeechRecognitionAlternative = { transcript: string };
-
-type WebSpeechRecognitionResult = {
-  isFinal: boolean;
-  length: number;
-  [index: number]: WebSpeechRecognitionAlternative | undefined;
-};
-
-type WebSpeechRecognitionEvent = {
-  resultIndex: number;
-  results: ArrayLike<WebSpeechRecognitionResult>;
-};
-
-type WebSpeechRecognitionErrorEvent = { error: string };
-
-type WebSpeechRecognition = {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start: () => void;
-  stop: () => void;
-  onresult: ((event: WebSpeechRecognitionEvent) => void) | null;
-  onerror: ((event: WebSpeechRecognitionErrorEvent) => void) | null;
-  onend: (() => void) | null;
-};
-
-type WebSpeechRecognitionConstructor = new () => WebSpeechRecognition;
-
-function getSpeechRecognitionConstructor(): WebSpeechRecognitionConstructor | null {
-  const w = window as unknown as {
-    SpeechRecognition?: WebSpeechRecognitionConstructor;
-    webkitSpeechRecognition?: WebSpeechRecognitionConstructor;
-  };
-  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
-}
+import { useDeepgram } from "@/hooks/useDeepgram";
 
 function normalizeTranscript(value: string) {
   return value.replace(/\s+/g, " ").trim();
@@ -143,8 +108,6 @@ export function ChatInterface({
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  const [listening, setListening] = useState(false);
-  const recognitionRef = useRef<WebSpeechRecognition | null>(null);
   const voiceBaseRef = useRef<string>("");
   const voiceTranscriptRef = useRef<string>("");
 
@@ -177,6 +140,31 @@ export function ChatInterface({
     return detectLanguageFromMessages(uiMessages);
   }, [uiMessages]);
 
+  // Deepgram voice input
+  const { isListening, isLoading: voiceLoading, startListening, stopListening } = useDeepgram({
+    language: currentLanguage === 'he' ? 'he' : 'en-US',
+    onTranscript: (transcript, isFinal) => {
+      if (isFinal) {
+        // Append final transcript
+        voiceTranscriptRef.current = appendTranscript(
+          voiceTranscriptRef.current,
+          transcript
+        );
+      }
+      // Update draft with base + accumulated final + current interim
+      const base = voiceBaseRef.current;
+      const accumulated = voiceTranscriptRef.current;
+      const spoken = isFinal
+        ? accumulated
+        : appendTranscript(accumulated, transcript);
+
+      setDraft(spoken ? (base ? `${base} ${spoken}` : spoken) : base);
+    },
+    onError: (error) => {
+      setError(error);
+    },
+  });
+
   const textareaDirection = useMemo(() => {
     return getTextDirection(draft);
   }, [draft]);
@@ -196,21 +184,6 @@ export function ChatInterface({
     }, 100);
     return () => clearTimeout(timeoutId);
   }, [uiMessages?.length, generating]);
-
-  useEffect(() => {
-    return () => {
-      const recognition = recognitionRef.current;
-      if (!recognition) return;
-      recognition.onend = null;
-      recognition.onerror = null;
-      recognition.onresult = null;
-      try {
-        recognition.stop?.();
-      } catch {
-        // ignore
-      }
-    };
-  }, []);
 
   useEffect(() => {
     if (!uiMessages) return;
@@ -277,95 +250,16 @@ export function ChatInterface({
     textarea.style.height = `${textarea.scrollHeight}px`;
   }, [draft]);
 
-  function stopVoice() {
-    const recognition = recognitionRef.current;
-    if (!recognition) return;
-    try {
-      recognition.stop();
-    } catch {
-      // ignore
-    } finally {
-      setListening(false);
-    }
-  }
-
   function onToggleVoice() {
-    if (listening) {
-      stopVoice();
-      return;
-    }
-
-    const SpeechRecognition = getSpeechRecognitionConstructor();
-
-    if (!SpeechRecognition) {
-      setError(
-        "Voice input is not supported in this browser. Try Chrome or Edge, or use your device keyboard dictation."
-      );
+    if (isListening) {
+      stopListening();
       return;
     }
 
     setError(null);
     voiceBaseRef.current = draft.trimEnd();
     voiceTranscriptRef.current = "";
-
-    const recognition = new SpeechRecognition();
-    recognitionRef.current = recognition;
-
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = (navigator.language || "en-US") as string;
-
-    recognition.onresult = (event: WebSpeechRecognitionEvent) => {
-      let finalChunk = "";
-      let interimChunk = "";
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        const transcript = result?.[0]?.transcript ?? "";
-        if (result?.isFinal) finalChunk += transcript;
-        else interimChunk += transcript;
-      }
-
-      voiceTranscriptRef.current = appendTranscript(
-        voiceTranscriptRef.current,
-        finalChunk
-      );
-      const interim = normalizeTranscript(interimChunk);
-      const spoken = [voiceTranscriptRef.current, interim]
-        .filter(Boolean)
-        .join(" ");
-      const base = voiceBaseRef.current;
-
-      setDraft(spoken ? (base ? `${base} ${spoken}` : spoken) : base);
-    };
-
-    recognition.onerror = (event: WebSpeechRecognitionErrorEvent) => {
-      const code = typeof event.error === "string" ? event.error : "unknown";
-      const message =
-        code === "not-allowed"
-          ? "Microphone permission denied."
-        : code === "no-speech"
-          ? "No speech detected."
-          : code === "audio-capture"
-          ? "No microphone found."
-          : "Voice input failed.";
-      setError(message);
-      setListening(false);
-    };
-
-    recognition.onend = () => {
-      setListening(false);
-      recognitionRef.current = null;
-    };
-
-    try {
-      recognition.start();
-      setListening(true);
-    } catch {
-      recognitionRef.current = null;
-      setError("Voice input failed to start.");
-      setListening(false);
-    }
+    void startListening();
   }
 
   async function onSend(e: FormEvent) {
@@ -376,7 +270,7 @@ export function ChatInterface({
     if (!userText) return;
     if (generating) return;
 
-    stopVoice();
+    stopListening();
     setDraft("");
     setError(null);
     setGenerating(true);
@@ -413,7 +307,7 @@ export function ChatInterface({
   async function onFinish() {
     setError(null);
     setGenerating(true);
-    stopVoice();
+    stopListening();
 
     // Clear draft from localStorage when completing survey
     const storageKey = `digg_draft_${surveyId}`;
@@ -529,11 +423,11 @@ export function ChatInterface({
                 formRef.current?.requestSubmit();
               }}
               placeholder={
-                listening
+                isListening
                   ? currentLanguage === 'he' ? "מקשיב… (לחץ על קול כדי לעצור)" : "Listening… (press Voice to stop)"
                   : currentLanguage === 'he' ? "התשובה שלך…" : "Your response…"
               }
-              disabled={generating || !uiMessages || listening}
+              disabled={generating || !uiMessages || isListening}
               className="min-h-[70px] max-h-[180px] resize-y"
               dir={textareaDirection}
               style={{ textAlign: textareaDirection === 'rtl' ? 'right' : 'left' }}
@@ -549,17 +443,19 @@ export function ChatInterface({
               <div className="flex items-center gap-3">
                 <EditorialButton
                   type="button"
-                  variant={listening ? "primary" : "ghost"}
+                  variant={isListening ? "primary" : "ghost"}
                   onClick={onToggleVoice}
-                  disabled={generating || !uiMessages}
-                  aria-pressed={listening}
-                  aria-label={listening ? "Stop voice input" : "Start voice input"}
+                  disabled={generating || !uiMessages || voiceLoading}
+                  aria-pressed={isListening}
+                  aria-label={isListening ? "Stop voice input" : "Start voice input"}
                   className="flex-1"
                 >
-                  {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                  {listening
-                    ? (currentLanguage === 'he' ? "עצור" : "Stop")
-                    : (currentLanguage === 'he' ? "קול" : "Voice")}
+                  {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                  {voiceLoading
+                    ? "..."
+                    : isListening
+                      ? (currentLanguage === 'he' ? "עצור" : "Stop")
+                      : (currentLanguage === 'he' ? "קול" : "Voice")}
                 </EditorialButton>
 
                 <EditorialButton

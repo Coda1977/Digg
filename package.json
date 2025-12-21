@@ -16,6 +16,7 @@
     "@ai-sdk/anthropic": "^2.0.54",
     "@auth/core": "^0.37.4",
     "@convex-dev/auth": "^0.0.90",
+    "@deepgram/sdk": "^4.11.3",
     "@oslojs/binary": "^1.0.0",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",
