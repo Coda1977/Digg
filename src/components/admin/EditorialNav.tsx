@@ -26,8 +26,8 @@ export function EditorialNav({ onSignOut }: EditorialNavProps) {
 
   const navItems = [
     { label: "Dashboard", href: "/admin" },
+    { label: "Templates", href: "/admin/templates" },
     { label: "New Project", href: "/admin/projects/new" },
-    { label: "New Template", href: "/admin/templates/new" },
   ];
 
   const isActive = (href: string) => {

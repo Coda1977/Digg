@@ -169,6 +169,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             >
               Dashboard
             </Link>
+            <Link
+              href="/admin/templates"
+              className="text-[15px] font-medium text-ink hover:text-accent-red transition-colors"
+            >
+              Templates
+            </Link>
             <button
               type="button"
               onClick={() => void signOut()}

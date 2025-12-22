@@ -126,14 +126,15 @@ export function ChatInterface({
     }));
   }, [messages]);
 
-  const progress = useMemo(() => {
+  const progressRatio = useMemo(() => {
     if (!uiMessages) return 0;
     const userMessageCount = uiMessages.filter((m) => m.role === "user").length;
     const totalQuestions = template.questions.length || 5; // Fallback to 5 if no questions
-    const calculated = (userMessageCount / totalQuestions) * 100;
+    const calculated = userMessageCount / totalQuestions;
     // Cap at 95% until survey is actually completed
-    return Math.min(95, calculated);
+    return Math.min(0.95, calculated);
   }, [uiMessages, template.questions.length]);
+  const progressPercent = Math.round(progressRatio * 100);
 
   const currentLanguage = useMemo(() => {
     if (!uiMessages) return 'en';
@@ -332,23 +333,18 @@ export function ChatInterface({
       <header className="border-b border-ink/20 bg-paper flex-shrink-0">
         <div className="mx-auto max-w-[900px] px-4 sm:px-6 py-3 sm:py-4">
           <div className="space-y-3">
-            <div className="flex items-center justify-between gap-4">
-              <div className="min-w-0">
-                <h1 className="font-serif font-bold tracking-headline text-[16px] sm:text-[18px] leading-tight truncate">
-                  {project.subjectName}
-                </h1>
-                <p className="text-[10px] text-ink-soft uppercase tracking-wider mt-0.5">
-                  {template.name}
-                </p>
-              </div>
-              <span className="text-xs sm:text-sm font-medium text-ink-soft">
-                {Math.round(progress)}% complete
-              </span>
+            <div className="min-w-0">
+              <h1 className="font-serif font-bold tracking-headline text-[16px] sm:text-[18px] leading-tight truncate">
+                {project.subjectName}
+              </h1>
+              <p className="text-[10px] text-ink-soft uppercase tracking-wider mt-0.5">
+                {template.name}
+              </p>
             </div>
-            <div className="w-full h-2 bg-ink/10 rounded-full overflow-hidden">
+            <div className="w-full h-2.5 bg-ink/10 rounded-full overflow-hidden">
               <div
                 className="h-full bg-accent-blue transition-all duration-500 ease-out rounded-full"
-                style={{ width: `${progress}%` }}
+                style={{ width: `${progressPercent}%` }}
               />
             </div>
           </div>
