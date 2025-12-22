@@ -8,6 +8,8 @@ AI-powered feedback surveys with four built-in protocols (templates), backed by 
 - Convex database/functions (`convex/`)
 - Convex Auth (Password provider)
 - Anthropic via AI SDK (`src/app/api/chat/route.ts`)
+- Deepgram for speech-to-text (`src/hooks/useDeepgram.ts`)
+- Bilingual support (English/Hebrew with automatic RTL)
 
 ## Local setup
 
@@ -15,6 +17,7 @@ AI-powered feedback surveys with four built-in protocols (templates), backed by 
 2. Create `.env.local`:
    - `NEXT_PUBLIC_CONVEX_URL=...`
    - `ANTHROPIC_API_KEY=...`
+   - `DEEPGRAM_API_KEY=...` (for voice input - get $200 free credits at [console.deepgram.com](https://console.deepgram.com))
 3. Set an admin allowlist in Convex (recommended):
    - `npx convex env set ADMIN_EMAILS "you@example.com"`
    - If `ADMIN_EMAILS` is unset, the first signed-in user becomes admin.
@@ -49,6 +52,7 @@ $env:BASE_URL='https://digg-teal.vercel.app'; npm run test:e2e
 - Vercel env vars:
   - `NEXT_PUBLIC_CONVEX_URL` (your `https://<deployment>.convex.cloud` URL)
   - `ANTHROPIC_API_KEY`
+  - `DEEPGRAM_API_KEY` (for voice input - required)
 - Convex env vars (prod deployment):
   - `SITE_URL` (your web app URL, e.g. `https://digg-teal.vercel.app`)
   - `AUTH_SECRET`
