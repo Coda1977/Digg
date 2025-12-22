@@ -42,7 +42,7 @@ export async function POST(req: Request) {
   }
 
   const anthropic = createAnthropic({ apiKey });
-  const model = anthropic("claude-haiku-4-5");
+  const model = anthropic("claude-3-5-haiku-20241022");
 
   const system = `You are an expert 360-feedback analyst.
 Return ONLY valid JSON (no markdown, no extra text).
