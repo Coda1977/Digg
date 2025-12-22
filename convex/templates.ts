@@ -2,6 +2,7 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { nanoid } from "nanoid";
 import { requireAdmin } from "./lib/authorization";
+import { assertNoLegacyPlaceholders } from "./lib/templateValidation";
 
 export const list = query({
   args: {},
@@ -57,6 +58,7 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
+    assertNoLegacyPlaceholders(args.systemPromptTemplate);
 
     // Generate IDs and add order to questions
     const questions = args.questions.map((q, idx) => ({
@@ -110,6 +112,7 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
+    assertNoLegacyPlaceholders(args.systemPromptTemplate);
 
     const existing = await ctx.db.get(args.id);
     if (!existing) {

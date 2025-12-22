@@ -429,7 +429,7 @@ Created reusable components in `src/components/editorial/`:
   - Organizational: Culture signals and systemic issues
 - **Organizational Survey Questions Updated**:
   - Now follows same pattern as other templates: effectiveness → works well → improvements
-- **Backward Compatibility**: Old templates with `{{questions}}` placeholder continue to work in legacy mode
+- **Legacy Removal**: Templates with `{{questions}}` placeholders are no longer supported; prompts must be persona-only
 
 #### 3. Deployment
 - **Files**:
