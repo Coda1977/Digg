@@ -559,9 +559,15 @@ export default function ProjectAnalysisPage() {
             {analysis ? (
               <div className="space-y-2">
                 <p className="text-body text-ink-soft">
-                  Generated from {analysis.coverage.totalInterviews} completed interview
-                  {analysis.coverage.totalInterviews === 1 ? "" : "s"}
-                  {coverageText && ` (${coverageText})`} ·{" "}
+                  {analysis.coverage ? (
+                    <>
+                      Generated from {analysis.coverage.totalInterviews} completed interview
+                      {analysis.coverage.totalInterviews === 1 ? "" : "s"}
+                      {coverageText && ` (${coverageText})`} ·{" "}
+                    </>
+                  ) : (
+                    <>Generated · </>
+                  )}
                   {formatDateTime(analysis.generatedAt)}
                 </p>
                 {stats && stats.newSinceAnalysis > 0 && (
@@ -643,7 +649,7 @@ export default function ProjectAnalysisPage() {
                     variant={activeSegment === null ? "primary" : "outline"}
                     size="small"
                   >
-                    Overall ({analysis.coverage.totalInterviews})
+                    Overall {analysis.coverage && `(${analysis.coverage.totalInterviews})`}
                   </EditorialButton>
                   {project.segmentedAnalysis.map((segment) => (
                     <EditorialButton
@@ -674,12 +680,14 @@ export default function ProjectAnalysisPage() {
 
                 return (
                   <div className="space-y-8 border-t-3 border-ink pt-6">
-                    <div className="space-y-3">
-                      <EditorialLabel>Summary</EditorialLabel>
-                      <p className="text-body text-ink-soft whitespace-pre-wrap">
-                        {activeAnalysis.summary}
-                      </p>
-                    </div>
+                    {activeAnalysis.summary && (
+                      <div className="space-y-3">
+                        <EditorialLabel>Summary</EditorialLabel>
+                        <p className="text-body text-ink-soft whitespace-pre-wrap">
+                          {activeAnalysis.summary}
+                        </p>
+                      </div>
+                    )}
 
                     {activeAnalysis.narrative && (
                       <div className="space-y-3">
@@ -690,10 +698,11 @@ export default function ProjectAnalysisPage() {
                       </div>
                     )}
 
-                    <div className="space-y-3">
-                      <EditorialLabel>Strengths</EditorialLabel>
-                      <div className="space-y-4">
-                        {activeAnalysis.strengths.map((strength: any, idx: number) => (
+                    {activeAnalysis.strengths && activeAnalysis.strengths.length > 0 && (
+                      <div className="space-y-3">
+                        <EditorialLabel>Strengths</EditorialLabel>
+                        <div className="space-y-4">
+                          {activeAnalysis.strengths.map((strength: any, idx: number) => (
                           <div key={idx} className="border-l-4 border-ink pl-4 space-y-2">
                             <p className="text-body font-medium text-ink">{strength.point}</p>
                             {strength.quote && (
@@ -708,14 +717,16 @@ export default function ProjectAnalysisPage() {
                               </p>
                             )}
                           </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
-                    <div className="space-y-3">
-                      <EditorialLabel>Areas for improvement</EditorialLabel>
-                      <div className="space-y-5">
-                        {activeAnalysis.improvements.map((improvement: any, idx: number) => (
+                    {activeAnalysis.improvements && activeAnalysis.improvements.length > 0 && (
+                      <div className="space-y-3">
+                        <EditorialLabel>Areas for improvement</EditorialLabel>
+                        <div className="space-y-5">
+                          {activeAnalysis.improvements.map((improvement: any, idx: number) => (
                           <div key={idx} className="border-l-4 border-accent-red pl-4 space-y-2">
                             <div className="flex items-start justify-between gap-3">
                               <p className="text-body font-medium text-ink">{improvement.point}</p>
@@ -741,9 +752,10 @@ export default function ProjectAnalysisPage() {
                               )}
                             </div>
                           </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 );
               })()}

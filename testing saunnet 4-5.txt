@@ -1,0 +1,108 @@
+1.
+Assistant: Hey, thanks for taking the time to do this. I'm here to collect some feedback about Yonatan that'll be really useful for them.
+So let's start with the positives—what does Yonatan do really well?
+
+Respondent: Yonatan is a strong leader who sets a clear vision and communicates priorities clearly. They have deep expertise in product strategy and analytics, so they ask insightful questions and ensure we focus on the right problems. They also build trust within the team by being open to feedback, giving credit, and supporting professional growth.
+
+Assistant: That's a solid foundation—clear vision, strategic depth, and building trust. Those are really important strengths.
+When you think about how they communicate priorities, what does that actually look like in practice?
+
+Respondent: In our quarterly planning cycles Yonatan runs a kickoff where they share the company goals and how our team contributes. They walk us through a simple framework that categorizes what’s high‑impact versus a nice‑to‑have, along with context on why. After the meeting they send a clear summary of decisions and next steps, and they check in during sprint reviews to make sure we’re still aligned and understand how our work ties back to those priorities.
+
+Assistant: So they create that clarity at multiple touchpoints—the kickoff, the written summary, and then those ongoing check-ins. That's really thorough.
+What about the trust-building piece you mentioned—can you think of a specific moment when you saw them give credit or support someone's growth?
+
+Respondent: A vivid example was during our last sprint demo. One of our junior engineers had cracked a particularly tricky performance issue. Instead of presenting it themselves, Yonatan invited her to walk the team through her discovery and the fix. In the all‑hands that week they called out her effort, explained the impact on our customers, and then asked her what she wanted to tackle next so they could align a stretch project. It gave her visibility and confidence, and showed the rest of us that good work gets recognized and supported.
+
+Assistant: That's a great example—they turned recognition into a growth opportunity, not just a pat on the back. You can see how that would build trust across the team.
+What else comes to mind when you think about what Yonatan does really well?
+
+Respondent: They also excel at cross‑functional collaboration. In a recent vendor integration project, there were engineering, marketing and operations stakeholders with very different concerns. Yonatan organized a kickoff workshop to surface everyone's needs, then facilitated regular syncs where blockers were raised and trade‑offs were made transparently. They kept the group focused on user impact and timeline, which helped us launch on schedule without any major friction.
+
+Assistant: So they're really skilled at bringing different groups together and keeping everyone aligned on what matters. That workshop and transparent trade-off approach sounds like it prevented a lot of the usual cross-functional mess.
+Anything else about what they do well that stands out to you?
+
+Respondent: Another thing that stands out is their calm problem‑solving under pressure. When we had a major production incident last quarter, they kept everyone focused and calm. They coordinated the triage process, communicated status updates to stakeholders so no one panicked, and once service was restored they led a blameless post‑mortem that focused on what we learned and how to improve our processes. It turned a stressful situation into a shared learning moment.
+
+Assistant: That incident response really shows their leadership—keeping people calm, managing the broader communication, and then turning it into learning instead of finger-pointing. That's not easy to do when everyone's stressed.
+Alright, so we've covered a lot of strengths. Let's shift gears. Where do you think Yonatan could improve or grow?
+
+Respondent: One area is delegation and leverage. They sometimes stay too involved in day‑to‑day execution, which makes them a bottleneck and leaves less space for team members to own decisions and grow. Another area is focus – because they want to support everyone, they tend to take on too many initiatives or agree to late additions from stakeholders, which causes context switching and can stretch the team thin. They could improve by aligning on priorities upfront and trusting others to lead more.
+
+Assistant: So there's a pattern where their strengths—being hands-on, wanting to support everyone—actually become the constraint. They need to step back more and say no more often.
+Can you give me a recent example of when that bottleneck or overcommitment actually played out?
+
+Respondent: For example, last quarter we were building a new analytics dashboard while a key customer asked for a custom demo of upcoming features. Yonatan agreed to own the demo prep himself and still wanted to review all of the dashboard work. Because his attention was split, approvals on the dashboard were often delayed and the demo deck kept changing. We ended up working late nights to incorporate his feedback and hit both deadlines. If he had delegated the demo or empowered a team lead to handle reviews, we might have avoided the crunch.
+
+Assistant: That's a clear picture—trying to do both meant delays for the team and last-minute scrambles. The cost of staying too involved really shows up there.
+What would "good delegation" look like from Yonatan in a situation like that? What would you want to see them do differently?
+
+Respondent: Good delegation in that scenario would be identifying a team lead for the dashboard early, aligning on the goals and success criteria, and then stepping back to let them make day‑to‑day decisions. If a custom demo comes up, decide whether it’s critical or if someone else can own it. They could schedule check‑ins at key milestones instead of reviewing every detail, and focus their energy on removing blockers or coaching rather than doing the work themselves.
+
+Assistant: So set the direction and boundaries clearly, then trust people to run with it—save their energy for the strategic moments instead of being in every detail.
+Anything else about where Yonatan could grow or improve?
+
+Respondent: It would also help if they provided more context about how our work fits into the broader strategy. Occasionally a priority shifts or a feature gets cut without us understanding why. Sharing the reasoning behind these decisions, or looping us in earlier, would help the team make better trade‑offs on its own and feel more connected to the bigger picture.
+
+Assistant: So even though they're good at setting initial priorities, when things change mid-stream the "why" doesn't always make it back to the team. That leaves people making decisions in the dark.
+Before we wrap up, is there anything else you want to make sure I heard—about what Yonatan does well or where they could grow?
+
+Respondent: No, that's everything I wanted to share. Thanks for walking through this with me.
+
+Assistant: Thank you for being so thoughtful and specific—this is going to be really valuable feedback for Yonatan. I appreciate you taking the time.
+
+2.
+
+Assistant: Hey! Thanks for taking the time to do this. I'm here to collect some feedback about yonatan that'll help them grow. This is just a conversation—no right or wrong answers, just your honest perspective.
+So, let's start here: What does yonatan do really well?
+
+Respondent: As a direct report I really value how Yonatan creates a supportive environment. They set clear expectations but give me autonomy to decide how to achieve the goals. They invest time in coaching through regular one‑on‑ones, share candid feedback early, and advocate for resources when I need them. They also shield the team from unnecessary noise so we can focus.
+
+Assistant: That's a really thoughtful answer—it's clear you've experienced this firsthand. The combination of clear expectations plus autonomy sounds like it creates a lot of trust.
+You mentioned they share candid feedback early. Can you think of a specific time when that happened and what made it helpful?
+
+Respondent: One moment that sticks out was my first high‑stakes client presentation. About a week beforehand, Yonatan set up a prep session. They went through my slide deck with me, pointed out where the story was confusing, and asked questions that forced me to clarify my thinking. They also gave me specific tips on pacing and delivery and encouraged me to practice with them. Because they gave that feedback early, I had time to revise the narrative and rehearse, and I felt much more confident going into the meeting.
+
+Assistant: That sounds like it made a real difference—getting that kind of detailed input with enough runway to actually use it. It's one thing to say "give feedback early," but walking through the deck and those specific tips on pacing really shows investment.
+What else comes to mind when you think about what yonatan does really well?
+
+Respondent: They also create opportunities for growth. Instead of keeping me in my comfort zone, they encourage me to take on stretch projects and then back me up when things get tough. For example, they asked me to lead a cross‑team effort to redesign our analytics pipeline even though I hadn't done that before. They connected me with mentors and checked in periodically, but they let me own the plan and decisions. It pushed me to develop new skills and was a huge confidence boost.
+
+Assistant: Stretch projects backed by real support—that's a powerful combination. It sounds like they find that balance between pushing you and making sure you don't feel abandoned in the deep end.
+Anything else about what they do well that feels important to mention?
+
+Respondent: They cultivate psychological safety by making it safe to ask questions, challenge assumptions and share mistakes. I appreciate that they celebrate wins as a team and view missteps as learning opportunities rather than failures. For example, after one release resulted in unexpected bugs, they called a casual "learning circle" where we each shared what happened and what we would do differently next time. They modeled vulnerability by sharing their own oversight and ended by highlighting everyone's effort, which reinforced trust and continuous improvement.
+
+Assistant: That "learning circle" example really captures it—especially them modeling vulnerability by sharing their own oversight first. That sets the tone for everyone else.
+So those are some real strengths. Let's shift gears now. Where do you think yonatan could improve or grow?
+
+Respondent: They could improve by communicating strategy and priority shifts more transparently. For example, midway through a sprint focused on performance tuning we were surprised by a last-minute request to build a custom client demo, which was committed without our input, causing overtime and delaying our original goals. Looping the team in earlier and negotiating timelines would help us plan or push back.
+
+Relatedly, they often say yes to every request. Pushing back on low-priority work or renegotiating deadlines would protect our capacity and prevent burnout.
+
+Assistant: So there have been times when priorities shift suddenly and the team finds out late—like that custom demo that came out of nowhere. That sprint disruption and overtime sounds like it was pretty stressful.
+When that demo request came in, what would earlier communication have looked like? What would've helped in that moment?
+
+Respondent: When the demo request first came up, it would have helped to loop the team in as soon as sales flagged it as a possibility. We could have been consulted on the effort required and whether we had capacity. Even a quick Slack message or 10‑minute huddle to explain the context, discuss options and agree on a plan would have made us feel included. It also would have given them the chance to negotiate with the stakeholder on scope or timeline. Hearing about it only after the commitment was made removed any choice and forced us into firefighting mode.
+
+Assistant: Hearing about it after the commitment was already made—that's the crux of it. You went straight into execution mode without any chance to weigh in on feasibility or trade-offs.
+You also mentioned they often say yes to every request. Can you think of another example where that pattern showed up?
+
+Respondent: Another instance was last quarter when we were building out a new analytics API. It was already a full‑sprint initiative requiring collaboration across engineering and product. Midway through, a sales leader asked if we could build a custom dashboard for a prospect with unique metrics. Instead of saying no or deferring it until after the API was done, they agreed to tackle both at once. We split our time between the API and the dashboard, which caused context switching and led to delays on both fronts. In the end the client decided not to move forward, so the extra work was largely wasted, and our core API was pushed into the next quarter.
+
+Assistant: So the team ended up juggling both, neither got done on time, and the dashboard work didn't even pan out. That must have been frustrating—especially knowing the API could've shipped if you'd stayed focused.
+What effect did that have on you and the team beyond just the timeline slip?
+
+Respondent: Beyond the missed deadline, it was demoralising. We felt pulled in two directions, doing neither project justice. The context switching and weekend work drained our energy and made us question whether leadership valued our time. After the client decided not to move forward, there was a sense of wasted effort that could've been avoided. It eroded trust a bit—we were hesitant to fully commit to new requests because we worried they'd change again. Morale dipped, and we spent extra time regrouping and realigning after the quarter ended.
+
+Assistant: That erosion of trust really stands out—when you start hesitating to fully commit because you're not sure if priorities will shift again. That's a real cost beyond just the timeline.
+Is there anything else about how yonatan could improve that we haven't covered yet?
+
+Respondent: Those are the main areas. Overall he’s a strong leader and advocate for us—so the feedback is mostly about pacing and prioritization. There's nothing else that stands out.
+
+Assistant: Got it. It sounds like the core theme is around being more protective of the team's capacity and bringing you into decisions earlier when priorities are shifting.
+Before we wrap up, is there anything else you want to make sure I heard—either something we touched on that feels especially important, or something we didn't get to?
+
+Respondent: No, that's everything. Thanks for taking the time to talk through this.
+
+Assistant: Thank you for being so thoughtful and specific—this is really valuable feedback for yonatan. I appreciate you sharing both the strengths and the honest areas for growth. Take care!

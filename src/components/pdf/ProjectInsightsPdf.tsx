@@ -24,15 +24,22 @@ export type Improvement = {
 };
 
 export type ProjectInsightsForPdf = {
-  summary: string;
-  strengths: Strength[];
-  improvements: Improvement[];
+  summary?: string; // Optional for backwards compatibility
+  strengths?: Strength[]; // Optional for backwards compatibility
+  improvements?: Improvement[]; // Optional for backwards compatibility
   narrative?: string;
-  coverage: {
+  coverage?: {  // Optional for backwards compatibility
     totalInterviews: number;
     breakdown: Record<string, number>;
   };
   generatedAt: number;
+  // OLD SCHEMA FIELDS - for backwards compatibility
+  overview?: string;
+  keyThemes?: string[];
+  sentiment?: "positive" | "mixed" | "negative";
+  specificPraise?: string[];
+  areasForImprovement?: string[];
+  basedOnSurveyCount?: number;
 };
 
 export type SurveyForPdf = {
@@ -54,10 +61,16 @@ export type SegmentedAnalysisForPdf = {
   relationshipType: string;
   relationshipLabel: string;
   analysis: {
-    summary: string;
-    strengths: Strength[];
-    improvements: Improvement[];
+    summary?: string; // Optional for backwards compatibility
+    strengths?: Strength[]; // Optional for backwards compatibility
+    improvements?: Improvement[]; // Optional for backwards compatibility
     narrative?: string;
+    // OLD SCHEMA FIELDS - for backwards compatibility
+    overview?: string;
+    keyThemes?: string[];
+    sentiment?: "positive" | "mixed" | "negative";
+    specificPraise?: string[];
+    areasForImprovement?: string[];
   };
 };
 
@@ -159,16 +172,21 @@ export function ProjectInsightsPdf(props: {
         ) : (
           <>
             <Section title="Overall Analysis">
-              <Text style={styles.paragraph}>
-                Based on {analysis.coverage.totalInterviews} completed interview
-                {analysis.coverage.totalInterviews === 1 ? "" : "s"}
-              </Text>
-              <Subsection title="Summary">
-                <Text style={styles.paragraph}>{analysis.summary}</Text>
-              </Subsection>
+              {analysis.coverage && (
+                <Text style={styles.paragraph}>
+                  Based on {analysis.coverage.totalInterviews} completed interview
+                  {analysis.coverage.totalInterviews === 1 ? "" : "s"}
+                </Text>
+              )}
+              {analysis.summary && (
+                <Subsection title="Summary">
+                  <Text style={styles.paragraph}>{analysis.summary}</Text>
+                </Subsection>
+              )}
 
-              <Subsection title="Strengths">
-                {analysis.strengths.map((strength, idx) => (
+              {analysis.strengths && analysis.strengths.length > 0 && (
+                <Subsection title="Strengths">
+                  {analysis.strengths.map((strength, idx) => (
                   <View key={idx} style={styles.listItem}>
                     <Text style={styles.bullet}>•</Text>
                     <View style={styles.listText}>
@@ -184,11 +202,13 @@ export function ProjectInsightsPdf(props: {
                       )}
                     </View>
                   </View>
-                ))}
-              </Subsection>
+                  ))}
+                </Subsection>
+              )}
 
-              <Subsection title="Areas for Improvement">
-                {analysis.improvements.map((improvement, idx) => (
+              {analysis.improvements && analysis.improvements.length > 0 && (
+                <Subsection title="Areas for Improvement">
+                  {analysis.improvements.map((improvement, idx) => (
                   <View key={idx} style={styles.improvementItem}>
                     <View style={styles.improvementHeader}>
                       <Text style={styles.bullet}>•</Text>
@@ -207,8 +227,9 @@ export function ProjectInsightsPdf(props: {
                       )}
                     </View>
                   </View>
-                ))}
-              </Subsection>
+                  ))}
+                </Subsection>
+              )}
 
               {analysis.narrative && (
                 <Subsection title="Narrative">
@@ -224,9 +245,11 @@ export function ProjectInsightsPdf(props: {
                     <Text style={styles.segmentTitle}>
                       {segment.relationshipLabel} Perspective
                     </Text>
-                    <Text style={styles.paragraph}>{segment.analysis.summary}</Text>
+                    {segment.analysis.summary && (
+                      <Text style={styles.paragraph}>{segment.analysis.summary}</Text>
+                    )}
 
-                    {segment.analysis.strengths.length > 0 && (
+                    {segment.analysis.strengths && segment.analysis.strengths.length > 0 && (
                       <Subsection title="Strengths">
                         {segment.analysis.strengths.map((strength, sIdx) => (
                           <View key={sIdx} style={styles.listItem}>
@@ -242,7 +265,7 @@ export function ProjectInsightsPdf(props: {
                       </Subsection>
                     )}
 
-                    {segment.analysis.improvements.length > 0 && (
+                    {segment.analysis.improvements && segment.analysis.improvements.length > 0 && (
                       <Subsection title="Areas for Improvement">
                         {segment.analysis.improvements.map((improvement, iIdx) => (
                           <View key={iIdx} style={styles.improvementItem}>
