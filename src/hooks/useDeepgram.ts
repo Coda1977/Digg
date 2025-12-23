@@ -62,6 +62,8 @@ export function useDeepgram({ language = "en-US", onTranscript, onError }: UseDe
         punctuate: true,
         interim_results: true,
         endpointing: 300, // Auto-stop after 300ms of silence
+        encoding: "opus", // WebM uses Opus codec
+        sample_rate: 48000, // Opus default sample rate
       });
 
       deepgramRef.current = connection;
