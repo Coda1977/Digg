@@ -8,7 +8,23 @@ export const list = query({
   args: {},
   handler: async (ctx) => {
     await requireAdmin(ctx);
-    return await ctx.db.query("templates").collect();
+    const templates = await ctx.db.query("templates").collect();
+
+    // Get project counts for each template
+    const templatesWithCounts = await Promise.all(
+      templates.map(async (template) => {
+        const projectCount = await ctx.db
+          .query("projects")
+          .filter((q) => q.eq(q.field("templateId"), template._id))
+          .collect();
+        return {
+          ...template,
+          projectCount: projectCount.length,
+        };
+      })
+    );
+
+    return templatesWithCounts;
   },
 });
 
@@ -179,5 +195,44 @@ export const remove = mutation({
     }
 
     await ctx.db.delete(args.id);
+  },
+});
+
+export const duplicate = mutation({
+  args: { id: v.id("templates") },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
+    const template = await ctx.db.get(args.id);
+    if (!template) {
+      throw new Error("Template not found");
+    }
+
+    // Generate new IDs for questions and relationships
+    const questions = template.questions.map((q, idx) => ({
+      id: nanoid(8),
+      text: q.text,
+      collectMultiple: q.collectMultiple,
+      order: idx + 1,
+    }));
+
+    const relationshipOptions = template.relationshipOptions.map((r) => ({
+      id: nanoid(8),
+      label: r.label,
+    }));
+
+    const newTemplateId = await ctx.db.insert("templates", {
+      name: `${template.name} (Copy)`,
+      description: template.description,
+      type: "custom",
+      questions,
+      relationshipOptions,
+      systemPromptTemplate: template.systemPromptTemplate ?? "",
+      isBuiltIn: false,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    return newTemplateId;
   },
 });

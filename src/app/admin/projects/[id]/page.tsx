@@ -16,9 +16,10 @@ import {
   EditorialButton,
   EditorialInput,
   StatusBadge,
-  EditorialBreadcrumbs, // Added
-  EditorialDataRow, // Added
+  EditorialBreadcrumbs,
+  EditorialDataRow,
 } from "@/components/editorial";
+import { useCopyFeedback } from "@/hooks/useCopyFeedback";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -36,6 +37,11 @@ export default function ProjectDetailPage() {
   const [newSurveyLink, setNewSurveyLink] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copiedSurveyId, setCopiedSurveyId] = useState<string | null>(null);
+
+  // Copy feedback hooks
+  const { copied: shareLinkCopied, onCopy: copyShareLink } = useCopyFeedback();
+  const { copied: newLinkCopied, onCopy: copyNewLink } = useCopyFeedback();
 
   useEffect(() => {
     setOrigin(window.location.origin);
@@ -200,9 +206,9 @@ export default function ProjectDetailPage() {
             <EditorialButton
               type="button"
               variant="outline"
-              onClick={() => void navigator.clipboard.writeText(projectShareLink)}
+              onClick={() => void copyShareLink(projectShareLink)}
             >
-              Copy
+              {shareLinkCopied ? "Copied!" : "Copy"}
             </EditorialButton>
           </div>
         </div>
@@ -228,10 +234,10 @@ export default function ProjectDetailPage() {
             <div className="flex items-center gap-2">
               <code className="text-sm bg-paper px-2 py-1 rounded">{newSurveyLink}</code>
               <button
-                onClick={() => void navigator.clipboard.writeText(newSurveyLink)}
+                onClick={() => void copyNewLink(newSurveyLink)}
                 className="text-label underline"
               >
-                Copy
+                {newLinkCopied ? "Copied!" : "Copy"}
               </button>
             </div>
           </div>
@@ -274,9 +280,13 @@ export default function ProjectDetailPage() {
                         type="button"
                         variant="outline"
                         size="small"
-                        onClick={() => void navigator.clipboard.writeText(surveyLink)}
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(surveyLink);
+                          setCopiedSurveyId(s._id);
+                          setTimeout(() => setCopiedSurveyId(null), 1500);
+                        }}
                       >
-                        Copy Link
+                        {copiedSurveyId === s._id ? "Copied!" : "Copy Link"}
                       </EditorialButton>
                       <EditorialButton variant="outline" size="small" asChild>
                         <Link href={`/admin/surveys/${s._id}`}>Transcript</Link>

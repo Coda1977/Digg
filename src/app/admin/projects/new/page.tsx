@@ -310,7 +310,10 @@ export default function NewProjectPage() {
           <p className="text-accent-red font-medium" role="alert">{error}</p>
         )}
 
-        <div className="flex items-center gap-4 fixed bottom-0 left-0 right-0 p-4 bg-paper/80 backdrop-blur-md border-t border-ink/10 sm:static sm:bg-transparent sm:border-0 sm:p-0">
+        <div className="flex flex-col-reverse sm:flex-row items-center gap-3 fixed bottom-0 left-0 right-0 p-4 bg-paper/80 backdrop-blur-md border-t border-ink/10 sm:static sm:bg-transparent sm:border-0 sm:p-0">
+          <EditorialButton variant="ghost" asChild className="w-full sm:w-auto">
+            <Link href="/admin">Cancel</Link>
+          </EditorialButton>
           <EditorialButton
             type="submit"
             disabled={!canSubmit}
@@ -319,9 +322,6 @@ export default function NewProjectPage() {
           >
             <Plus className="h-5 w-5" />
             {submitting ? "Creating…" : "Create Project"}
-          </EditorialButton>
-          <EditorialButton variant="ghost" asChild className="hidden sm:inline-flex">
-            <Link href="/admin">Cancel</Link>
           </EditorialButton>
         </div>
       </form>

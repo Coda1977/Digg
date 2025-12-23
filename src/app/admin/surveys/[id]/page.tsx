@@ -19,7 +19,7 @@ import {
   StatusBadge,
   MessageBubble,
 } from "@/components/editorial";
-import { sentimentBadgeClass } from "@/lib/editorialBadges";
+import { useCopyFeedback } from "@/hooks/useCopyFeedback";
 import { postJson } from "@/lib/http";
 import { summarySchema, type Summary } from "@/lib/schemas";
 import type { UiMessage } from "@/types/message";
@@ -43,7 +43,10 @@ export default function AdminSurveyDetailPage() {
   const [origin, setOrigin] = useState("");
   const [summaryBusy, setSummaryBusy] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+
+  // Copy feedback hooks
+  const { copied: linkCopied, onCopy: copyLink } = useCopyFeedback();
+  const { copied: transcriptCopied, onCopy: copyTranscript } = useCopyFeedback();
 
   useEffect(() => {
     setOrigin(window.location.origin);
@@ -69,16 +72,14 @@ export default function AdminSurveyDetailPage() {
     return survey.messages.map((m) => ({ role: m.role, content: m.content }));
   }, [survey?.messages]);
 
-  async function onCopyTranscript() {
+  function handleCopyTranscript() {
     if (!survey || !survey.messages) return;
 
     const text = survey.messages
       .map((m) => `${m.role === "assistant" ? "Assistant" : "Respondent"}: ${m.content}`)
       .join("\n\n");
 
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    void copyTranscript(text);
   }
 
   async function onGenerateSummary() {
@@ -202,9 +203,9 @@ export default function AdminSurveyDetailPage() {
                 <EditorialButton
                   type="button"
                   variant="outline"
-                  onClick={() => void navigator.clipboard.writeText(respondentLink)}
+                  onClick={() => void copyLink(respondentLink)}
                 >
-                  Copy
+                  {linkCopied ? "Copied!" : "Copy"}
                 </EditorialButton>
                 <EditorialButton variant="outline" asChild>
                   <a href={respondentLink} target="_blank" rel="noreferrer">
@@ -274,9 +275,7 @@ export default function AdminSurveyDetailPage() {
             <div className="space-y-8 border-t-3 border-ink pt-6">
               <div className="flex flex-wrap items-center gap-3">
                 <EditorialLabel>Sentiment</EditorialLabel>
-                <span className={sentimentBadgeClass(survey.summary.sentiment)}>
-                  {survey.summary.sentiment}
-                </span>
+                <StatusBadge sentiment={survey.summary.sentiment as "positive" | "neutral" | "negative" | "mixed"} />
               </div>
 
               <div className="space-y-3">
@@ -337,9 +336,9 @@ export default function AdminSurveyDetailPage() {
             <EditorialButton
               type="button"
               variant="outline"
-              onClick={() => void onCopyTranscript()}
+              onClick={handleCopyTranscript}
             >
-              {copied ? "Copied" : "Copy transcript"}
+              {transcriptCopied ? "Copied!" : "Copy transcript"}
             </EditorialButton>
           </div>
 

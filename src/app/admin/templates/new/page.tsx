@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "convex/react";
 import Link from "next/link";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 
 import { api } from "../../../../../convex/_generated/api";
 import { Label } from "@/components/ui/label";
@@ -61,6 +61,15 @@ export default function NewTemplatePage() {
     setQuestions(
       questions.map((q) => (q.tempId === tempId ? { ...q, [field]: value } : q))
     );
+  }
+
+  function moveQuestion(index: number, direction: "up" | "down") {
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= questions.length) return;
+
+    const newQuestions = [...questions];
+    [newQuestions[index], newQuestions[newIndex]] = [newQuestions[newIndex], newQuestions[index]];
+    setQuestions(newQuestions);
   }
 
   function addRelationshipOption() {
@@ -217,10 +226,28 @@ export default function NewTemplatePage() {
           <div className="space-y-4">
             {questions.map((question, index) => (
               <div key={question.tempId} className="flex gap-4 items-start bg-paper p-4 border border-ink/10 relative group">
-                <div className="pt-3">
+                <div className="flex flex-col items-center gap-1 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => moveQuestion(index, "up")}
+                    disabled={index === 0}
+                    className="p-1 text-ink-lighter hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    aria-label={`Move question ${index + 1} up`}
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </button>
                   <span className="flex items-center justify-center w-6 h-6 rounded-full bg-ink/5 text-xs font-bold text-ink-soft">
                     {index + 1}
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => moveQuestion(index, "down")}
+                    disabled={index === questions.length - 1}
+                    className="p-1 text-ink-lighter hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    aria-label={`Move question ${index + 1} down`}
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
                 </div>
 
                 <div className="flex-1 space-y-3">
@@ -229,6 +256,7 @@ export default function NewTemplatePage() {
                     onChange={(e) => updateQuestion(question.tempId, "text", e.target.value)}
                     placeholder="Enter the question…"
                     rows={2}
+                    aria-label={`Question ${index + 1} text`}
                   />
                   <label className="flex items-center gap-2 text-body-sm text-ink-soft cursor-pointer select-none">
                     <input
@@ -254,7 +282,7 @@ export default function NewTemplatePage() {
                   onClick={() => removeQuestion(question.tempId)}
                   disabled={questions.length === 1}
                   className="p-2 text-ink-lighter hover:text-accent-red transition-colors disabled:opacity-0"
-                  title="Remove question"
+                  aria-label={`Remove question ${index + 1}`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -292,12 +320,14 @@ export default function NewTemplatePage() {
                   value={option.label}
                   onChange={(e) => updateRelationshipOption(option.tempId, e.target.value)}
                   placeholder="e.g. Manager"
+                  aria-label={`Relationship option ${index + 1}`}
                 />
                 <button
                   type="button"
                   onClick={() => removeRelationshipOption(option.tempId)}
                   disabled={relationshipOptions.length === 1}
                   className="px-3 border-l text-ink-lighter hover:text-accent-red transition-colors disabled:opacity-0"
+                  aria-label={`Remove relationship option ${index + 1}`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -333,7 +363,10 @@ export default function NewTemplatePage() {
           </div>
         )}
 
-        <div className="flex items-center gap-4 fixed bottom-0 left-0 right-0 p-4 bg-paper/80 backdrop-blur-md border-t border-ink/10 sm:static sm:bg-transparent sm:border-0 sm:p-0">
+        <div className="flex flex-col-reverse sm:flex-row items-center gap-3 fixed bottom-0 left-0 right-0 p-4 bg-paper/80 backdrop-blur-md border-t border-ink/10 sm:static sm:bg-transparent sm:border-0 sm:p-0">
+          <EditorialButton variant="ghost" asChild className="w-full sm:w-auto">
+            <Link href="/admin/templates">Cancel</Link>
+          </EditorialButton>
           <EditorialButton
             type="submit"
             disabled={creating}
@@ -342,9 +375,6 @@ export default function NewTemplatePage() {
           >
             <Plus className="h-5 w-5" />
             {creating ? "Creating…" : "Create Template"}
-          </EditorialButton>
-          <EditorialButton variant="ghost" asChild className="hidden sm:inline-flex">
-            <Link href="/admin/templates">Cancel</Link>
           </EditorialButton>
         </div>
       </form>

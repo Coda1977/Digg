@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, FolderOpen, LogOut } from "lucide-react";
+import { Home, FolderOpen, FileText, Plus, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BottomNavProps {
@@ -32,12 +32,18 @@ export function BottomNav({ onSignOut }: BottomNavProps) {
       href: "/admin/projects/new",
       active: pathname.startsWith("/admin/projects"),
     },
+    {
+      label: "Templates",
+      icon: FileText,
+      href: "/admin/templates",
+      active: pathname.startsWith("/admin/templates"),
+    },
   ];
 
   return (
-    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 border-t-3 border-ink bg-paper">
       <div
-        className="flex items-center justify-around pb-[env(safe-area-inset-bottom)]"
+        className="flex items-center justify-around"
         style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0.5rem)" }}
       >
         {navItems.map((item) => {
@@ -46,28 +52,29 @@ export function BottomNav({ onSignOut }: BottomNavProps) {
             <Link
               key={item.href}
               href={item.href}
+              aria-current={item.active ? "page" : undefined}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 py-3 px-4 min-w-[80px] transition-colors touch-target",
+                "flex flex-col items-center justify-center gap-1 py-3 px-4 min-w-[64px] transition-colors touch-target",
                 item.active
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "text-accent-red"
+                  : "text-ink-soft hover:text-ink"
               )}
             >
               <Icon
                 className={cn("h-5 w-5", item.active && "fill-current")}
                 strokeWidth={item.active ? 2.5 : 2}
               />
-              <span className="text-xs font-medium">{item.label}</span>
+              <span className="text-xs font-semibold uppercase tracking-wider">{item.label}</span>
             </Link>
           );
         })}
 
         <button
           onClick={onSignOut}
-          className="flex flex-col items-center justify-center gap-1 py-3 px-4 min-w-[80px] text-muted-foreground hover:text-foreground transition-colors touch-target"
+          className="flex flex-col items-center justify-center gap-1 py-3 px-4 min-w-[64px] text-ink-soft hover:text-ink transition-colors touch-target"
         >
           <LogOut className="h-5 w-5" strokeWidth={2} />
-          <span className="text-xs font-medium">Sign out</span>
+          <span className="text-xs font-semibold uppercase tracking-wider">Sign out</span>
         </button>
       </div>
     </nav>

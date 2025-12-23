@@ -6,13 +6,16 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { Plus } from "lucide-react";
 
 import { api } from "../../../convex/_generated/api";
 
 import { EditorialNav } from "@/components/admin/EditorialNav";
+import { BottomNav } from "@/components/admin/BottomNav";
 import {
   EditorialHeadline,
   EditorialLabel,
+  EditorialButton,
 } from "@/components/editorial";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -152,6 +155,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
 
+  const isActive = (href: string) => {
+    if (href === "/admin") return pathname === "/admin";
+    return pathname.startsWith(href);
+  };
+
   return (
     <div className="min-h-screen bg-paper">
       <header className="border-b-3 border-ink bg-paper sticky top-0 z-40">
@@ -162,19 +170,35 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <EditorialLabel className="text-ink">Digg Admin</EditorialLabel>
             </Link>
           </div>
-          <div className="hidden sm:flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-4">
             <Link
               href="/admin"
-              className="text-[15px] font-medium text-ink hover:text-accent-red transition-colors"
+              aria-current={isActive("/admin") && pathname === "/admin" ? "page" : undefined}
+              className={`text-[15px] font-medium transition-colors ${
+                isActive("/admin") && pathname === "/admin"
+                  ? "text-accent-red underline underline-offset-4 decoration-2"
+                  : "text-ink hover:text-accent-red"
+              }`}
             >
               Dashboard
             </Link>
             <Link
               href="/admin/templates"
-              className="text-[15px] font-medium text-ink hover:text-accent-red transition-colors"
+              aria-current={pathname.startsWith("/admin/templates") ? "page" : undefined}
+              className={`text-[15px] font-medium transition-colors ${
+                pathname.startsWith("/admin/templates")
+                  ? "text-accent-red underline underline-offset-4 decoration-2"
+                  : "text-ink hover:text-accent-red"
+              }`}
             >
               Templates
             </Link>
+            <EditorialButton variant="primary" size="small" asChild>
+              <Link href="/admin/projects/new">
+                <Plus className="h-4 w-4" />
+                New Project
+              </Link>
+            </EditorialButton>
             <button
               type="button"
               onClick={() => void signOut()}
@@ -185,9 +209,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-5 sm:px-8 py-6 sm:py-8">
+      <main className="mx-auto max-w-6xl px-5 sm:px-8 py-6 sm:py-8 pb-24 sm:pb-8">
         {children}
       </main>
+      <BottomNav onSignOut={() => void signOut()} />
     </div>
   );
 }

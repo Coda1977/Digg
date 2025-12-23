@@ -16,12 +16,10 @@ import {
   RuledDivider,
   EditorialButton,
   EditorialBreadcrumbs,
+  StatusBadge,
+  buttonVariants,
 } from "@/components/editorial";
-import {
-  formatEnumLabel,
-  sentimentBadgeClass,
-  statusBadgeClass,
-} from "@/lib/editorialBadges";
+import { formatEnumLabel } from "@/lib/editorialBadges";
 import { summarySchema, analysisSchema, type Summary, type Analysis } from "@/lib/schemas";
 import { postJson } from "@/lib/http";
 import { ProjectInsightsPdf } from "@/components/pdf/ProjectInsightsPdf";
@@ -88,6 +86,11 @@ export default function ProjectAnalysisPage() {
   const [activeSegment, setActiveSegment] = useState<string | null>(null); // null = overall view
   const [generatingSummaries, setGeneratingSummaries] = useState(false);
   const [summariesError, setSummariesError] = useState<string | null>(null);
+  const [rawFeedbackExpanded, setRawFeedbackExpanded] = useState(false);
+  const [showAllTranscripts, setShowAllTranscripts] = useState(false);
+
+  // For pagination - show first 10 transcripts by default
+  const TRANSCRIPTS_PER_PAGE = 10;
 
   const sortedSurveys = useMemo(() => {
     if (!surveys) return null;
@@ -441,9 +444,7 @@ export default function ProjectAnalysisPage() {
           />
           <div className="flex flex-wrap items-center gap-3 mt-6">
             <EditorialLabel>Interviews &amp; analysis</EditorialLabel>
-            <span className={statusBadgeClass(project.status)}>
-              {formatEnumLabel(project.status)}
-            </span>
+            <StatusBadge status={project.status as "active" | "closed"} />
           </div>
 
           <EditorialHeadline as="h1" size="lg">
@@ -502,6 +503,24 @@ export default function ProjectAnalysisPage() {
         </div>
       </EditorialSection>
 
+      {/* Section Navigation TOC */}
+      <div className="sticky top-[73px] z-30 bg-paper border-b border-ink/10">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <div className="max-w-[900px] mx-auto py-3 flex flex-wrap items-center gap-4">
+            <span className="text-label font-semibold uppercase tracking-wider text-ink-soft">Jump to:</span>
+            <a href="#insights" className="text-body font-medium text-ink hover:text-accent-red transition-colors">Insights</a>
+            {responsesByQuestion && responsesByQuestion.length > 0 && (
+              <a href="#raw-feedback" className="text-body font-medium text-ink hover:text-accent-red transition-colors">
+                Raw Feedback ({responsesByQuestion.reduce((sum, q) => sum + q.responses.length, 0)})
+              </a>
+            )}
+            <a href="#transcripts" className="text-body font-medium text-ink hover:text-accent-red transition-colors">
+              Transcripts ({sortedSurveys?.length ?? 0})
+            </a>
+          </div>
+        </div>
+      </div>
+
       <RuledDivider weight="thick" spacing="sm" />
 
       {stats && stats.completedWithoutSummary > 0 && (
@@ -541,7 +560,7 @@ export default function ProjectAnalysisPage() {
 
       {stats && stats.completedWithoutSummary > 0 && <RuledDivider weight="thick" spacing="sm" />}
 
-      <EditorialSection spacing="md">
+      <EditorialSection spacing="md" id="insights">
         <div className="max-w-[900px] mx-auto space-y-8">
           <div className="space-y-3">
             <EditorialLabel>Project insights</EditorialLabel>
@@ -554,90 +573,129 @@ export default function ProjectAnalysisPage() {
             </p>
           </div>
 
-          <div className="border-l-4 border-ink pl-6 py-2 space-y-4">
-            {/* Coverage and freshness info */}
-            {analysis ? (
-              <div className="space-y-2">
-                <p className="text-body text-ink-soft">
-                  {analysis.coverage ? (
-                    <>
-                      Generated from {analysis.coverage.totalInterviews} completed interview
-                      {analysis.coverage.totalInterviews === 1 ? "" : "s"}
-                      {coverageText && ` (${coverageText})`} ·{" "}
-                    </>
-                  ) : (
-                    <>Generated · </>
-                  )}
-                  {formatDateTime(analysis.generatedAt)}
-                </p>
-                {stats && stats.newSinceAnalysis > 0 && (
-                  <div className="inline-flex items-center gap-2 px-3 py-2 border-2 border-accent-red bg-accent-red/5 rounded">
-                    <span className="text-label font-sans font-semibold uppercase tracking-label text-accent-red">
-                      ⚠ Stale
-                    </span>
-                    <span className="text-body text-ink-soft">
-                      {stats.newSinceAnalysis} new interview
-                      {stats.newSinceAnalysis === 1 ? "" : "s"} since last analysis
-                    </span>
+          {(() => {
+            // Prerequisites for generating insights
+            const hasCompletedInterviews = stats && stats.completed > 0;
+            const allSummariesGenerated = stats && stats.completedWithoutSummary === 0;
+            const canGenerateInsights = hasCompletedInterviews && allSummariesGenerated;
+            const canDownloadPdf = !!analysis;
+
+            return (
+              <div className="border-l-4 border-ink pl-6 py-2 space-y-4">
+                {/* Prerequisite warnings - shown ABOVE actions */}
+                {!hasCompletedInterviews && (
+                  <div className="p-3 bg-ink/5 border-l-4 border-ink-soft">
+                    <p className="text-body text-ink-soft">
+                      Complete at least one interview to generate insights.
+                    </p>
                   </div>
                 )}
-              </div>
-            ) : (
-              <p className="text-body text-ink-soft">
-                {stats && stats.completed > 0 ? (
-                  <>
-                    Ready to generate insights from {stats.completed} completed interview
-                    {stats.completed === 1 ? "" : "s"}
-                    {coverageText && ` (${coverageText})`}
-                  </>
-                ) : (
-                  <>No completed interviews yet.</>
+                {hasCompletedInterviews && !allSummariesGenerated && stats && (
+                  <div className="p-3 bg-accent-red/5 border-l-4 border-accent-red">
+                    <p className="text-body text-accent-red">
+                      Generate all interview summaries first ({stats.completedWithoutSummary} missing).
+                      Use the button in the "Action Needed" section above.
+                    </p>
+                  </div>
                 )}
-              </p>
-            )}
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <PDFDownloadLink
-                document={
-                  <ProjectInsightsPdf
-                    projectName={project.name}
-                    subjectName={project.subjectName}
-                    subjectRole={project.subjectRole ?? undefined}
-                    templateName={project.template?.name ?? undefined}
-                    analysis={analysis ?? undefined}
-                    segmentedAnalysis={segmentedAnalysisForPdf}
-                    responsesByQuestion={responsesByQuestion}
-                    transcripts={transcripts}
-                    coverageText={coverageText}
-                    surveys={surveysForPdf}
-                  />
-                }
-                fileName={pdfFileName}
-                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 py-3 border-3 border-ink bg-transparent text-ink font-medium hover:bg-ink hover:text-paper transition-colors"
-              >
-                {({ loading }) => (loading ? "Preparing PDF..." : "Download PDF")}
-              </PDFDownloadLink>
+                {/* Coverage and freshness info */}
+                {analysis ? (
+                  <div className="space-y-2">
+                    <p className="text-body text-ink-soft">
+                      {analysis.coverage ? (
+                        <>
+                          Generated from {analysis.coverage.totalInterviews} completed interview
+                          {analysis.coverage.totalInterviews === 1 ? "" : "s"}
+                          {coverageText && ` (${coverageText})`} ·{" "}
+                        </>
+                      ) : (
+                        <>Generated · </>
+                      )}
+                      {formatDateTime(analysis.generatedAt)}
+                    </p>
+                    {stats && stats.newSinceAnalysis > 0 && (
+                      <div className="inline-flex items-center gap-2 px-3 py-2 border-2 border-accent-red bg-accent-red/5 rounded">
+                        <span className="text-label font-sans font-semibold uppercase tracking-label text-accent-red">
+                          ⚠ Stale
+                        </span>
+                        <span className="text-body text-ink-soft">
+                          {stats.newSinceAnalysis} new interview
+                          {stats.newSinceAnalysis === 1 ? "" : "s"} since last analysis
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-body text-ink-soft">
+                    {hasCompletedInterviews ? (
+                      <>
+                        Ready to generate insights from {stats?.completed} completed interview
+                        {stats?.completed === 1 ? "" : "s"}
+                        {coverageText && ` (${coverageText})`}
+                      </>
+                    ) : (
+                      <>No completed interviews yet.</>
+                    )}
+                  </p>
+                )}
 
-              <EditorialButton
-                type="button"
-                onClick={() => void onGenerateInsights()}
-                disabled={generatingInsights}
-                variant="primary"
-              >
-                {generatingInsights
-                  ? "Generating..."
-                  : analysis
-                    ? "Regenerate insights"
-                    : "Generate insights"}
-              </EditorialButton>
-            </div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  {canDownloadPdf ? (
+                    <PDFDownloadLink
+                      document={
+                        <ProjectInsightsPdf
+                          projectName={project.name}
+                          subjectName={project.subjectName}
+                          subjectRole={project.subjectRole ?? undefined}
+                          templateName={project.template?.name ?? undefined}
+                          analysis={analysis ?? undefined}
+                          segmentedAnalysis={segmentedAnalysisForPdf}
+                          responsesByQuestion={responsesByQuestion}
+                          transcripts={transcripts}
+                          coverageText={coverageText}
+                          surveys={surveysForPdf}
+                        />
+                      }
+                      fileName={pdfFileName}
+                      className={buttonVariants({ variant: "outline" })}
+                    >
+                      {({ loading }) => (loading ? "Preparing PDF..." : "Download PDF")}
+                    </PDFDownloadLink>
+                  ) : (
+                    <EditorialButton
+                      type="button"
+                      variant="outline"
+                      disabled
+                      title="Generate insights first to download PDF"
+                    >
+                      Download PDF
+                    </EditorialButton>
+                  )}
 
-            {insightsError && (
-              <p className="text-body text-accent-red" role="alert">
-                {insightsError}
-              </p>
-            )}
-          </div>
+                  <EditorialButton
+                    type="button"
+                    onClick={() => void onGenerateInsights()}
+                    disabled={generatingInsights || !canGenerateInsights}
+                    variant="primary"
+                    title={!canGenerateInsights ? "Complete prerequisites above first" : undefined}
+                  >
+                    {generatingInsights
+                      ? "Generating..."
+                      : analysis
+                        ? "Regenerate insights"
+                        : "Generate insights"}
+                  </EditorialButton>
+                </div>
+
+                {insightsError && (
+                  <p className="text-body text-accent-red" role="alert">
+                    {insightsError}
+                  </p>
+                )}
+              </div>
+            );
+          })()}
 
           {analysis && (
             <div className="space-y-8">
@@ -766,52 +824,74 @@ export default function ProjectAnalysisPage() {
 
       <RuledDivider weight="thick" spacing="sm" />
 
-      {/* NEW SECTION: What People Said */}
+      {/* Raw Feedback Section - Collapsible */}
       {responsesByQuestion && responsesByQuestion.length > 0 && (
         <>
-          <EditorialSection spacing="md">
+          <EditorialSection spacing="md" id="raw-feedback">
             <div className="max-w-[900px] mx-auto space-y-8">
-              <div className="space-y-3">
-                <EditorialLabel>Raw feedback</EditorialLabel>
-                <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
-                  What people said
-                </h2>
-                <p className="text-body text-ink-soft max-w-2xl">
-                  Responses organized by interview questions, ordered by relationship type.
-                </p>
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                <div className="space-y-3">
+                  <EditorialLabel>Raw feedback</EditorialLabel>
+                  <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+                    What people said
+                  </h2>
+                  <p className="text-body text-ink-soft max-w-2xl">
+                    Responses organized by interview questions, ordered by relationship type.
+                  </p>
+                </div>
+                <EditorialButton
+                  type="button"
+                  onClick={() => setRawFeedbackExpanded(!rawFeedbackExpanded)}
+                  variant="outline"
+                  size="small"
+                >
+                  {rawFeedbackExpanded ? "Collapse" : `Show all (${responsesByQuestion.reduce((sum, q) => sum + q.responses.length, 0)} responses)`}
+                </EditorialButton>
               </div>
 
-              {coverageText && (
-                <div className="border-l-4 border-ink pl-6 py-2">
-                  <p className="text-body text-ink-soft">Based on {coverageText}</p>
-                </div>
+              {rawFeedbackExpanded && (
+                <>
+                  {coverageText && (
+                    <div className="border-l-4 border-ink pl-6 py-2">
+                      <p className="text-body text-ink-soft">Based on {coverageText}</p>
+                    </div>
+                  )}
+
+                  <div className="space-y-10">
+                    {responsesByQuestion.map((question, qIdx) => (
+                      <div key={question.questionId} className="space-y-4">
+                        <div className="space-y-2">
+                          <EditorialLabel>Question {qIdx + 1}</EditorialLabel>
+                          <h3 className="font-serif font-bold text-headline-sm leading-tight">
+                            {question.questionText}
+                          </h3>
+                        </div>
+
+                        <div className="border-t-3 border-ink pt-4 space-y-5">
+                          {question.responses.map((response, rIdx) => (
+                            <div key={`${response.surveyId}-${rIdx}`} className="space-y-2">
+                              <p className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
+                                {response.relationshipLabel} · {response.respondentName}
+                              </p>
+                              <p className="text-body text-ink-soft pl-4 border-l-2 border-ink-soft/30">
+                                {response.content}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
 
-              <div className="space-y-10">
-                {responsesByQuestion.map((question, qIdx) => (
-                  <div key={question.questionId} className="space-y-4">
-                    <div className="space-y-2">
-                      <EditorialLabel>Question {qIdx + 1}</EditorialLabel>
-                      <h3 className="font-serif font-bold text-headline-sm leading-tight">
-                        {question.questionText}
-                      </h3>
-                    </div>
-
-                    <div className="border-t-3 border-ink pt-4 space-y-5">
-                      {question.responses.map((response, rIdx) => (
-                        <div key={`${response.surveyId}-${rIdx}`} className="space-y-2">
-                          <p className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
-                            {response.relationshipLabel} · {response.respondentName}
-                          </p>
-                          <p className="text-body text-ink-soft pl-4 border-l-2 border-ink-soft/30">
-                            {response.content}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {!rawFeedbackExpanded && (
+                <div className="border-l-4 border-ink-soft pl-6 py-2">
+                  <p className="text-body text-ink-soft">
+                    {responsesByQuestion.length} questions with {responsesByQuestion.reduce((sum, q) => sum + q.responses.length, 0)} total responses. Click &quot;Show all&quot; to view.
+                  </p>
+                </div>
+              )}
             </div>
           </EditorialSection>
 
@@ -819,64 +899,92 @@ export default function ProjectAnalysisPage() {
         </>
       )}
 
-      <EditorialSection spacing="md">
+      <EditorialSection spacing="md" id="transcripts">
         <div className="max-w-[900px] mx-auto space-y-8">
-          <div className="space-y-3">
-            <EditorialLabel>Interviews</EditorialLabel>
-            <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
-              Transcripts and summaries
-            </h2>
-            <p className="text-body text-ink-soft max-w-2xl">
-              Open transcripts and see (or generate) per-interview summaries. To invite more
-              people, use the share link on the project page.
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div className="space-y-3">
+              <EditorialLabel>Interviews</EditorialLabel>
+              <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+                Transcripts and summaries
+              </h2>
+              <p className="text-body text-ink-soft max-w-2xl">
+                Open transcripts and see (or generate) per-interview summaries. To invite more
+                people, use the share link on the project page.
+              </p>
+            </div>
+            {sortedSurveys && sortedSurveys.length > TRANSCRIPTS_PER_PAGE && (
+              <EditorialButton
+                type="button"
+                onClick={() => setShowAllTranscripts(!showAllTranscripts)}
+                variant="outline"
+                size="small"
+              >
+                {showAllTranscripts ? "Show fewer" : `Show all ${sortedSurveys.length}`}
+              </EditorialButton>
+            )}
           </div>
 
           {!sortedSurveys || sortedSurveys.length === 0 ? (
             <p className="text-body text-ink-soft">No interviews yet.</p>
           ) : (
-            <div className="space-y-8">
-              {sortedSurveys.map((survey) => {
-                const relationshipLabel =
-                  relationshipOptions.find((r) => r.id === survey.relationship)?.label ??
-                  survey.relationship ??
-                  "Unknown";
+            <>
+              <div className="space-y-8">
+                {(showAllTranscripts ? sortedSurveys : sortedSurveys.slice(0, TRANSCRIPTS_PER_PAGE)).map((survey) => {
+                  const relationshipLabel =
+                    relationshipOptions.find((r) => r.id === survey.relationship)?.label ??
+                    survey.relationship ??
+                    "Unknown";
 
-                const summaryLabel = survey.summary
-                  ? "Summary ready"
-                  : survey.status === "completed"
-                    ? "Summary not generated"
-                    : "Summary available after completion";
+                  const summaryLabel = survey.summary
+                    ? "Summary ready"
+                    : survey.status === "completed"
+                      ? "Summary not generated"
+                      : "Summary available after completion";
 
-                return (
-                  <article key={survey._id} className="border-t-3 border-ink pt-6">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0 space-y-2">
-                        <div className="flex flex-wrap items-center gap-3">
-                          <span className={statusBadgeClass(survey.status)}>
-                            {formatEnumLabel(survey.status)}
-                          </span>
-                          <p className="text-body font-medium text-ink truncate">
-                            {survey.respondentName ?? "Anonymous respondent"}
+                  return (
+                    <article key={survey._id} className="border-t-3 border-ink pt-6">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0 space-y-2">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <StatusBadge status={survey.status as "completed" | "in_progress" | "not_started"} />
+                            <p className="text-body font-medium text-ink truncate">
+                              {survey.respondentName ?? "Anonymous respondent"}
+                            </p>
+                          </div>
+                          <p className="text-body text-ink-soft truncate">
+                            Relationship · {relationshipLabel} · {summaryLabel}
                           </p>
                         </div>
-                        <p className="text-body text-ink-soft truncate">
-                          Relationship · {relationshipLabel} · {summaryLabel}
-                        </p>
-                      </div>
 
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        <EditorialButton asChild variant="outline" size="small">
-                          <Link href={`/admin/surveys/${survey._id}`}>
-                            Transcript &amp; summary
-                          </Link>
-                        </EditorialButton>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <EditorialButton asChild variant="outline" size="small">
+                            <Link href={`/admin/surveys/${survey._id}`}>
+                              Transcript &amp; summary
+                            </Link>
+                          </EditorialButton>
+                        </div>
                       </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
+                    </article>
+                  );
+                })}
+              </div>
+
+              {!showAllTranscripts && sortedSurveys.length > TRANSCRIPTS_PER_PAGE && (
+                <div className="border-l-4 border-ink-soft pl-6 py-2 flex items-center justify-between">
+                  <p className="text-body text-ink-soft">
+                    Showing {TRANSCRIPTS_PER_PAGE} of {sortedSurveys.length} interviews.
+                  </p>
+                  <EditorialButton
+                    type="button"
+                    onClick={() => setShowAllTranscripts(true)}
+                    variant="ghost"
+                    size="small"
+                  >
+                    Show all
+                  </EditorialButton>
+                </div>
+              )}
+            </>
           )}
         </div>
       </EditorialSection>

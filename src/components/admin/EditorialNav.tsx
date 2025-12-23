@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   EditorialSection,
   EditorialHeadline,
@@ -38,15 +37,14 @@ export function EditorialNav({ onSignOut }: EditorialNavProps) {
   return (
     <>
       {/* Mobile Menu Button */}
-      <Button
-        variant="ghost"
-        size="icon"
+      <button
+        type="button"
         onClick={() => setIsOpen(true)}
-        className="sm:hidden"
+        className="sm:hidden min-h-[44px] min-w-[44px] flex items-center justify-center text-ink hover:text-accent-red transition-colors touch-target"
         aria-label="Open menu"
       >
         <Menu className="h-6 w-6" />
-      </Button>
+      </button>
 
       {/* Full-Screen Editorial Overlay */}
       {isOpen && (
@@ -55,14 +53,14 @@ export function EditorialNav({ onSignOut }: EditorialNavProps) {
             {/* Header */}
             <div className="flex items-center justify-between mb-editorial-sm">
               <EditorialLabel>Navigation</EditorialLabel>
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
+                type="button"
                 onClick={() => setIsOpen(false)}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink hover:text-accent-red transition-colors touch-target"
                 aria-label="Close menu"
               >
                 <X className="h-6 w-6" />
-              </Button>
+              </button>
             </div>
 
             <EditorialHeadline as="h2" size="md" className="mb-editorial-sm">

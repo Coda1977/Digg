@@ -3,7 +3,7 @@ export { EditorialHeadline } from "./EditorialHeadline";
 export { EditorialLabel } from "./EditorialLabel";
 export { RuledDivider } from "./RuledDivider";
 export { EditorialCard } from "./EditorialCard";
-export { EditorialButton } from "./EditorialButton";
+export { EditorialButton, buttonVariants } from "./EditorialButton";
 export { EditorialInput } from "./EditorialInput";
 export { EditorialTextarea } from "./EditorialTextarea";
 export { EditorialSelect } from "./EditorialSelect";

@@ -7,11 +7,19 @@ const statusBadgeVariants = cva(
   {
     variants: {
       status: {
+        // Project statuses
         active: "bg-accent-red text-white",
-        in_progress: "bg-ink text-paper",
-        not_started: "bg-ink-lighter text-paper",
-        completed: "bg-ink text-paper",
         closed: "bg-ink-soft text-paper",
+        // Interview/survey statuses - differentiated colors
+        completed: "bg-green-700 text-white",
+        in_progress: "bg-amber-600 text-white",
+        not_started: "border-2 border-ink-soft text-ink-soft bg-transparent",
+      },
+      sentiment: {
+        positive: "bg-green-700 text-white",
+        neutral: "border-2 border-ink text-ink bg-transparent",
+        negative: "border-2 border-accent-red text-accent-red bg-transparent",
+        mixed: "border-2 border-amber-600 text-amber-700 bg-transparent",
       },
     },
     defaultVariants: {
@@ -27,20 +35,25 @@ export interface StatusBadgeProps
 }
 
 const StatusBadge = React.forwardRef<HTMLSpanElement, StatusBadgeProps>(
-  ({ className, status, label, children, ...props }, ref) => {
-    // Convert status to display label if not provided
-    const displayLabel =
-      label ||
-      children ||
-      (status === "in_progress"
-        ? "In Progress"
-        : status === "not_started"
-        ? "Not Started"
-        : status?.replace("_", " "));
+  ({ className, status, sentiment, label, children, ...props }, ref) => {
+    // Convert status/sentiment to display label if not provided
+    let displayLabel = label || children;
+
+    if (!displayLabel) {
+      if (sentiment) {
+        displayLabel = sentiment;
+      } else if (status === "in_progress") {
+        displayLabel = "In Progress";
+      } else if (status === "not_started") {
+        displayLabel = "Not Started";
+      } else if (status) {
+        displayLabel = status.replace("_", " ");
+      }
+    }
 
     return (
       <span
-        className={cn(statusBadgeVariants({ status, className }))}
+        className={cn(statusBadgeVariants({ status: sentiment ? undefined : status, sentiment, className }))}
         ref={ref}
         {...props}
       >

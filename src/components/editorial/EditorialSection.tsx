@@ -6,6 +6,7 @@ interface EditorialSectionProps {
   className?: string;
   ruled?: boolean;
   spacing?: "xs" | "sm" | "md" | "lg" | "xl";
+  id?: string;
 }
 
 /**
@@ -17,6 +18,7 @@ export function EditorialSection({
   className,
   ruled = false,
   spacing = "md",
+  id,
 }: EditorialSectionProps) {
   const spacingClass = {
     xs: "py-editorial-xs",
@@ -28,6 +30,7 @@ export function EditorialSection({
 
   return (
     <section
+      id={id}
       className={cn(
         spacingClass,
         ruled && "border-t-3 border-ink",
