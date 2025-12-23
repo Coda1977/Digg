@@ -93,20 +93,10 @@ export function useDeepgram({ language = "en-US", onTranscript, onError }: UseDe
         onError?.("Transcription error occurred");
       });
 
-      // Handle warnings
-      connection.on(LiveTranscriptionEvents.Warning, (warning) => {
-        console.warn("[Deepgram] Warning:", warning);
-      });
-
       // Handle connection close with reason
       connection.on(LiveTranscriptionEvents.Close, (event) => {
         console.log("[Deepgram] Connection closed, event:", event);
         setIsListening(false);
-      });
-
-      // Handle unhandled messages
-      connection.on(LiveTranscriptionEvents.Unhandled, (data) => {
-        console.log("[Deepgram] Unhandled message:", data);
       });
 
       // Get microphone access
