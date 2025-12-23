@@ -4,6 +4,7 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { checkRateLimit, createRateLimitResponse } from "@/lib/ratelimit";
 import { parseAiJsonObject } from "@/lib/aiJson";
 import { summarizeRequestSchema, summarySchema, validateSchema } from "@/lib/schemas";
+import { INTERVIEW_SUMMARY_PROMPT } from "@/lib/reportPrompts";
 
 export const runtime = "nodejs";
 
@@ -44,22 +45,7 @@ export async function POST(req: Request) {
   const anthropic = createAnthropic({ apiKey });
   const model = anthropic("claude-sonnet-4-5-20250929");
 
-  const system = `You are an expert feedback analyst.
-Return ONLY valid JSON (no markdown, no extra text).
-
-Schema:
-{
-  "overview": string,
-  "keyThemes": string[],
-  "sentiment": "positive" | "mixed" | "negative",
-  "specificPraise": string[],
-  "areasForImprovement": string[]
-}
-
-Guidelines:
-- Be specific and actionable.
-- Keep each array 3-7 items max.
-- Don't include personally identifying details about the respondent.`;
+  const system = INTERVIEW_SUMMARY_PROMPT;
 
   const roleText = subjectRole ? ` (${subjectRole})` : "";
   const relText = relationshipLabel ? relationshipLabel : "unknown relationship";

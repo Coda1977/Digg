@@ -23,10 +23,20 @@ import {
   MessageBubble,
 } from "@/components/editorial";
 import { postJson } from "@/lib/http";
-import { chatResponseSchema } from "@/lib/schemas";
+import { chatResponseSchema, type ChatResponse, summarySchema } from "@/lib/schemas";
 import type { UiMessage } from "@/types/message";
 import { getTextDirection, detectLanguageFromMessages } from "@/lib/language";
 import { useDeepgram } from "@/hooks/useDeepgram";
+
+// Generate interview summary via API
+async function generateInterviewSummary(input: {
+  subjectName: string;
+  subjectRole?: string;
+  relationshipLabel?: string;
+  messages: UiMessage[];
+}) {
+  return postJson("/api/surveys/summarize", input, summarySchema);
+}
 
 function normalizeTranscript(value: string) {
   return value.replace(/\s+/g, " ").trim();
@@ -74,9 +84,13 @@ async function generateAssistantMessage(input: {
   uniqueId: string;
   messages: UiMessage[];
   prompt?: string;
-}) {
+}): Promise<ChatResponse> {
   const result = await postJson("/api/chat", input, chatResponseSchema);
-  return cleanAIResponse(result.text.trim());
+  return {
+    text: cleanAIResponse(result.text.trim()),
+    questionId: result.questionId,
+    questionText: result.questionText,
+  };
 }
 
 export function ChatInterface({
@@ -97,6 +111,7 @@ export function ChatInterface({
   const messages = useQuery(api.messages.getBySurvey, { surveyId });
   const saveMessage = useMutation(api.messages.save);
   const completeSurvey = useMutation(api.surveys.complete);
+  const saveSummary = useMutation(api.surveys.saveSummary);
 
   const [draft, setDraft] = useState("");
   const [generating, setGenerating] = useState(false);
@@ -186,6 +201,10 @@ export function ChatInterface({
     return () => clearTimeout(timeoutId);
   }, [uiMessages?.length, generating]);
 
+  // Track the current question ID from the last assistant message
+  const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
+  const [currentQuestionText, setCurrentQuestionText] = useState<string | null>(null);
+
   useEffect(() => {
     if (!uiMessages) return;
     if (uiMessages.length > 0) return;
@@ -195,13 +214,22 @@ export function ChatInterface({
       setError(null);
       setGenerating(true);
       try {
-        const text = await generateAssistantMessage({
+        const response = await generateAssistantMessage({
           uniqueId,
           messages: [],
           prompt:
             "Start the interview now. Follow the flow: brief intro, then the first question.",
         });
-        await saveMessage({ surveyId, role: "assistant", content: text });
+        await saveMessage({
+          surveyId,
+          role: "assistant",
+          content: response.text,
+          questionId: response.questionId ?? undefined,
+          questionText: response.questionText ?? undefined,
+        });
+        // Track current question for the next user message
+        setCurrentQuestionId(response.questionId ?? null);
+        setCurrentQuestionText(response.questionText ?? null);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to start chat");
       } finally {
@@ -290,14 +318,32 @@ export function ChatInterface({
     ];
 
     try {
-      await saveMessage({ surveyId, role: "user", content: userText });
+      // Save user message with the current question context (what the assistant just asked)
+      await saveMessage({
+        surveyId,
+        role: "user",
+        content: userText,
+        questionId: currentQuestionId ?? undefined,
+        questionText: currentQuestionText ?? undefined,
+      });
 
-      const assistantText = await generateAssistantMessage({
+      const response = await generateAssistantMessage({
         uniqueId,
         messages: nextMessages,
       });
 
-      await saveMessage({ surveyId, role: "assistant", content: assistantText });
+      // Save assistant message with its question context
+      await saveMessage({
+        surveyId,
+        role: "assistant",
+        content: response.text,
+        questionId: response.questionId ?? undefined,
+        questionText: response.questionText ?? undefined,
+      });
+
+      // Update current question for the next user message
+      setCurrentQuestionId(response.questionId ?? null);
+      setCurrentQuestionText(response.questionText ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send message");
     } finally {
@@ -319,7 +365,27 @@ export function ChatInterface({
     }
 
     try {
+      // Complete the survey first
       await completeSurvey({ surveyId });
+
+      // Auto-generate summary in the background (don't block completion)
+      if (uiMessages && uiMessages.length > 0) {
+        generateInterviewSummary({
+          subjectName: project.subjectName,
+          subjectRole: project.subjectRole ?? undefined,
+          relationshipLabel: relationshipLabel,
+          messages: uiMessages,
+        })
+          .then((summary) => {
+            // Save summary to database (fire and forget)
+            void saveSummary({ surveyId, summary });
+          })
+          .catch((err) => {
+            // Log error but don't block - summary can be regenerated later
+            console.error("Failed to auto-generate summary:", err);
+          });
+      }
+
       onComplete();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to complete survey");

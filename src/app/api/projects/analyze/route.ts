@@ -3,7 +3,8 @@ import { generateText } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { checkRateLimit, createRateLimitResponse } from "@/lib/ratelimit";
 import { parseAiJsonObject } from "@/lib/aiJson";
-import { analyzeRequestSchema, summarySchema, validateSchema } from "@/lib/schemas";
+import { analyzeRequestSchema, analysisSchema, validateSchema } from "@/lib/schemas";
+import { PROJECT_ANALYSIS_PROMPT } from "@/lib/reportPrompts";
 
 export const runtime = "nodejs";
 
@@ -44,30 +45,25 @@ export async function POST(req: Request) {
   const anthropic = createAnthropic({ apiKey });
   const model = anthropic("claude-sonnet-4-5-20250929");
 
-  const system = `You are an expert 360-feedback analyst.
-Return ONLY valid JSON (no markdown, no extra text).
+  const system = PROJECT_ANALYSIS_PROMPT;
 
-Schema:
-{
-  "overview": string,
-  "keyThemes": string[],
-  "sentiment": "positive" | "mixed" | "negative",
-  "specificPraise": string[],
-  "areasForImprovement": string[]
-}
-
-Guidelines:
-- Aggregate across all interviews; focus on patterns and repeated signals.
-- Be specific and actionable.
-- Keep each array 3-7 items max.
-- Do not include personally identifying details about respondents.`;
+  // Calculate coverage breakdown by relationship
+  const coverageBreakdown: Record<string, number> = {};
+  interviews.forEach((interview) => {
+    const relationship = interview.relationshipLabel || "unknown";
+    coverageBreakdown[relationship] = (coverageBreakdown[relationship] || 0) + 1;
+  });
 
   const roleText = subjectRole ? ` (${subjectRole})` : "";
+  const coverageText = Object.entries(coverageBreakdown)
+    .map(([rel, count]) => `${count} ${rel}`)
+    .join(", ");
+
   const headerParts = [
     `Subject: ${subjectName}${roleText}`,
     projectName ? `Project: ${projectName}` : null,
     templateName ? `Protocol: ${templateName}` : null,
-    `Interviews: ${interviews.length}`,
+    `Total Interviews: ${interviews.length} (${coverageText})`,
   ].filter(Boolean);
 
   const interviewText = interviews
@@ -82,13 +78,17 @@ Guidelines:
 
 Interviews:
 ${interviewText}
+
+IMPORTANT: Include coverage in your response:
+- totalInterviews: ${interviews.length}
+- breakdown: ${JSON.stringify(coverageBreakdown)}
 `;
 
   try {
     const result = await generateText({ model, system, prompt });
     const parsed = parseAiJsonObject(result.text);
-    const summary = validateSchema(summarySchema, parsed);
-    return NextResponse.json(summary);
+    const analysis = validateSchema(analysisSchema, parsed);
+    return NextResponse.json(analysis);
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Project analysis failed" },

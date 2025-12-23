@@ -191,3 +191,27 @@ export const getById = query({
     };
   },
 });
+
+export const getByProjectWithMessages = query({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const surveys = await ctx.db
+      .query("surveys")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    // Fetch messages for each survey
+    const surveysWithMessages = await Promise.all(
+      surveys.map(async (survey) => {
+        const messages = await ctx.db
+          .query("messages")
+          .withIndex("by_survey_order", (q) => q.eq("surveyId", survey._id))
+          .collect();
+        return { ...survey, messages };
+      })
+    );
+
+    return surveysWithMessages;
+  },
+});

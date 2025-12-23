@@ -57,12 +57,17 @@ export type AnalyzeRequest = z.infer<typeof analyzeRequestSchema>;
 // API response schemas
 export const chatResponseSchema = z.object({
   text: z.string(),
+  questionId: z.string().nullable().optional(),
+  questionText: z.string().nullable().optional(),
 });
+
+export type ChatResponse = z.infer<typeof chatResponseSchema>;
 
 export const errorResponseSchema = z.object({
   error: z.string(),
 });
 
+// OLD: Interview summary schema (still used for per-interview summaries)
 export const summarySchema = z.object({
   overview: z.string(),
   keyThemes: z.array(z.string()),
@@ -72,6 +77,33 @@ export const summarySchema = z.object({
 });
 
 export type Summary = z.infer<typeof summarySchema>;
+
+// NEW: Simplified project analysis schema
+export const analysisSchema = z.object({
+  summary: z.string(),
+  strengths: z.array(
+    z.object({
+      point: z.string(),
+      quote: z.string().optional(),
+      frequency: z.number().optional(),
+    })
+  ),
+  improvements: z.array(
+    z.object({
+      point: z.string(),
+      quote: z.string().optional(),
+      action: z.string(),
+      priority: z.enum(["high", "medium", "low"]),
+    })
+  ),
+  narrative: z.string().optional(),
+  coverage: z.object({
+    totalInterviews: z.number(),
+    breakdown: z.record(z.string(), z.number()),
+  }),
+});
+
+export type Analysis = z.infer<typeof analysisSchema>;
 
 /**
  * Helper function to validate and parse data with Zod

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { generateText } from "ai";
+import { generateObject } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { ConvexHttpClient } from "convex/browser";
+import { z } from "zod";
 
 import { api } from "../../../../convex/_generated/api";
 import type { Doc } from "../../../../convex/_generated/dataModel";
@@ -10,6 +11,12 @@ import { chatRequestSchema, validateSchema } from "@/lib/schemas";
 import { DIGG_INTERVIEWER_CORE } from "../../../../convex/lib/diggCoreV2";
 import { getBuiltInTemplateByType } from "../../../../convex/lib/builtInTemplates";
 import { assertNoLegacyPlaceholders } from "../../../../convex/lib/templateValidation";
+
+// Schema for structured AI response
+const chatResponseSchema = z.object({
+  response: z.string().describe("Your response to the respondent"),
+  currentQuestionId: z.string().nullable().describe("The ID of the template question you are currently exploring (e.g., 'strengths', 'improvements'). Set to null if wrapping up or between questions."),
+});
 
 export const runtime = "nodejs";
 
@@ -66,18 +73,30 @@ export async function POST(req: Request) {
       );
     }
 
+    const template = surveyData.template as Doc<"templates">;
     const system = buildSurveySystemPrompt({
-      template: surveyData.template as Doc<"templates">,
+      template,
       project: surveyData.project as Doc<"projects">,
       relationshipId: surveyData.relationship,
     });
 
     const model = anthropic("claude-sonnet-4-5-20250929");
-    const result = prompt
-      ? await generateText({ model, system, prompt })
-      : await generateText({ model, system, messages });
 
-    return NextResponse.json({ text: result.text });
+    // Use generateObject for structured output with question tracking
+    const result = prompt
+      ? await generateObject({ model, schema: chatResponseSchema, system, prompt })
+      : await generateObject({ model, schema: chatResponseSchema, system, messages });
+
+    // Find the question text for the current question ID
+    const currentQuestion = result.object.currentQuestionId
+      ? template.questions.find(q => q.id === result.object.currentQuestionId)
+      : null;
+
+    return NextResponse.json({
+      text: result.object.response,
+      questionId: result.object.currentQuestionId,
+      questionText: currentQuestion?.text.replaceAll("{{subjectName}}", surveyData.project.subjectName) ?? null,
+    });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "AI request failed" },
@@ -88,14 +107,15 @@ export async function POST(req: Request) {
 
 /**
  * Build the questions list text from template questions.
+ * Includes question IDs for tracking which question is being explored.
  */
 function buildQuestionsText(template: Doc<"templates">, subjectName: string) {
   const sorted = [...template.questions].sort((a, b) => a.order - b.order);
   return sorted
     .map((q, idx) => {
       const text = q.text.replaceAll("{{subjectName}}", subjectName);
-      const meta = q.collectMultiple ? " (collect multiple)" : "";
-      return `${idx + 1}. ${text}${meta}`;
+      const meta = q.collectMultiple ? " (collect multiple responses)" : "";
+      return `${idx + 1}. [ID: ${q.id}] ${text}${meta}`;
     })
     .join("\n");
 }
@@ -140,8 +160,11 @@ You are interviewing about: ${project.subjectName}${roleText}
 The respondent is their: ${relationshipLabel}
 ${persona ? `\nINTERVIEWER STYLE:\n${persona}` : ""}
 
-QUESTIONS TO COVER:
+QUESTIONS TO COVER (with IDs for tracking):
 ${questionsText}
+
+QUESTION TRACKING:
+When you respond, always set currentQuestionId to the ID of the question you are currently exploring or asking about. Use the exact ID from the list above (e.g., "strengths", "improvements"). Set it to null only when you are wrapping up the interview or transitioning between questions without asking about a specific topic.
 
 START by introducing yourself briefly and asking the first question.`;
 }

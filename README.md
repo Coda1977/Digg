@@ -1,6 +1,35 @@
-# Digg (MVP)
+# Digg
 
-AI-powered feedback surveys with four built-in protocols (templates), backed by Convex.
+AI-powered 360 feedback platform with conversational interviews and intelligent analysis.
+
+## Features
+
+- **AI-Powered Interviews**: Natural conversation flow using Claude Sonnet 4.5
+- **Voice Input**: Speech-to-text via Deepgram for hands-free responses
+- **Smart Question Tracking**: AI tracks which template question it's exploring in real-time
+- **Auto-Generated Summaries**: Interview summaries generated automatically on completion
+- **Intelligent Analysis**: Map-reduce aggregation across interviews with actionable insights
+- **Professional PDF Reports**: Multi-section reports with raw feedback, AI analysis, and full transcripts
+- **Relationship Hierarchy**: Organized feedback by role (Manager → Peer → Direct Report)
+- **Bilingual Support**: English/Hebrew with automatic RTL detection
+
+## Report System
+
+The platform generates comprehensive feedback reports with three parts:
+
+### Part 1: What People Said
+- Responses organized by template questions
+- Sorted by relationship hierarchy
+- Shows who said what in a structured format
+
+### Part 2: AI Analysis
+- **Strengths**: Key strengths with supporting quotes and frequency data
+- **Improvements**: Actionable recommendations with priority levels (high/medium/low)
+- **Narrative**: Overarching themes and patterns
+- **Segmented Analysis**: Perspective-specific insights by relationship type
+
+### Part 3: Appendix
+- Full interview transcripts for reference
 
 ## Stack
 
@@ -59,7 +88,7 @@ $env:BASE_URL='https://digg-teal.vercel.app'; npm run test:e2e
   - `JWT_PRIVATE_KEY`
   - `JWKS` (must be valid JSON; used by `/.well-known/jwks.json`)
   - `ADMIN_EMAILS` (comma/space-separated list of admin emails)
-- Redeploy Convex after changing functions in `convex/`: `npx convex deploy --prod`
+- Redeploy Convex after changing functions in `convex/`: `npx convex deploy -y`
 
 ## Troubleshooting
 

@@ -16,6 +16,8 @@ export const save = mutation({
     surveyId: v.id("surveys"),
     role: v.union(v.literal("assistant"), v.literal("user")),
     content: v.string(),
+    questionId: v.optional(v.string()),
+    questionText: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const lastMessage = await ctx.db
@@ -32,6 +34,8 @@ export const save = mutation({
       content: args.content,
       order: nextOrder,
       createdAt: Date.now(),
+      questionId: args.questionId,
+      questionText: args.questionText,
     });
 
     return messageId;

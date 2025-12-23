@@ -22,9 +22,23 @@ import {
   sentimentBadgeClass,
   statusBadgeClass,
 } from "@/lib/editorialBadges";
-import { summarySchema, type Summary } from "@/lib/schemas";
+import { summarySchema, analysisSchema, type Summary, type Analysis } from "@/lib/schemas";
 import { postJson } from "@/lib/http";
 import { ProjectInsightsPdf } from "@/components/pdf/ProjectInsightsPdf";
+import { sortByRelationship } from "@/lib/relationshipOrder";
+import {
+  extractResponsesByQuestion,
+  getCoverageStats,
+} from "@/lib/responseExtraction";
+
+async function generateInterviewSummary(input: {
+  subjectName: string;
+  subjectRole?: string;
+  relationshipLabel?: string;
+  messages: Array<{ role: string; content: string }>;
+}): Promise<Summary> {
+  return postJson("/api/surveys/summarize", input, summarySchema);
+}
 
 async function generateProjectInsights(input: {
   subjectName: string;
@@ -36,8 +50,8 @@ async function generateProjectInsights(input: {
     relationshipLabel?: string;
     transcript: string;
   }>;
-}): Promise<Summary> {
-  return postJson("/api/projects/analyze", input, summarySchema);
+}): Promise<Analysis> {
+  return postJson("/api/projects/analyze", input, analysisSchema);
 }
 
 function formatDateTime(ms: number) {
@@ -63,13 +77,17 @@ export default function ProjectAnalysisPage() {
 
   const convex = useConvex();
   const saveAnalysis = useMutation(api.projects.saveAnalysis);
+  const saveSummary = useMutation(api.surveys.saveSummary);
 
   const project = useQuery(api.projects.getById, { id: projectId });
   const surveys = useQuery(api.surveys.getByProject, { projectId });
+  const surveysWithMessages = useQuery(api.surveys.getByProjectWithMessages, { projectId });
 
   const [generatingInsights, setGeneratingInsights] = useState(false);
   const [insightsError, setInsightsError] = useState<string | null>(null);
   const [activeSegment, setActiveSegment] = useState<string | null>(null); // null = overall view
+  const [generatingSummaries, setGeneratingSummaries] = useState(false);
+  const [summariesError, setSummariesError] = useState<string | null>(null);
 
   const sortedSurveys = useMemo(() => {
     if (!surveys) return null;
@@ -83,8 +101,25 @@ export default function ProjectAnalysisPage() {
     if (!surveys) return null;
     const completed = surveys.filter((s) => s.status === "completed").length;
     const inProgress = surveys.filter((s) => s.status === "in_progress").length;
-    return { total: surveys.length, completed, inProgress };
-  }, [surveys]);
+    const completedWithoutSummary = surveys.filter((s) => s.status === "completed" && !s.summary).length;
+
+    // NEW: Calculate freshness - how many interviews completed after last analysis
+    let newSinceAnalysis = 0;
+    const analysisGeneratedAt = project?.analysis?.generatedAt;
+    if (analysisGeneratedAt) {
+      newSinceAnalysis = surveys.filter(
+        (s) => s.status === "completed" && (s.completedAt ?? 0) > analysisGeneratedAt
+      ).length;
+    }
+
+    return {
+      total: surveys.length,
+      completed,
+      inProgress,
+      completedWithoutSummary,
+      newSinceAnalysis
+    };
+  }, [surveys, project?.analysis?.generatedAt]);
 
   const surveysForPdf = useMemo(() => {
     if (!sortedSurveys) return [];
@@ -104,6 +139,88 @@ export default function ProjectAnalysisPage() {
     });
   }, [project?.template?.relationshipOptions, sortedSurveys]);
 
+  // NEW: Extract responses by question for PDF
+  const responsesByQuestion = useMemo(() => {
+    if (!surveysWithMessages || !project?.template) return undefined;
+    const completedSurveys = surveysWithMessages.filter(
+      (s) => s.status === "completed" && s.messages.length > 0
+    );
+    if (completedSurveys.length === 0) return undefined;
+
+    return extractResponsesByQuestion(
+      completedSurveys,
+      project.template.relationshipOptions
+    );
+  }, [surveysWithMessages, project?.template]);
+
+  // NEW: Prepare transcripts for PDF
+  const transcripts = useMemo(() => {
+    if (!surveysWithMessages || !project?.template) return undefined;
+    const completedSurveys = surveysWithMessages.filter(
+      (s) => s.status === "completed" && s.messages.length > 0
+    );
+    if (completedSurveys.length === 0) return undefined;
+
+    const relationshipOptions = project.template.relationshipOptions;
+    return sortByRelationship(
+      completedSurveys.map((survey) => {
+        const relationshipLabel =
+          relationshipOptions.find((r) => r.id === survey.relationship)?.label ??
+          survey.relationship ??
+          "Unknown";
+        return {
+          respondentName: survey.respondentName ?? "Anonymous",
+          relationshipLabel,
+          messages: survey.messages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+        };
+      }),
+      (t) => {
+        const survey = completedSurveys.find(
+          (s) => (s.respondentName ?? "Anonymous") === t.respondentName
+        );
+        return survey?.relationship ?? "other";
+      }
+    );
+  }, [surveysWithMessages, project?.template]);
+
+  // NEW: Generate coverage text for PDF
+  const coverageText = useMemo(() => {
+    if (!surveysWithMessages || !project?.template) return undefined;
+    const completedSurveys = surveysWithMessages.filter(
+      (s) => s.status === "completed" && s.messages.length > 0
+    );
+    if (completedSurveys.length === 0) return undefined;
+
+    const stats = getCoverageStats(completedSurveys, project.template.relationshipOptions);
+    return `${stats.totalInterviews} interview${stats.totalInterviews === 1 ? "" : "s"}: ${stats.breakdownText}`;
+  }, [surveysWithMessages, project?.template]);
+
+  // NEW: Prepare segmented analysis for PDF
+  const segmentedAnalysisForPdf = useMemo(() => {
+    if (!project?.segmentedAnalysis) return undefined;
+    const relationshipOptions = project?.template?.relationshipOptions ?? [];
+
+    return project.segmentedAnalysis.map((segment) => {
+      const relationshipLabel =
+        relationshipOptions.find((r) => r.id === segment.relationshipType)?.label ??
+        segment.relationshipType;
+
+      return {
+        relationshipType: segment.relationshipType,
+        relationshipLabel,
+        analysis: {
+          summary: segment.summary,
+          strengths: segment.strengths,
+          improvements: segment.improvements,
+          narrative: segment.narrative,
+        },
+      };
+    });
+  }, [project?.segmentedAnalysis, project?.template?.relationshipOptions]);
+
   async function onGenerateInsights() {
     setInsightsError(null);
     setGeneratingInsights(true);
@@ -118,30 +235,31 @@ export default function ProjectAnalysisPage() {
         throw new Error("No completed interviews yet.");
       }
 
-      const interviews = input.interviews.map(({ survey, messages }) => {
+      // Check how many summaries are missing
+      const missingSummaryCount = input.interviews.filter(({ survey }) => !survey.summary).length;
+
+      if (missingSummaryCount > 0) {
+        throw new Error(`${missingSummaryCount} interview(s) are missing summaries. Please generate all interview summaries first, or wait for them to complete.`);
+      }
+
+      // Use summaries instead of raw transcripts (map-reduce approach)
+      const interviews = input.interviews.map(({ survey }) => {
         const relationshipLabel =
           input.template?.relationshipOptions.find((r) => r.id === survey.relationship)
             ?.label ??
           survey.relationship ??
           undefined;
 
-        const transcript = messages
-          .map(
-            (m) =>
-              `${m.role === "assistant" ? "Interviewer" : "Respondent"}: ${m.content}`
-          )
-          .join("\n");
-
-        const truncated =
-          transcript.length > 8000
-            ? `${transcript.slice(0, 8000)}\n...[truncated]`
-            : transcript;
+        // Use the interview summary if available
+        const summaryText = survey.summary
+          ? `Overview: ${survey.summary.overview}\n\nKey Themes: ${survey.summary.keyThemes.join(", ")}\n\nPraise: ${survey.summary.specificPraise.join("; ")}\n\nAreas for Improvement: ${survey.summary.areasForImprovement.join("; ")}\n\nSentiment: ${survey.summary.sentiment}`
+          : "Summary not yet generated for this interview.";
 
         return {
           respondentName: survey.respondentName ?? undefined,
           relationshipLabel,
           relationshipType: survey.relationship ?? "unknown",
-          transcript: truncated,
+          transcript: summaryText,  // Using summary instead of full transcript
         };
       });
 
@@ -195,10 +313,7 @@ export default function ProjectAnalysisPage() {
 
       await saveAnalysis({
         projectId,
-        analysis: {
-          ...analysis,
-          basedOnSurveyCount: interviews.length,
-        },
+        analysis,
         segmentedAnalysis: segmentedAnalysis.length > 0 ? segmentedAnalysis : undefined,
       });
     } catch (err) {
@@ -207,6 +322,64 @@ export default function ProjectAnalysisPage() {
       );
     } finally {
       setGeneratingInsights(false);
+    }
+  }
+
+  async function onGenerateAllSummaries() {
+    if (!project || !surveys) return;
+
+    setSummariesError(null);
+    setGeneratingSummaries(true);
+
+    try {
+      const completedSurveysWithoutSummary = surveys.filter(
+        (s) => s.status === "completed" && !s.summary
+      );
+
+      if (completedSurveysWithoutSummary.length === 0) {
+        setSummariesError("All completed interviews already have summaries.");
+        return;
+      }
+
+      // Generate summaries in parallel (with some rate limiting consideration)
+      const summaryPromises = completedSurveysWithoutSummary.map(async (survey) => {
+        // Fetch messages for this survey
+        const surveyData = await convex.query(api.surveys.getById, { id: survey._id });
+        if (!surveyData || !surveyData.messages || surveyData.messages.length === 0) {
+          return null;
+        }
+
+        const relationshipLabel =
+          project.template?.relationshipOptions.find((r) => r.id === survey.relationship)
+            ?.label ?? survey.relationship ?? "colleague";
+
+        const messages = surveyData.messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        }));
+
+        // Generate summary
+        const summary = await generateInterviewSummary({
+          subjectName: project.subjectName,
+          subjectRole: project.subjectRole ?? undefined,
+          relationshipLabel,
+          messages,
+        });
+
+        // Save summary
+        await saveSummary({ surveyId: survey._id, summary });
+
+        return summary;
+      });
+
+      await Promise.all(summaryPromises);
+
+    } catch (err) {
+      setSummariesError(
+        err instanceof Error ? err.message : "Failed to generate summaries"
+      );
+    } finally {
+      setGeneratingSummaries(false);
     }
   }
 
@@ -287,37 +460,86 @@ export default function ProjectAnalysisPage() {
           </p>
 
           {stats && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-4">
-              <div className="space-y-2 border-l-4 border-ink pl-6 py-2">
-                <div className="font-serif font-bold text-[56px] leading-none tracking-headline">
-                  {stats.total}
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-4">
+                <div className="space-y-2 border-l-4 border-ink pl-6 py-2">
+                  <div className="font-serif font-bold text-[56px] leading-none tracking-headline">
+                    {stats.total}
+                  </div>
+                  <div className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
+                    Total interviews
+                  </div>
                 </div>
-                <div className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
-                  Total interviews
+                <div className="space-y-2 border-l-4 border-ink pl-6 py-2">
+                  <div className="font-serif font-bold text-[56px] leading-none tracking-headline">
+                    {stats.completed}
+                  </div>
+                  <div className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
+                    Completed
+                  </div>
+                </div>
+                <div className="space-y-2 border-l-4 border-ink pl-6 py-2">
+                  <div className="font-serif font-bold text-[56px] leading-none tracking-headline">
+                    {stats.inProgress}
+                  </div>
+                  <div className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
+                    In progress
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2 border-l-4 border-ink pl-6 py-2">
-                <div className="font-serif font-bold text-[56px] leading-none tracking-headline">
-                  {stats.completed}
+
+              {/* NEW: Coverage breakdown display */}
+              {coverageText && stats.completed > 0 && (
+                <div className="border-l-4 border-ink pl-6 py-3 mt-6">
+                  <div className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft mb-1">
+                    Coverage
+                  </div>
+                  <p className="text-body text-ink-soft">{coverageText}</p>
                 </div>
-                <div className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
-                  Completed
-                </div>
-              </div>
-              <div className="space-y-2 border-l-4 border-ink pl-6 py-2">
-                <div className="font-serif font-bold text-[56px] leading-none tracking-headline">
-                  {stats.inProgress}
-                </div>
-                <div className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
-                  In progress
-                </div>
-              </div>
-            </div>
+              )}
+            </>
           )}
         </div>
       </EditorialSection>
 
       <RuledDivider weight="thick" spacing="sm" />
+
+      {stats && stats.completedWithoutSummary > 0 && (
+        <EditorialSection spacing="md">
+          <div className="max-w-[900px] mx-auto space-y-8">
+            <div className="space-y-3">
+              <EditorialLabel accent>Action Needed</EditorialLabel>
+              <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+                Generate interview summaries
+              </h2>
+              <p className="text-body text-ink-soft max-w-2xl">
+                {stats.completedWithoutSummary} completed interview(s) are missing summaries. Generate them first before creating project insights.
+              </p>
+            </div>
+
+            <div className="border-l-4 border-accent-red pl-6 py-2 space-y-4">
+              <EditorialButton
+                type="button"
+                onClick={() => void onGenerateAllSummaries()}
+                disabled={generatingSummaries}
+                variant="primary"
+              >
+                {generatingSummaries
+                  ? `Generating ${stats.completedWithoutSummary} summaries...`
+                  : `Generate ${stats.completedWithoutSummary} missing summaries`}
+              </EditorialButton>
+
+              {summariesError && (
+                <p className="text-body text-accent-red" role="alert">
+                  {summariesError}
+                </p>
+              )}
+            </div>
+          </div>
+        </EditorialSection>
+      )}
+
+      {stats && stats.completedWithoutSummary > 0 && <RuledDivider weight="thick" spacing="sm" />}
 
       <EditorialSection spacing="md">
         <div className="max-w-[900px] mx-auto space-y-8">
@@ -333,16 +555,40 @@ export default function ProjectAnalysisPage() {
           </div>
 
           <div className="border-l-4 border-ink pl-6 py-2 space-y-4">
-            <p className="text-body text-ink-soft">
-              {analysis ? (
-                <>
-                  Generated from {analysis.basedOnSurveyCount} completed interviews ·{" "}
+            {/* Coverage and freshness info */}
+            {analysis ? (
+              <div className="space-y-2">
+                <p className="text-body text-ink-soft">
+                  Generated from {analysis.coverage.totalInterviews} completed interview
+                  {analysis.coverage.totalInterviews === 1 ? "" : "s"}
+                  {coverageText && ` (${coverageText})`} ·{" "}
                   {formatDateTime(analysis.generatedAt)}
-                </>
-              ) : (
-                <>No insights generated yet.</>
-              )}
-            </p>
+                </p>
+                {stats && stats.newSinceAnalysis > 0 && (
+                  <div className="inline-flex items-center gap-2 px-3 py-2 border-2 border-accent-red bg-accent-red/5 rounded">
+                    <span className="text-label font-sans font-semibold uppercase tracking-label text-accent-red">
+                      ⚠ Stale
+                    </span>
+                    <span className="text-body text-ink-soft">
+                      {stats.newSinceAnalysis} new interview
+                      {stats.newSinceAnalysis === 1 ? "" : "s"} since last analysis
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-body text-ink-soft">
+                {stats && stats.completed > 0 ? (
+                  <>
+                    Ready to generate insights from {stats.completed} completed interview
+                    {stats.completed === 1 ? "" : "s"}
+                    {coverageText && ` (${coverageText})`}
+                  </>
+                ) : (
+                  <>No completed interviews yet.</>
+                )}
+              </p>
+            )}
 
             <div className="flex flex-col sm:flex-row gap-3">
               <PDFDownloadLink
@@ -353,6 +599,10 @@ export default function ProjectAnalysisPage() {
                     subjectRole={project.subjectRole ?? undefined}
                     templateName={project.template?.name ?? undefined}
                     analysis={analysis ?? undefined}
+                    segmentedAnalysis={segmentedAnalysisForPdf}
+                    responsesByQuestion={responsesByQuestion}
+                    transcripts={transcripts}
+                    coverageText={coverageText}
                     surveys={surveysForPdf}
                   />
                 }
@@ -393,7 +643,7 @@ export default function ProjectAnalysisPage() {
                     variant={activeSegment === null ? "primary" : "outline"}
                     size="small"
                   >
-                    Overall ({analysis.basedOnSurveyCount})
+                    Overall ({analysis.coverage.totalInterviews})
                   </EditorialButton>
                   {project.segmentedAnalysis.map((segment) => (
                     <EditorialButton
@@ -424,48 +674,74 @@ export default function ProjectAnalysisPage() {
 
                 return (
                   <div className="space-y-8 border-t-3 border-ink pt-6">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <EditorialLabel>Sentiment</EditorialLabel>
-                      <span className={sentimentBadgeClass(activeAnalysis.sentiment)}>
-                        {activeAnalysis.sentiment}
-                      </span>
-                    </div>
-
                     <div className="space-y-3">
-                      <EditorialLabel>Overview</EditorialLabel>
+                      <EditorialLabel>Summary</EditorialLabel>
                       <p className="text-body text-ink-soft whitespace-pre-wrap">
-                        {activeAnalysis.overview}
+                        {activeAnalysis.summary}
                       </p>
                     </div>
 
-                    <div className="grid gap-10 md:grid-cols-2">
+                    {activeAnalysis.narrative && (
                       <div className="space-y-3">
-                        <EditorialLabel>Key themes</EditorialLabel>
-                        <ul className="list-disc pl-5 text-body text-ink-soft space-y-2">
-                          {activeAnalysis.keyThemes.map((t: string, idx: number) => (
-                            <li key={idx}>{t}</li>
-                          ))}
-                        </ul>
+                        <EditorialLabel>Narrative</EditorialLabel>
+                        <p className="text-body text-ink-soft whitespace-pre-wrap italic">
+                          {activeAnalysis.narrative}
+                        </p>
                       </div>
+                    )}
 
-                      <div className="space-y-3">
-                        <EditorialLabel>Specific praise</EditorialLabel>
-                        <ul className="list-disc pl-5 text-body text-ink-soft space-y-2">
-                          {activeAnalysis.specificPraise.map((t: string, idx: number) => (
-                            <li key={idx}>{t}</li>
-                          ))}
-                        </ul>
+                    <div className="space-y-3">
+                      <EditorialLabel>Strengths</EditorialLabel>
+                      <div className="space-y-4">
+                        {activeAnalysis.strengths.map((strength: any, idx: number) => (
+                          <div key={idx} className="border-l-4 border-ink pl-4 space-y-2">
+                            <p className="text-body font-medium text-ink">{strength.point}</p>
+                            {strength.quote && (
+                              <p className="text-body-sm text-ink-soft italic">
+                                "{strength.quote}"
+                              </p>
+                            )}
+                            {strength.frequency && (
+                              <p className="text-label uppercase text-ink-soft">
+                                Mentioned by {strength.frequency} respondent
+                                {strength.frequency === 1 ? "" : "s"}
+                              </p>
+                            )}
+                          </div>
+                        ))}
                       </div>
+                    </div>
 
-                      <div className="space-y-3 md:col-span-2">
-                        <EditorialLabel>Areas for improvement</EditorialLabel>
-                        <ul className="list-disc pl-5 text-body text-ink-soft space-y-2">
-                          {activeAnalysis.areasForImprovement.map(
-                            (t: string, idx: number) => (
-                              <li key={idx}>{t}</li>
-                            )
-                          )}
-                        </ul>
+                    <div className="space-y-3">
+                      <EditorialLabel>Areas for improvement</EditorialLabel>
+                      <div className="space-y-5">
+                        {activeAnalysis.improvements.map((improvement: any, idx: number) => (
+                          <div key={idx} className="border-l-4 border-accent-red pl-4 space-y-2">
+                            <div className="flex items-start justify-between gap-3">
+                              <p className="text-body font-medium text-ink">{improvement.point}</p>
+                              <span className={`text-label uppercase px-2 py-1 rounded ${
+                                improvement.priority === "high"
+                                  ? "bg-accent-red/10 text-accent-red"
+                                  : improvement.priority === "medium"
+                                  ? "bg-yellow-500/10 text-yellow-700"
+                                  : "bg-ink-soft/10 text-ink-soft"
+                              }`}>
+                                {improvement.priority}
+                              </span>
+                            </div>
+                            <div className="pl-3 space-y-2">
+                              <p className="text-body-sm text-ink">
+                                <span className="font-semibold">Action: </span>
+                                {improvement.action}
+                              </p>
+                              {improvement.quote && (
+                                <p className="text-body-sm text-ink-soft italic">
+                                  "{improvement.quote}"
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -477,6 +753,59 @@ export default function ProjectAnalysisPage() {
       </EditorialSection>
 
       <RuledDivider weight="thick" spacing="sm" />
+
+      {/* NEW SECTION: What People Said */}
+      {responsesByQuestion && responsesByQuestion.length > 0 && (
+        <>
+          <EditorialSection spacing="md">
+            <div className="max-w-[900px] mx-auto space-y-8">
+              <div className="space-y-3">
+                <EditorialLabel>Raw feedback</EditorialLabel>
+                <h2 className="font-serif font-bold tracking-headline text-headline-md leading-tight">
+                  What people said
+                </h2>
+                <p className="text-body text-ink-soft max-w-2xl">
+                  Responses organized by interview questions, ordered by relationship type.
+                </p>
+              </div>
+
+              {coverageText && (
+                <div className="border-l-4 border-ink pl-6 py-2">
+                  <p className="text-body text-ink-soft">Based on {coverageText}</p>
+                </div>
+              )}
+
+              <div className="space-y-10">
+                {responsesByQuestion.map((question, qIdx) => (
+                  <div key={question.questionId} className="space-y-4">
+                    <div className="space-y-2">
+                      <EditorialLabel>Question {qIdx + 1}</EditorialLabel>
+                      <h3 className="font-serif font-bold text-headline-sm leading-tight">
+                        {question.questionText}
+                      </h3>
+                    </div>
+
+                    <div className="border-t-3 border-ink pt-4 space-y-5">
+                      {question.responses.map((response, rIdx) => (
+                        <div key={`${response.surveyId}-${rIdx}`} className="space-y-2">
+                          <p className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
+                            {response.relationshipLabel} · {response.respondentName}
+                          </p>
+                          <p className="text-body text-ink-soft pl-4 border-l-2 border-ink-soft/30">
+                            {response.content}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </EditorialSection>
+
+          <RuledDivider weight="thick" spacing="sm" />
+        </>
+      )}
 
       <EditorialSection spacing="md">
         <div className="max-w-[900px] mx-auto space-y-8">

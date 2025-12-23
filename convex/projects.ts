@@ -221,31 +221,58 @@ export const saveAnalysis = mutation({
   args: {
     projectId: v.id("projects"),
     analysis: v.object({
-      overview: v.string(),
-      keyThemes: v.array(v.string()),
-      sentiment: v.union(
-        v.literal("positive"),
-        v.literal("mixed"),
-        v.literal("negative")
+      summary: v.string(),
+      strengths: v.array(
+        v.object({
+          point: v.string(),
+          quote: v.optional(v.string()),
+          frequency: v.optional(v.number()),
+        })
       ),
-      specificPraise: v.array(v.string()),
-      areasForImprovement: v.array(v.string()),
-      basedOnSurveyCount: v.number(),
+      improvements: v.array(
+        v.object({
+          point: v.string(),
+          quote: v.optional(v.string()),
+          action: v.string(),
+          priority: v.union(
+            v.literal("high"),
+            v.literal("medium"),
+            v.literal("low")
+          ),
+        })
+      ),
+      narrative: v.optional(v.string()),
+      coverage: v.object({
+        totalInterviews: v.number(),
+        breakdown: v.any(), // Record<string, number>
+      }),
     }),
     segmentedAnalysis: v.optional(
       v.array(
         v.object({
           relationshipType: v.string(),
           relationshipLabel: v.string(),
-          overview: v.string(),
-          keyThemes: v.array(v.string()),
-          sentiment: v.union(
-            v.literal("positive"),
-            v.literal("mixed"),
-            v.literal("negative")
+          summary: v.string(),
+          strengths: v.array(
+            v.object({
+              point: v.string(),
+              quote: v.optional(v.string()),
+              frequency: v.optional(v.number()),
+            })
           ),
-          specificPraise: v.array(v.string()),
-          areasForImprovement: v.array(v.string()),
+          improvements: v.array(
+            v.object({
+              point: v.string(),
+              quote: v.optional(v.string()),
+              action: v.string(),
+              priority: v.union(
+                v.literal("high"),
+                v.literal("medium"),
+                v.literal("low")
+              ),
+            })
+          ),
+          narrative: v.optional(v.string()),
           basedOnSurveyCount: v.number(),
         })
       )
@@ -255,22 +282,41 @@ export const saveAnalysis = mutation({
     await requireAdmin(ctx);
     const updateData: {
       analysis: {
-        overview: string;
-        keyThemes: string[];
-        sentiment: "positive" | "mixed" | "negative";
-        specificPraise: string[];
-        areasForImprovement: string[];
-        basedOnSurveyCount: number;
+        summary: string;
+        strengths: Array<{
+          point: string;
+          quote?: string;
+          frequency?: number;
+        }>;
+        improvements: Array<{
+          point: string;
+          quote?: string;
+          action: string;
+          priority: "high" | "medium" | "low";
+        }>;
+        narrative?: string;
+        coverage: {
+          totalInterviews: number;
+          breakdown: any;
+        };
         generatedAt: number;
       };
       segmentedAnalysis?: Array<{
         relationshipType: string;
         relationshipLabel: string;
-        overview: string;
-        keyThemes: string[];
-        sentiment: "positive" | "mixed" | "negative";
-        specificPraise: string[];
-        areasForImprovement: string[];
+        summary: string;
+        strengths: Array<{
+          point: string;
+          quote?: string;
+          frequency?: number;
+        }>;
+        improvements: Array<{
+          point: string;
+          quote?: string;
+          action: string;
+          priority: "high" | "medium" | "low";
+        }>;
+        narrative?: string;
         basedOnSurveyCount: number;
         generatedAt: number;
       }>;
