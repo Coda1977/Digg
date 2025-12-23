@@ -71,6 +71,11 @@ export function useDeepgram({ language = "en-US", onTranscript, onError }: UseDe
         console.log("[Deepgram] Connection opened");
       });
 
+      // Handle metadata (contains model info, request_id, etc.)
+      connection.on(LiveTranscriptionEvents.Metadata, (data) => {
+        console.log("[Deepgram] Metadata received:", data);
+      });
+
       // Handle transcription results
       connection.on(LiveTranscriptionEvents.Transcript, (data) => {
         console.log("[Deepgram] Transcript received:", data);
@@ -88,10 +93,20 @@ export function useDeepgram({ language = "en-US", onTranscript, onError }: UseDe
         onError?.("Transcription error occurred");
       });
 
-      // Handle connection close
-      connection.on(LiveTranscriptionEvents.Close, () => {
-        console.log("[Deepgram] Connection closed");
+      // Handle warnings
+      connection.on(LiveTranscriptionEvents.Warning, (warning) => {
+        console.warn("[Deepgram] Warning:", warning);
+      });
+
+      // Handle connection close with reason
+      connection.on(LiveTranscriptionEvents.Close, (event) => {
+        console.log("[Deepgram] Connection closed, event:", event);
         setIsListening(false);
+      });
+
+      // Handle unhandled messages
+      connection.on(LiveTranscriptionEvents.Unhandled, (data) => {
+        console.log("[Deepgram] Unhandled message:", data);
       });
 
       // Get microphone access
