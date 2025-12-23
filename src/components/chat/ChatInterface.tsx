@@ -288,7 +288,10 @@ export function ChatInterface({
     setError(null);
     voiceBaseRef.current = draft.trimEnd();
     voiceTranscriptRef.current = "";
-    void startListening();
+    startListening().catch((err) => {
+      console.error("Voice input error:", err);
+      // Error is already set via onError callback, but log for debugging
+    });
   }
 
   async function onSend(e: FormEvent) {
