@@ -80,12 +80,19 @@ export function useDeepgram({ language = "en-US", onTranscript, onError }: UseDe
 
       // Handle transcription results
       connection.on(LiveTranscriptionEvents.Transcript, (data) => {
-        console.log("[Deepgram] Transcript received:", data);
-        const transcript = data.channel?.alternatives?.[0]?.transcript;
+        console.log("[Deepgram] Transcript received:", JSON.stringify(data, null, 2));
+        // Try different paths based on SDK version
+        const transcript =
+          data.channel?.alternatives?.[0]?.transcript ||
+          data.results?.channels?.[0]?.alternatives?.[0]?.transcript ||
+          data.transcript;
+        console.log("[Deepgram] Extracted transcript:", transcript);
         if (transcript && transcript.trim()) {
           const isFinal = data.is_final ?? false;
           console.log("[Deepgram] Valid transcript:", transcript, "isFinal:", isFinal);
           onTranscript?.(transcript, isFinal);
+        } else {
+          console.log("[Deepgram] No valid transcript text found in data");
         }
       });
 
