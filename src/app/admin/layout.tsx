@@ -162,8 +162,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-paper">
-      <header className="border-b-3 border-ink bg-paper fixed top-0 left-0 right-0 z-40 h-16 sm:h-20">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8 h-full flex items-center justify-between gap-4">
+      <header className="border-b-3 border-ink bg-paper">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8 py-4 sm:py-5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <EditorialNav onSignOut={() => void signOut()} />
             <Link href="/admin" className="block">
@@ -209,7 +209,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-5 sm:px-8 pt-16 sm:pt-20 pb-24 sm:pb-8">
+      <main className="mx-auto max-w-6xl px-5 sm:px-8 py-6 sm:py-8 pb-24 sm:pb-8">
         {children}
       </main>
       <BottomNav onSignOut={() => void signOut()} />
