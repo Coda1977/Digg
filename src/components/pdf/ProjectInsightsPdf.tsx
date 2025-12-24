@@ -188,7 +188,7 @@ export function ProjectInsightsPdf(props: {
                 <Subsection title="Strengths">
                   {analysis.strengths.map((strength, idx) => (
                   <View key={idx} style={styles.listItem}>
-                    <Text style={styles.bullet}>•</Text>
+                    <Text style={styles.bullet}>-</Text>
                     <View style={styles.listText}>
                       <Text style={styles.strengthPoint}>{strength.point}</Text>
                       {strength.quote && (
@@ -211,7 +211,7 @@ export function ProjectInsightsPdf(props: {
                   {analysis.improvements.map((improvement, idx) => (
                   <View key={idx} style={styles.improvementItem}>
                     <View style={styles.improvementHeader}>
-                      <Text style={styles.bullet}>•</Text>
+                      <Text style={styles.bullet}>-</Text>
                       <View style={styles.listText}>
                         <Text style={styles.improvementPoint}>{improvement.point}</Text>
                         <Text style={styles.priorityBadge}>
@@ -253,7 +253,7 @@ export function ProjectInsightsPdf(props: {
                       <Subsection title="Strengths">
                         {segment.analysis.strengths.map((strength, sIdx) => (
                           <View key={sIdx} style={styles.listItem}>
-                            <Text style={styles.bullet}>•</Text>
+                            <Text style={styles.bullet}>-</Text>
                             <View style={styles.listText}>
                               <Text>{strength.point}</Text>
                               {strength.quote && (
@@ -270,7 +270,7 @@ export function ProjectInsightsPdf(props: {
                         {segment.analysis.improvements.map((improvement, iIdx) => (
                           <View key={iIdx} style={styles.improvementItem}>
                             <View style={styles.improvementHeader}>
-                              <Text style={styles.bullet}>•</Text>
+                              <Text style={styles.bullet}>-</Text>
                               <View style={styles.listText}>
                                 <Text>{improvement.point}</Text>
                               </View>
@@ -375,7 +375,7 @@ function BulletList(props: { items: string[] }) {
     <View style={styles.list}>
       {props.items.map((item, idx) => (
         <View key={idx} style={styles.listItem}>
-          <Text style={styles.bullet}>•</Text>
+          <Text style={styles.bullet}>-</Text>
           <Text style={styles.listText}>{item}</Text>
         </View>
       ))}

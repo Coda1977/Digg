@@ -181,7 +181,7 @@ export default function ProjectDetailPage() {
               </div>
               <div className="flex items-center gap-2 text-body text-ink-soft">
                 {project.subjectRole && <span>{project.subjectRole}</span>}
-                {project.template?.name && <span>• {project.template.name}</span>}
+                {project.template?.name && <span>- {project.template.name}</span>}
               </div>
             </div>
 

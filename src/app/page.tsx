@@ -40,7 +40,7 @@ export default function Home() {
             </EditorialHeadline>
             <p className="text-body-lg text-ink-soft max-w-2xl">
               Digg is an AI-powered interview workflow for 360-degree feedback. Create
-              projects, share survey links, and review insights — in an editorial,
+              projects, share survey links, and review insights in an editorial,
               paper-and-ink experience.
             </p>
 

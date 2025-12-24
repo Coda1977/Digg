@@ -14,7 +14,7 @@ interface EditorialCardProps {
 
 /**
  * Editorial Card Component
- * Text-forward pattern: eyebrow → headline → description → link
+ * Text-forward pattern: eyebrow -> headline -> description -> link
  * Uses 4px left border (not top border) per editorial design mockups
  */
 export function EditorialCard({

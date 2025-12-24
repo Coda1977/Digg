@@ -185,7 +185,7 @@ export default function AdminLoginPage() {
                 className="w-full rounded-none border-3 border-ink bg-ink text-paper px-7 py-3 font-medium hover:bg-accent-red hover:border-accent-red"
                 disabled={submitting || isLoading}
               >
-                {submitting ? "Working…" : heading}
+                {submitting ? "Working..." : heading}
               </Button>
             </form>
           </div>

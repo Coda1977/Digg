@@ -52,7 +52,7 @@ export default function ProjectShareRedirectPage() {
       <div className="w-full max-w-[900px] border-l-4 border-ink pl-6 py-2">
         <EditorialLabel>Feedback Survey</EditorialLabel>
         <h1 className="mt-2 font-serif font-bold tracking-headline text-headline-xs leading-tight">
-          Starting survey…
+          Starting survey...
         </h1>
         <div className="mt-3 flex items-center gap-3 text-body text-ink-soft" role="status">
           <span className="inline-flex items-center gap-1" aria-hidden="true">

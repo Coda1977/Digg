@@ -192,7 +192,7 @@ export default function NewProjectPage() {
         {/* Step 1: Template */}
         <section className="space-y-6">
           <div className="space-y-2">
-            <EditorialLabel>01 · Survey Type</EditorialLabel>
+            <EditorialLabel>01 - Survey Type</EditorialLabel>
             <p className="text-body text-ink-soft">Select the template that best fits your needs.</p>
           </div>
 
@@ -214,7 +214,7 @@ export default function NewProjectPage() {
         {/* Step 2: Subject */}
         <section className="space-y-6">
           <div className="space-y-2">
-            <EditorialLabel>02 · Subject</EditorialLabel>
+            <EditorialLabel>02 - Subject</EditorialLabel>
             <p className="text-body text-ink-soft">Who is this feedback for?</p>
           </div>
 
@@ -274,7 +274,7 @@ export default function NewProjectPage() {
         {/* Step 3: Project Details */}
         <section className="space-y-6">
           <div className="space-y-2">
-            <EditorialLabel>03 · Details</EditorialLabel>
+            <EditorialLabel>03 - Details</EditorialLabel>
             <p className="text-body text-ink-soft">Finalize the project settings.</p>
           </div>
 
@@ -321,7 +321,7 @@ export default function NewProjectPage() {
             className="w-full sm:w-auto"
           >
             <Plus className="h-5 w-5" />
-            {submitting ? "Creating…" : "Create Project"}
+            {submitting ? "Creating..." : "Create Project"}
           </EditorialButton>
         </div>
       </form>

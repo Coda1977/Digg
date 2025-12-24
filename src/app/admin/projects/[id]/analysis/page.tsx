@@ -457,7 +457,7 @@ export default function ProjectAnalysisPage() {
 
           <p className="text-body text-ink-soft">
             {project.name}
-            {project.template?.name ? ` · ${project.template.name}` : ""}
+            {project.template?.name ? ` - ${project.template.name}` : ""}
           </p>
 
           {stats && (
@@ -607,17 +607,17 @@ export default function ProjectAnalysisPage() {
                         <>
                           Generated from {analysis.coverage.totalInterviews} completed interview
                           {analysis.coverage.totalInterviews === 1 ? "" : "s"}
-                          {coverageText && ` (${coverageText})`} ·{" "}
+                          {coverageText && ` (${coverageText})`} -{" "}
                         </>
                       ) : (
-                        <>Generated · </>
+                        <>Generated - </>
                       )}
                       {formatDateTime(analysis.generatedAt)}
                     </p>
                     {stats && stats.newSinceAnalysis > 0 && (
                       <div className="inline-flex items-center gap-2 px-3 py-2 border-2 border-accent-red bg-accent-red/5 rounded">
                         <span className="text-label font-sans font-semibold uppercase tracking-label text-accent-red">
-                          ⚠ Stale
+                          Warning: Stale
                         </span>
                         <span className="text-body text-ink-soft">
                           {stats.newSinceAnalysis} new interview
@@ -871,7 +871,7 @@ export default function ProjectAnalysisPage() {
                           {question.responses.map((response, rIdx) => (
                             <div key={`${response.surveyId}-${rIdx}`} className="space-y-2">
                               <p className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
-                                {response.relationshipLabel} · {response.respondentName}
+                                {response.relationshipLabel} - {response.respondentName}
                               </p>
                               <p className="text-body text-ink-soft pl-4 border-l-2 border-ink-soft/30">
                                 {response.content}
@@ -952,7 +952,7 @@ export default function ProjectAnalysisPage() {
                             </p>
                           </div>
                           <p className="text-body text-ink-soft truncate">
-                            Relationship · {relationshipLabel} · {summaryLabel}
+                            Relationship - {relationshipLabel} - {summaryLabel}
                           </p>
                         </div>
 

@@ -64,7 +64,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <div className="w-full max-w-[900px] border-l-4 border-ink/20 pl-6 py-2 space-y-4">
           <EditorialLabel>Digg Admin</EditorialLabel>
           <EditorialHeadline as="h1" size="md">
-            Loading…
+            Loading...
           </EditorialHeadline>
           <p className="text-body text-ink-soft">Fetching your admin session.</p>
         </div>
@@ -78,7 +78,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <div className="w-full max-w-[900px] border-l-4 border-ink/20 pl-6 py-2 space-y-4">
           <EditorialLabel>Digg Admin</EditorialLabel>
           <EditorialHeadline as="h1" size="md">
-            Redirecting…
+            Redirecting...
           </EditorialHeadline>
           <p className="text-body text-ink-soft">Taking you to the login page.</p>
         </div>

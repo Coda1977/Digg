@@ -268,9 +268,9 @@ export default function AdminDashboard() {
                       meta={
                         <>
                           <span className="font-medium">{project.name}</span>
-                          {project.subjectRole && <span className="text-ink-lighter">• {project.subjectRole}</span>}
+                          {project.subjectRole && <span className="text-ink-lighter">- {project.subjectRole}</span>}
                           {project.template?.name && (
-                            <span className="text-ink-lighter">• {project.template.name}</span>
+                            <span className="text-ink-lighter">- {project.template.name}</span>
                           )}
                           <span className="text-ink-lighter flex items-center gap-1">
                             <CheckCircle2 className="h-4 w-4" /> {responseRate} completed

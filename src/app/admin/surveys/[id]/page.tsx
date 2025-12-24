@@ -176,7 +176,7 @@ export default function AdminSurveyDetailPage() {
           </EditorialHeadline>
 
           <p className="text-body text-ink-soft">
-            {survey.project.name} · {subjectName}
+            {survey.project.name} - {subjectName}
           </p>
         </div>
       </EditorialSection>

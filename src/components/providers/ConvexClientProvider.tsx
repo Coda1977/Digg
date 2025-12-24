@@ -19,7 +19,7 @@ export function ConvexClientProvider({
           <h1 className="text-xl font-semibold">Convex is not configured</h1>
           <p className="text-sm text-muted-foreground">
             Set <code>NEXT_PUBLIC_CONVEX_URL</code> in your environment (Vercel
-            Project Settings → Environment Variables).
+            Project Settings &gt; Environment Variables).
           </p>
         </div>
       </div>

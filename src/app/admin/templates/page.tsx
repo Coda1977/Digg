@@ -210,9 +210,9 @@ function TemplatesPage() {
                                 <ChevronDown className="h-3 w-3" />
                               )}
                             </button>
-                            <span>·</span>
+                            <span>-</span>
                             <span>{template.relationshipOptions.length} Relationship Types</span>
-                            <span>·</span>
+                            <span>-</span>
                             <span>
                               {template.projectCount === 0
                                 ? "Not used"
@@ -299,9 +299,9 @@ function TemplatesPage() {
                               <ChevronDown className="h-3 w-3" />
                             )}
                           </button>
-                          <span>·</span>
+                          <span>-</span>
                           <span>{template.relationshipOptions.length} Relationship Types</span>
-                          <span>·</span>
+                          <span>-</span>
                           <span>
                             {template.projectCount === 0
                               ? "Not used"

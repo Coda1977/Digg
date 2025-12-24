@@ -167,7 +167,7 @@ export default function NewTemplatePage() {
         {/* Section 1: Details */}
         <section className="space-y-6">
           <div className="space-y-2">
-            <EditorialLabel>01 · Details</EditorialLabel>
+            <EditorialLabel>01 - Details</EditorialLabel>
             <p className="text-body text-ink-soft">Name and description for your template.</p>
           </div>
 
@@ -193,7 +193,7 @@ export default function NewTemplatePage() {
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe what this survey template is for…"
+                placeholder="Describe what this survey template is for..."
                 rows={3}
                 required
               />
@@ -207,7 +207,7 @@ export default function NewTemplatePage() {
         <section className="space-y-8">
           <div className="flex items-end justify-between">
             <div className="space-y-2">
-              <EditorialLabel>02 · Questions</EditorialLabel>
+              <EditorialLabel>02 - Questions</EditorialLabel>
               <p className="text-body text-ink-soft max-w-xl">
                 Add the core questions. The AI will ask follow-ups.
               </p>
@@ -254,7 +254,7 @@ export default function NewTemplatePage() {
                   <EditorialTextarea
                     value={question.text}
                     onChange={(e) => updateQuestion(question.tempId, "text", e.target.value)}
-                    placeholder="Enter the question…"
+                    placeholder="Enter the question..."
                     rows={2}
                     aria-label={`Question ${index + 1} text`}
                   />
@@ -297,7 +297,7 @@ export default function NewTemplatePage() {
         <section className="space-y-8">
           <div className="flex items-end justify-between">
             <div className="space-y-2">
-              <EditorialLabel>03 · Relationships</EditorialLabel>
+              <EditorialLabel>03 - Relationships</EditorialLabel>
               <p className="text-body text-ink-soft max-w-xl">
                 Define who the respondents are relative to the subject.
               </p>
@@ -341,7 +341,7 @@ export default function NewTemplatePage() {
         {/* Section 4: Persona (Optional) */}
         <section className="space-y-6">
           <div className="space-y-2">
-            <EditorialLabel>04 · Interviewer Persona <span className="text-ink-soft font-normal">(Optional)</span></EditorialLabel>
+            <EditorialLabel>04 - Interviewer Persona <span className="text-ink-soft font-normal">(Optional)</span></EditorialLabel>
             <p className="text-body text-ink-soft">
               Customize the interviewer&apos;s style and tone. Leave blank for standard behavior.
               Example: &quot;Be professional but empathetic. Focus on leadership examples.&quot;
@@ -374,7 +374,7 @@ export default function NewTemplatePage() {
             className="w-full sm:w-auto"
           >
             <Plus className="h-5 w-5" />
-            {creating ? "Creating…" : "Create Template"}
+            {creating ? "Creating..." : "Create Template"}
           </EditorialButton>
         </div>
       </form>

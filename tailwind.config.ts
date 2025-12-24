@@ -27,6 +27,7 @@ export default {
         'ink-lighter': '#A1A1AA',
         'accent-red': '#DC2626',
         'accent-yellow': '#FBBF24',
+        'accent-blue': '#2563EB',
 
         // Keep existing CSS variables for compatibility
         border: "hsl(var(--border))",
