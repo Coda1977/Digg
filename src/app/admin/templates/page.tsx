@@ -241,10 +241,10 @@ function TemplatesPage() {
                             Edit
                           </EditorialButton>
                           <EditorialButton
-                            variant="outline"
+                            variant="primary"
                             size="small"
                             onClick={() => handleDeleteClick(template._id)}
-                            className="text-accent-red border-accent-red/20 hover:bg-accent-red hover:text-paper"
+                            className="bg-accent-red border-accent-red hover:bg-red-700 hover:border-red-700"
                             aria-label={`Delete ${template.name}`}
                           >
                             <Trash2 className="h-4 w-4" />

@@ -1,5 +1,5 @@
 import { query, mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { nanoid } from "nanoid";
 import { requireAdmin } from "./lib/authorization";
 import { assertNoLegacyPlaceholders } from "./lib/templateValidation";
@@ -174,12 +174,12 @@ export const remove = mutation({
 
     const template = await ctx.db.get(args.id);
     if (!template) {
-      throw new Error("Template not found");
+      throw new ConvexError("Template not found");
     }
 
     // Prevent deleting built-in templates
     if (template.isBuiltIn) {
-      throw new Error("Cannot delete built-in templates");
+      throw new ConvexError("Cannot delete built-in templates");
     }
 
     // Check if template is in use by any projects
@@ -189,7 +189,7 @@ export const remove = mutation({
       .collect();
 
     if (projectsUsingTemplate.length > 0) {
-      throw new Error(
+      throw new ConvexError(
         `Cannot delete template. It is currently used by ${projectsUsingTemplate.length} project(s).`
       );
     }
