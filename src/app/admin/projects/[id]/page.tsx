@@ -29,6 +29,7 @@ export default function ProjectDetailPage() {
   const project = useQuery(api.projects.getById, { id: projectId });
 
   const createSurvey = useMutation(api.surveys.createFromProject);
+  const removeSurvey = useMutation(api.surveys.remove);
   const closeProject = useMutation(api.projects.close);
   const reopenProject = useMutation(api.projects.reopen);
   const removeProject = useMutation(api.projects.remove);
@@ -38,6 +39,9 @@ export default function ProjectDetailPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedSurveyId, setCopiedSurveyId] = useState<string | null>(null);
+  const [deletingSurveyId, setDeletingSurveyId] = useState<Id<"surveys"> | null>(
+    null
+  );
 
   // Copy feedback hooks
   const { copied: shareLinkCopied, onCopy: copyShareLink } = useCopyFeedback();
@@ -99,6 +103,22 @@ export default function ProjectDetailPage() {
       setError(err instanceof Error ? err.message : "Failed to delete project");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function onDeleteSurvey(surveyId: Id<"surveys">) {
+    if (!confirm("Delete this interview and all related messages?")) {
+      return;
+    }
+
+    setError(null);
+    setDeletingSurveyId(surveyId);
+    try {
+      await removeSurvey({ id: surveyId });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete interview");
+    } finally {
+      setDeletingSurveyId(null);
     }
   }
 
@@ -290,6 +310,15 @@ export default function ProjectDetailPage() {
                       </EditorialButton>
                       <EditorialButton variant="outline" size="small" asChild>
                         <Link href={`/admin/surveys/${s._id}`}>Transcript</Link>
+                      </EditorialButton>
+                      <EditorialButton
+                        type="button"
+                        variant="ghost"
+                        size="small"
+                        onClick={() => void onDeleteSurvey(s._id)}
+                        disabled={deletingSurveyId === s._id}
+                      >
+                        {deletingSurveyId === s._id ? "Deleting..." : "Delete"}
                       </EditorialButton>
                     </>
                   }

@@ -165,6 +165,26 @@ export const saveSummary = mutation({
   },
 });
 
+export const remove = mutation({
+  args: { id: v.id("surveys") },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const survey = await ctx.db.get(args.id);
+    if (!survey) return;
+
+    const messages = await ctx.db
+      .query("messages")
+      .withIndex("by_survey", (q) => q.eq("surveyId", args.id))
+      .collect();
+
+    for (const message of messages) {
+      await ctx.db.delete(message._id);
+    }
+
+    await ctx.db.delete(args.id);
+  },
+});
+
 export const getById = query({
   args: { id: v.id("surveys") },
   handler: async (ctx, args) => {

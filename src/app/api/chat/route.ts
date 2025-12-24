@@ -166,6 +166,9 @@ ${questionsText}
 QUESTION TRACKING:
 When you respond, always set currentQuestionId to the ID of the question you are currently exploring or asking about. Use the exact ID from the list above (e.g., "strengths", "improvements"). Set it to null only when you are wrapping up the interview or transitioning between questions without asking about a specific topic.
 
+ENDING INSTRUCTION:
+When you are wrapping up the interview, include a final sentence that tells the respondent to click the "Finish Survey" button to submit their responses. Do this once at the very end.
+
 START by introducing yourself briefly and asking the first question.`;
 }
 
