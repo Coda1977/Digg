@@ -1,42 +1,31 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient, LiveTranscriptionEvents, LiveClient } from "@deepgram/sdk";
 
-const MEDIA_RECORDER_MIME_TYPES = [
-  "audio/webm;codecs=opus",
-  "audio/webm",
-  "audio/ogg;codecs=opus",
-  "audio/ogg",
-  "audio/mp4",
-];
+const SCRIPT_PROCESSOR_BUFFER_SIZE = 4096;
 
-function pickSupportedMimeType(): string | null {
-  if (typeof MediaRecorder === "undefined") {
-    return null;
+type WebkitAudioContext = typeof AudioContext & { new (): AudioContext };
+
+function createAudioContext(): AudioContext {
+  const AudioContextConstructor =
+    window.AudioContext ||
+    (window as Window & { webkitAudioContext?: WebkitAudioContext }).webkitAudioContext;
+
+  if (!AudioContextConstructor) {
+    throw new Error("AudioContext not supported in this browser.");
   }
 
-  for (const mimeType of MEDIA_RECORDER_MIME_TYPES) {
-    if (MediaRecorder.isTypeSupported(mimeType)) {
-      return mimeType;
-    }
-  }
-
-  return null;
+  return new AudioContextConstructor();
 }
 
-function getEncodingForMimeType(mimeType: string): string | null {
-  if (mimeType.includes("opus")) {
-    return "opus";
+function floatTo16BitPCM(input: Float32Array): Int16Array {
+  const output = new Int16Array(input.length);
+
+  for (let i = 0; i < input.length; i += 1) {
+    const sample = Math.max(-1, Math.min(1, input[i]));
+    output[i] = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
   }
 
-  if (mimeType.includes("webm") || mimeType.includes("ogg")) {
-    return "opus";
-  }
-
-  if (mimeType.includes("mp4")) {
-    return "aac";
-  }
-
-  return null;
+  return output;
 }
 
 export interface UseDeepgramOptions {
@@ -50,14 +39,41 @@ export function useDeepgram({ language = "en-US", onTranscript, onError }: UseDe
   const [isLoading, setIsLoading] = useState(false);
 
   const deepgramRef = useRef<LiveClient | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const audioProcessorRef = useRef<ScriptProcessorNode | null>(null);
+  const audioGainRef = useRef<GainNode | null>(null);
   const apiKeyRef = useRef<string | null>(null);
 
   const stopMediaStream = useCallback(() => {
     if (!mediaStreamRef.current) return;
     mediaStreamRef.current.getTracks().forEach((track) => track.stop());
     mediaStreamRef.current = null;
+  }, []);
+
+  const stopAudioProcessing = useCallback(() => {
+    if (audioProcessorRef.current) {
+      audioProcessorRef.current.disconnect();
+      audioProcessorRef.current.onaudioprocess = null;
+      audioProcessorRef.current = null;
+    }
+
+    if (audioSourceRef.current) {
+      audioSourceRef.current.disconnect();
+      audioSourceRef.current = null;
+    }
+
+    if (audioGainRef.current) {
+      audioGainRef.current.disconnect();
+      audioGainRef.current = null;
+    }
+
+    if (audioContextRef.current) {
+      const context = audioContextRef.current;
+      audioContextRef.current = null;
+      context.close().catch(() => {});
+    }
   }, []);
 
   // Fetch Deepgram API key from our backend
@@ -95,25 +111,37 @@ export function useDeepgram({ language = "en-US", onTranscript, onError }: UseDe
       const apiKey = apiKeyRef.current || (await fetchApiKey());
       console.log("[Deepgram] Got API key, creating client...");
 
-      const mimeType = pickSupportedMimeType();
-      if (!mimeType) {
-        throw new Error("No supported audio MIME type for MediaRecorder.");
-      }
-
-      const encoding = getEncodingForMimeType(mimeType);
-      if (!encoding) {
-        throw new Error(`Unsupported MediaRecorder MIME type: ${mimeType}`);
-      }
-
       // Get microphone access
       console.log("[Deepgram] Requesting microphone access...");
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
       console.log("[Deepgram] Microphone access granted");
       mediaStreamRef.current = stream;
 
-      const trackSettings = stream.getAudioTracks()[0]?.getSettings?.();
-      const sampleRate = trackSettings?.sampleRate;
-      const channels = trackSettings?.channelCount;
+      const audioContext = createAudioContext();
+      audioContextRef.current = audioContext;
+
+      const source = audioContext.createMediaStreamSource(stream);
+      audioSourceRef.current = source;
+
+      const processor = audioContext.createScriptProcessor(
+        SCRIPT_PROCESSOR_BUFFER_SIZE,
+        1,
+        1
+      );
+      audioProcessorRef.current = processor;
+
+      const gain = audioContext.createGain();
+      gain.gain.value = 0;
+      audioGainRef.current = gain;
+
+      const sampleRate = audioContext.sampleRate;
 
       // Create Deepgram client
       const deepgram = createClient(apiKey);
@@ -127,9 +155,9 @@ export function useDeepgram({ language = "en-US", onTranscript, onError }: UseDe
         punctuate: true,
         interim_results: true,
         endpointing: 300, // Auto-stop after 300ms of silence
-        encoding,
-        ...(typeof sampleRate === "number" ? { sample_rate: sampleRate } : {}),
-        ...(typeof channels === "number" ? { channels } : {}),
+        encoding: "linear16",
+        sample_rate: sampleRate,
+        channels: 1,
       });
 
       deepgramRef.current = connection;
@@ -171,35 +199,20 @@ export function useDeepgram({ language = "en-US", onTranscript, onError }: UseDe
       // Handle connection close with reason
       connection.on(LiveTranscriptionEvents.Close, (event) => {
         console.log("[Deepgram] Connection closed, event:", event);
-        setIsListening(false);
-      });
-
-      // Create media recorder
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType,
-      });
-      console.log("[Deepgram] MediaRecorder created with mimeType:", mediaRecorder.mimeType);
-
-      mediaRecorderRef.current = mediaRecorder;
-
-      // Send audio data to Deepgram
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0 && connection.getReadyState() === 1) {
-          console.log("[Deepgram] Sending audio chunk, size:", event.data.size);
-          connection.send(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        console.log("[Deepgram] MediaRecorder stopped");
+        stopAudioProcessing();
         stopMediaStream();
-        mediaRecorderRef.current = null;
+        setIsListening(false);
+        setIsLoading(false);
+      });
 
-        if (deepgramRef.current === connection) {
-          connection.requestClose();
-          deepgramRef.current = null;
-          console.log("[Deepgram] Connection close requested");
+      processor.onaudioprocess = (event) => {
+        if (connection.getReadyState() !== 1) {
+          return;
         }
+
+        const input = event.inputBuffer.getChannelData(0);
+        const pcm = floatTo16BitPCM(input);
+        connection.send(pcm.buffer);
       };
 
       const waitForOpen = () =>
@@ -226,9 +239,13 @@ export function useDeepgram({ language = "en-US", onTranscript, onError }: UseDe
 
       await waitForOpen();
 
-      // Start recording in small chunks (100ms)
-      mediaRecorder.start(100);
-      console.log("[Deepgram] MediaRecorder started");
+      source.connect(processor);
+      processor.connect(gain);
+      gain.connect(audioContext.destination);
+
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
 
       setIsListening(true);
       setIsLoading(false);
@@ -240,34 +257,40 @@ export function useDeepgram({ language = "en-US", onTranscript, onError }: UseDe
           ? err.message
           : "Failed to start voice input";
       onError?.(message);
+      stopAudioProcessing();
       stopMediaStream();
       if (deepgramRef.current) {
         deepgramRef.current.disconnect();
         deepgramRef.current = null;
       }
-      mediaRecorderRef.current = null;
       setIsListening(false);
       setIsLoading(false);
     }
-  }, [isListening, language, onTranscript, onError, fetchApiKey, stopMediaStream]);
+  }, [
+    isListening,
+    language,
+    onTranscript,
+    onError,
+    fetchApiKey,
+    stopAudioProcessing,
+    stopMediaStream,
+  ]);
 
   // Stop listening
   const stopListening = useCallback(() => {
     console.log("[Deepgram] stopListening called");
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-    } else {
-      stopMediaStream();
+    stopAudioProcessing();
+    stopMediaStream();
 
-      if (deepgramRef.current) {
-        deepgramRef.current.requestClose();
-        deepgramRef.current = null;
-        console.log("[Deepgram] Connection close requested");
-      }
+    if (deepgramRef.current) {
+      deepgramRef.current.requestClose();
+      deepgramRef.current = null;
+      console.log("[Deepgram] Connection close requested");
     }
 
     setIsListening(false);
-  }, [stopMediaStream]);
+    setIsLoading(false);
+  }, [stopAudioProcessing, stopMediaStream]);
 
   // Cleanup on unmount
   useEffect(() => {
