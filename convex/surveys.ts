@@ -174,7 +174,7 @@ export const remove = mutation({
 
     const messages = await ctx.db
       .query("messages")
-      .withIndex("by_survey", (q) => q.eq("surveyId", args.id))
+      .withIndex("by_survey_order", (q) => q.eq("surveyId", args.id))
       .collect();
 
     for (const message of messages) {

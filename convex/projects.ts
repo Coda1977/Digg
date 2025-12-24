@@ -171,7 +171,7 @@ export const remove = mutation({
       // Delete all messages for this survey
       const messages = await ctx.db
         .query("messages")
-        .withIndex("by_survey", (q) => q.eq("surveyId", survey._id))
+        .withIndex("by_survey_order", (q) => q.eq("surveyId", survey._id))
         .collect();
 
       for (const message of messages) {
