@@ -1,4 +1,6 @@
 import * as React from "react";
+import { Check } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 export interface TemplateCardProps
@@ -27,6 +29,7 @@ const TemplateCard = React.forwardRef<HTMLDivElement, TemplateCardProps>(
         onClick={onSelect}
         role="button"
         tabIndex={0}
+        aria-pressed={selected}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
@@ -38,10 +41,8 @@ const TemplateCard = React.forwardRef<HTMLDivElement, TemplateCardProps>(
         <div className="flex items-start gap-4">
           {/* Custom Radio Button Visual */}
           <div className="flex-shrink-0 mt-1">
-            <div className="w-6 h-6 border-3 border-ink rounded-full relative">
-              {selected && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-accent-red rounded-full" />
-              )}
+            <div className="w-6 h-6 border-3 border-ink flex items-center justify-center bg-paper">
+              {selected && <Check className="h-4 w-4 text-accent-red" />}
             </div>
           </div>
 

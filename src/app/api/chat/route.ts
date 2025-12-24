@@ -143,6 +143,7 @@ function buildSurveySystemPrompt(args: {
     relationshipId ??
     "colleague";
   const questionsText = buildQuestionsText(template, project.subjectName);
+  const templateDescription = template.description?.trim();
 
   // New unified architecture: DIGG_CORE + persona + auto-injected questions
   // The persona field is used for user-defined style customization
@@ -159,6 +160,7 @@ CONTEXT:
 You are interviewing about: ${project.subjectName}${roleText}
 The respondent is their: ${relationshipLabel}
 ${persona ? `\nINTERVIEWER STYLE:\n${persona}` : ""}
+${templateDescription ? `\nSURVEY DESCRIPTION:\n${templateDescription}` : ""}
 
 QUESTIONS TO COVER (with IDs for tracking):
 ${questionsText}

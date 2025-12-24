@@ -162,8 +162,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-paper">
-      <header className="border-b-3 border-ink bg-paper sticky top-0 z-40">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8 py-6 flex items-center justify-between gap-4">
+      <header className="border-b-3 border-ink bg-paper bg-opacity-100 sticky top-0 z-40">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8 py-4 sm:py-5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <EditorialNav onSignOut={() => void signOut()} />
             <Link href="/admin" className="block">
