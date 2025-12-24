@@ -95,3 +95,4 @@ $env:BASE_URL='https://digg-teal.vercel.app'; npm run test:e2e
 - If `/admin/login` loops after sign-in, verify:
   - `https://<your-deployment>.convex.site/.well-known/openid-configuration` returns 200
   - `https://<your-deployment>.convex.site/.well-known/jwks.json` returns 200 and valid JSON
+- If voice input connects but returns empty transcripts, verify the browser supports `MediaRecorder` for Opus (`audio/webm;codecs=opus` preferred). The live connection expects `encoding=opus` and uses the mic track's sample rate and channels (see `src/hooks/useDeepgram.ts`).
