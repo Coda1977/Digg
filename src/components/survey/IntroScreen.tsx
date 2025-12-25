@@ -70,7 +70,7 @@ export function IntroScreen({
         <button
           onClick={handleSubmit}
           disabled={!relationshipId}
-          className="typeform-hover-shadow inline-flex items-center justify-center gap-3 px-12 py-4 font-sans text-[1rem] font-semibold text-white bg-accent-red border-none cursor-pointer transition-all hover:bg-[#b91c1c] hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
+          className="typeform-hover-shadow inline-flex items-center justify-center gap-3 px-12 py-4 font-sans text-[1rem] font-semibold text-white bg-accent-red border-none cursor-pointer transition-all hover:bg-[#b91c1c] hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:transform-none"
         >
           Begin Survey →
         </button>
