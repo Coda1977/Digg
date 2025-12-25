@@ -113,20 +113,6 @@ export default function AdminDashboard() {
             <p className="text-body-lg text-ink-soft max-w-2xl">
               Manage your feedback projects, create new surveys, and analyze insights.
             </p>
-            <div className="flex gap-3">
-              <EditorialButton variant="primary" asChild>
-                <Link href="/admin/projects/new">
-                  <Plus className="h-5 w-5" />
-                  New Project
-                </Link>
-              </EditorialButton>
-              <EditorialButton variant="outline" asChild>
-                <Link href="/admin/templates">
-                  <ArrowRight className="h-5 w-5" />
-                  Templates
-                </Link>
-              </EditorialButton>
-            </div >
           </div >
         </div >
       </section >
