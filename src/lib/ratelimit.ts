@@ -111,7 +111,7 @@ const rateLimiter = new InMemoryRateLimiter();
 /**
  * Rate limit configurations for different endpoints
  */
-export const RATE_LIMITS = {
+const RATE_LIMITS = {
   chat: {
     maxRequests: 60,
     windowMs: 60 * 1000, // 60 requests per minute

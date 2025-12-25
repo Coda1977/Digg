@@ -10,7 +10,7 @@ function extractApiError(body: unknown): string | null {
   }
 }
 
-export async function fetchJson<T>(
+async function fetchJson<T>(
   url: string,
   init: RequestInit | undefined,
   schema: z.ZodSchema<T>

@@ -244,7 +244,7 @@ export const saveAnalysis = mutation({
       narrative: v.optional(v.string()),
       coverage: v.object({
         totalInterviews: v.number(),
-        breakdown: v.any(), // Record<string, number>
+        breakdown: v.record(v.string(), v.number()),
       }),
     }),
     segmentedAnalysis: v.optional(
@@ -297,7 +297,7 @@ export const saveAnalysis = mutation({
         narrative?: string;
         coverage: {
           totalInterviews: number;
-          breakdown: any;
+          breakdown: Record<string, number>;
         };
         generatedAt: number;
       };

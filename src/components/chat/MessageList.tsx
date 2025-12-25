@@ -8,7 +8,7 @@ import { useChatContext } from "./ChatProvider";
 
 export function MessageList() {
   const { uiMessages, isGenerating, currentLanguage } = useChatContext();
-  const scrollRef = useAutoScroll([uiMessages?.length, isGenerating]);
+  const scrollRef = useAutoScroll(uiMessages?.length ?? 0, isGenerating);
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">

@@ -17,6 +17,7 @@ import type * as lib_diggCoreV2 from "../lib/diggCoreV2.js";
 import type * as lib_email from "../lib/email.js";
 import type * as lib_templateValidation from "../lib/templateValidation.js";
 import type * as messages from "../messages.js";
+import type * as migrations_cleanOldFields from "../migrations/cleanOldFields.js";
 import type * as projects from "../projects.js";
 import type * as repairs from "../repairs.js";
 import type * as seed from "../seed.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   "lib/email": typeof lib_email;
   "lib/templateValidation": typeof lib_templateValidation;
   messages: typeof messages;
+  "migrations/cleanOldFields": typeof migrations_cleanOldFields;
   projects: typeof projects;
   repairs: typeof repairs;
   seed: typeof seed;

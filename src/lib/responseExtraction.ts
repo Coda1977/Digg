@@ -5,14 +5,14 @@
 
 import { sortByRelationship } from "./relationshipOrder";
 
-export type Message = {
+type Message = {
   role: "user" | "assistant";
   content: string;
   questionId?: string;
   questionText?: string;
 };
 
-export type Survey = {
+type Survey = {
   _id: string;
   respondentName?: string;
   relationship?: string;
@@ -31,7 +31,7 @@ export type ResponseByQuestion = {
   }>;
 };
 
-export type RelationshipOption = {
+type RelationshipOption = {
   id: string;
   label: string;
 };

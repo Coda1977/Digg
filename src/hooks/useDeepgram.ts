@@ -28,7 +28,7 @@ function floatTo16BitPCM(input: Float32Array): Int16Array {
   return output;
 }
 
-export interface UseDeepgramOptions {
+interface UseDeepgramOptions {
   language?: string;
   onTranscript?: (text: string, isFinal: boolean) => void;
   onError?: (error: string) => void;

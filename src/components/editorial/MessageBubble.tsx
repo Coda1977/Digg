@@ -14,7 +14,7 @@ function parseMarkdown(text: string): React.ReactNode[] {
 
     // Parse inline markdown (bold and italic)
     const parts: React.ReactNode[] = [];
-    let currentText = line;
+    const currentText = line;
     let partIdx = 0;
 
     // Match **bold**, *italic*, or plain text

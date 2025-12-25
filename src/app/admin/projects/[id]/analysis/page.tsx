@@ -19,7 +19,6 @@ import {
   StatusBadge,
   buttonVariants,
 } from "@/components/editorial";
-import { formatEnumLabel } from "@/lib/editorialBadges";
 import { summarySchema, analysisSchema, type Summary, type Analysis } from "@/lib/schemas";
 import { postJson } from "@/lib/http";
 import { ProjectInsightsPdf } from "@/components/pdf/ProjectInsightsPdf";
@@ -50,14 +49,6 @@ async function generateProjectInsights(input: {
   }>;
 }): Promise<Analysis> {
   return postJson("/api/projects/analyze", input, analysisSchema);
-}
-
-function formatDateTime(ms: number) {
-  try {
-    return new Date(ms).toLocaleString();
-  } catch {
-    return "";
-  }
 }
 
 function fileSafe(value: string) {
@@ -594,7 +585,7 @@ export default function ProjectAnalysisPage() {
                   <div className="p-3 bg-accent-red/5 border-l-4 border-accent-red">
                     <p className="text-body text-accent-red">
                       Generate all interview summaries first ({stats.completedWithoutSummary} missing).
-                      Use the button in the "Action Needed" section above.
+                      Use the button in the &quot;Action Needed&quot; section above.
                     </p>
                   </div>
                 )}
@@ -612,7 +603,7 @@ export default function ProjectAnalysisPage() {
                       ) : (
                         <>Generated - </>
                       )}
-                      {formatDateTime(analysis.generatedAt)}
+                      {new Date(analysis.generatedAt).toLocaleString()}
                     </p>
                     {stats && stats.newSinceAnalysis > 0 && (
                       <div className="inline-flex items-center gap-2 px-3 py-2 border-2 border-accent-red bg-accent-red/5 rounded">
@@ -760,12 +751,12 @@ export default function ProjectAnalysisPage() {
                       <div className="space-y-3">
                         <EditorialLabel>Strengths</EditorialLabel>
                         <div className="space-y-4">
-                          {activeAnalysis.strengths.map((strength: any, idx: number) => (
+                          {activeAnalysis.strengths.map((strength: Analysis["strengths"][number], idx: number) => (
                           <div key={idx} className="border-l-4 border-ink pl-4 space-y-2">
                             <p className="text-body font-medium text-ink">{strength.point}</p>
                             {strength.quote && (
                               <p className="text-body-sm text-ink-soft italic">
-                                "{strength.quote}"
+                                &quot;{strength.quote}&quot;
                               </p>
                             )}
                             {strength.frequency && (
@@ -784,7 +775,7 @@ export default function ProjectAnalysisPage() {
                       <div className="space-y-3">
                         <EditorialLabel>Areas for improvement</EditorialLabel>
                         <div className="space-y-5">
-                          {activeAnalysis.improvements.map((improvement: any, idx: number) => (
+                          {activeAnalysis.improvements.map((improvement: Analysis["improvements"][number], idx: number) => (
                           <div key={idx} className="border-l-4 border-accent-red pl-4 space-y-2">
                             <div className="flex items-start justify-between gap-3">
                               <p className="text-body font-medium text-ink">{improvement.point}</p>
@@ -805,7 +796,7 @@ export default function ProjectAnalysisPage() {
                               </p>
                               {improvement.quote && (
                                 <p className="text-body-sm text-ink-soft italic">
-                                  "{improvement.quote}"
+                                  &quot;{improvement.quote}&quot;
                                 </p>
                               )}
                             </div>

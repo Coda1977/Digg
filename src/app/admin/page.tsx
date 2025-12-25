@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "../../../convex/_generated/api";
 import Link from "next/link";
-import { Plus, CheckCircle2, Clock, Search, ArrowRight, X } from "lucide-react";
+import { Plus, CheckCircle2, Search, ArrowRight, X } from "lucide-react";
 import {
   EditorialSection,
   EditorialHeadline,

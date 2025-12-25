@@ -10,11 +10,15 @@ vi.mock("../../../convex/lib/authorization", () => ({
 import { remove as removeSurvey } from "../../../convex/surveys";
 import { remove as removeProject } from "../../../convex/projects";
 
-type Row = { _id: string; [key: string]: any };
+type Row = { _id: string } & Record<string, unknown>;
 type Tables = {
   projects: Row[];
   surveys: Row[];
   messages: Row[];
+};
+
+type QueryConstraint = {
+  eq: (field: string, value: unknown) => QueryConstraint;
 };
 
 class QueryBuilder {
@@ -22,8 +26,8 @@ class QueryBuilder {
 
   constructor(private records: Row[]) {}
 
-  withIndex(_index: string, callback: (q: { eq: (field: string, value: unknown) => any }) => void) {
-    const builder = {
+  withIndex(_index: string, callback: (q: QueryConstraint) => void) {
+    const builder: QueryConstraint = {
       eq: (field: string, value: unknown) => {
         this.filters.push({ field, value });
         return builder;
@@ -74,6 +78,11 @@ function createMockDb(seed: Partial<Tables>) {
 }
 
 describe("Convex removal mutations", () => {
+  type Db = ReturnType<typeof createMockDb>;
+  type MutationHandler = (ctx: { db: Db }, args: { id: string }) => Promise<void> | void;
+  const removeSurveyHandler = (removeSurvey as unknown as { _handler: MutationHandler })._handler;
+  const removeProjectHandler = (removeProject as unknown as { _handler: MutationHandler })._handler;
+
   it("surveys.remove deletes the survey and its messages", async () => {
     const surveyId = "survey_1";
     const otherSurveyId = "survey_2";
@@ -89,7 +98,7 @@ describe("Convex removal mutations", () => {
       ],
     });
 
-    await (removeSurvey as any)._handler({ db }, { id: surveyId });
+    await removeSurveyHandler({ db }, { id: surveyId });
 
     expect(db.tables.surveys.map((row) => row._id)).toEqual([otherSurveyId]);
     expect(db.tables.messages.map((row) => row._id)).toEqual(["message_3"]);
@@ -120,7 +129,7 @@ describe("Convex removal mutations", () => {
       ],
     });
 
-    await (removeProject as any)._handler({ db }, { id: projectId });
+    await removeProjectHandler({ db }, { id: projectId });
 
     expect(db.tables.projects.map((row) => row._id)).toEqual([otherProjectId]);
     expect(db.tables.surveys.map((row) => row._id)).toEqual([surveyC]);

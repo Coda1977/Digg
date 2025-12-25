@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import {
   EditorialHeadline,
   EditorialLabel,
-  EditorialSection,
   RuledDivider,
   EditorialInput,
   EditorialTextarea,

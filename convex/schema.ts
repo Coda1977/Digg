@@ -57,15 +57,15 @@ export default defineSchema({
     createdBy: v.optional(v.id("users")),
     analysis: v.optional(
       v.object({
-        summary: v.optional(v.string()), // Made optional for migration from old schema
-        strengths: v.optional(v.array(
+        summary: v.string(),
+        strengths: v.array(
           v.object({
             point: v.string(),
             quote: v.optional(v.string()),
             frequency: v.optional(v.number()),
           })
-        )),
-        improvements: v.optional(v.array(
+        ),
+        improvements: v.array(
           v.object({
             point: v.string(),
             quote: v.optional(v.string()),
@@ -76,24 +76,13 @@ export default defineSchema({
               v.literal("low")
             ),
           })
-        )),
+        ),
         narrative: v.optional(v.string()),
-        coverage: v.optional(v.object({
+        coverage: v.object({
           totalInterviews: v.number(),
-          breakdown: v.any(), // Record<string, number>
-        })),
+          breakdown: v.record(v.string(), v.number()),
+        }),
         generatedAt: v.number(),
-        // OLD SCHEMA FIELDS - keep for backwards compatibility during migration
-        overview: v.optional(v.string()),
-        keyThemes: v.optional(v.array(v.string())),
-        sentiment: v.optional(v.union(
-          v.literal("positive"),
-          v.literal("mixed"),
-          v.literal("negative")
-        )),
-        specificPraise: v.optional(v.array(v.string())),
-        areasForImprovement: v.optional(v.array(v.string())),
-        basedOnSurveyCount: v.optional(v.number()),
       })
     ),
     segmentedAnalysis: v.optional(
@@ -101,15 +90,15 @@ export default defineSchema({
         v.object({
           relationshipType: v.string(),
           relationshipLabel: v.string(),
-          summary: v.optional(v.string()), // Made optional for migration
-          strengths: v.optional(v.array(
+          summary: v.string(),
+          strengths: v.array(
             v.object({
               point: v.string(),
               quote: v.optional(v.string()),
               frequency: v.optional(v.number()),
             })
-          )),
-          improvements: v.optional(v.array(
+          ),
+          improvements: v.array(
             v.object({
               point: v.string(),
               quote: v.optional(v.string()),
@@ -120,20 +109,10 @@ export default defineSchema({
                 v.literal("low")
               ),
             })
-          )),
+          ),
           narrative: v.optional(v.string()),
           basedOnSurveyCount: v.number(),
           generatedAt: v.number(),
-          // OLD SCHEMA FIELDS - keep for backwards compatibility
-          overview: v.optional(v.string()),
-          keyThemes: v.optional(v.array(v.string())),
-          sentiment: v.optional(v.union(
-            v.literal("positive"),
-            v.literal("mixed"),
-            v.literal("negative")
-          )),
-          specificPraise: v.optional(v.array(v.string())),
-          areasForImprovement: v.optional(v.array(v.string())),
         })
       )
     ),

@@ -90,6 +90,15 @@ $env:BASE_URL='https://digg-teal.vercel.app'; npm run test:e2e
   - `ADMIN_EMAILS` (comma/space-separated list of admin emails)
 - Redeploy Convex after changing functions in `convex/`: `npx convex deploy -y`
 
+## Convex schema migrations
+
+When removing old schema fields, deploy in two steps to avoid breaking existing data:
+
+1. Keep deprecated fields optional in `convex/schema.ts` and add the migration in `convex/migrations/`.
+2. Deploy the old-compatible schema: `npx convex deploy -y`
+3. Run the migration in production: `npx convex run --prod migrations/cleanOldFields:removeOldFields`
+4. Remove deprecated fields from `convex/schema.ts` and redeploy: `npx convex deploy -y`
+
 ## Troubleshooting
 
 - If `/admin/login` loops after sign-in, verify:

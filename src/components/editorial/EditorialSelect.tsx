@@ -1,8 +1,8 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-export interface EditorialSelectProps
-  extends React.SelectHTMLAttributes<HTMLSelectElement> {}
+export type EditorialSelectProps =
+  React.SelectHTMLAttributes<HTMLSelectElement>;
 
 const EditorialSelect = React.forwardRef<
   HTMLSelectElement,

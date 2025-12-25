@@ -105,13 +105,12 @@ export function ProjectInsightsPdf(props: {
     responsesByQuestion,
     transcripts,
     coverageText,
-    surveys,
   } = props;
 
   const roleText = subjectRole ? ` (${subjectRole})` : "";
   const generatedDate = analysis?.generatedAt
     ? formatDate(analysis.generatedAt)
-    : formatDate(Date.now());
+    : "Not generated yet";
 
   return (
     <Document title={`Digg - ${subjectName} - ${projectName}`}>
@@ -192,7 +191,9 @@ export function ProjectInsightsPdf(props: {
                     <View style={styles.listText}>
                       <Text style={styles.strengthPoint}>{strength.point}</Text>
                       {strength.quote && (
-                        <Text style={styles.quote}>"{strength.quote}"</Text>
+                        <Text style={styles.quote}>
+                          &quot;{strength.quote}&quot;
+                        </Text>
                       )}
                       {strength.frequency && (
                         <Text style={styles.frequency}>
@@ -223,7 +224,9 @@ export function ProjectInsightsPdf(props: {
                       <Text style={styles.actionLabel}>Action:</Text>
                       <Text style={styles.actionText}>{improvement.action}</Text>
                       {improvement.quote && (
-                        <Text style={styles.quote}>"{improvement.quote}"</Text>
+                        <Text style={styles.quote}>
+                          &quot;{improvement.quote}&quot;
+                        </Text>
                       )}
                     </View>
                   </View>
@@ -257,7 +260,9 @@ export function ProjectInsightsPdf(props: {
                             <View style={styles.listText}>
                               <Text>{strength.point}</Text>
                               {strength.quote && (
-                                <Text style={styles.quote}>"{strength.quote}"</Text>
+                                <Text style={styles.quote}>
+                                  &quot;{strength.quote}&quot;
+                                </Text>
                               )}
                             </View>
                           </View>
@@ -322,14 +327,6 @@ export function ProjectInsightsPdf(props: {
   );
 }
 
-function formatDateTime(ms: number) {
-  try {
-    return new Date(ms).toLocaleString();
-  } catch {
-    return "";
-  }
-}
-
 function formatDate(ms: number) {
   try {
     return new Date(ms).toLocaleDateString("en-US", {
@@ -356,29 +353,6 @@ function Subsection(props: { title: string; children: ReactNode }) {
     <View style={styles.subsection}>
       <Text style={styles.subsectionTitle}>{props.title}</Text>
       {props.children}
-    </View>
-  );
-}
-
-function MetaRow(props: { label: string; value: string }) {
-  return (
-    <View style={styles.metaRow}>
-      <Text style={styles.metaLabel}>{props.label}:</Text>
-      <Text style={styles.metaValue}>{props.value}</Text>
-    </View>
-  );
-}
-
-function BulletList(props: { items: string[] }) {
-  if (props.items.length === 0) return null;
-  return (
-    <View style={styles.list}>
-      {props.items.map((item, idx) => (
-        <View key={idx} style={styles.listItem}>
-          <Text style={styles.bullet}>-</Text>
-          <Text style={styles.listText}>{item}</Text>
-        </View>
-      ))}
     </View>
   );
 }

@@ -180,7 +180,7 @@ function TemplatesPage() {
               <div>
                 <EditorialLabel>Custom Templates</EditorialLabel>
                 <p className="text-body text-ink-soft mt-2">
-                  Templates you've created for your specific needs
+                  Templates you&apos;ve created for your specific needs
                 </p>
               </div>
               <div className="grid gap-4">
@@ -363,7 +363,7 @@ function TemplatesPage() {
           <DialogHeader>
             <DialogTitle>Delete Template</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{templateToDeleteData?.name}"?
+              Are you sure you want to delete &quot;{templateToDeleteData?.name}&quot;?
               This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
