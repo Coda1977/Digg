@@ -288,6 +288,11 @@ export default function NewProjectPage() {
                 placeholder="e.g. 360 Feedback for Jane Doe"
                 required
               />
+              {!userModifiedName && name && (
+                <p className="text-body-sm text-ink-soft italic">
+                  Auto-generated based on template and subject
+                </p>
+              )}
             </div>
 
             <div className="space-y-3">

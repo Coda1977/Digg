@@ -22,31 +22,43 @@ export function EditorialDataRow({
     return (
         <article
             className={cn(
-                "group flex flex-col sm:flex-row sm:items-center gap-4 py-4 border-b border-ink/10 transition-colors last:border-b-0",
-                onClick && "cursor-pointer hover:bg-ink/5",
+                "group flex flex-col sm:flex-row sm:items-baseline gap-4 py-4 px-4 -mx-4 rounded-lg transition-all hover:bg-ink/5 cursor-pointer border-b border-ink/10 last:border-b-0",
                 className
             )}
             onClick={onClick}
         >
-            {/* Status/Icon Column */}
-            {status && (
-                <div className="flex-shrink-0 min-w-[100px]">
-                    {typeof status === "string" ? (
-                        <EditorialLabel className="text-xs">{status}</EditorialLabel>
-                    ) : (
-                        status
-                    )}
-                </div>
-            )}
-
             {/* Main Content Column */}
             <div className="flex-1 min-w-0 space-y-1">
-                <h3 className="font-serif font-bold text-xl leading-tight text-ink group-hover:text-ink">
-                    {title}
-                </h3>
+                <div className="flex items-center gap-3">
+                    <h3 className="font-serif font-bold text-xl leading-tight text-ink group-hover:text-ink">
+                        {title}
+                    </h3>
+                    {/* Status inline on desktop */}
+                    {status && (
+                        <div className="hidden sm:block">
+                            {typeof status === "string" ? (
+                                <EditorialLabel className="text-xs">{status}</EditorialLabel>
+                            ) : (
+                                status
+                            )}
+                        </div>
+                    )}
+                </div>
+
                 {meta && (
                     <div className="text-body text-ink-soft flex flex-wrap items-center gap-x-4 gap-y-1">
                         {meta}
+                    </div>
+                )}
+
+                {/* Status block on mobile */}
+                {status && (
+                    <div className="sm:hidden mt-2">
+                        {typeof status === "string" ? (
+                            <EditorialLabel className="text-xs">{status}</EditorialLabel>
+                        ) : (
+                            status
+                        )}
                     </div>
                 )}
             </div>

@@ -174,22 +174,20 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Link
               href="/admin"
               aria-current={isActive("/admin") && pathname === "/admin" ? "page" : undefined}
-              className={`text-[15px] font-medium transition-colors ${
-                isActive("/admin") && pathname === "/admin"
-                  ? "text-accent-red underline underline-offset-4 decoration-2"
-                  : "text-ink hover:text-accent-red"
-              }`}
+              className={`text-[15px] font-medium transition-colors px-3 py-1.5 rounded-md ${isActive("/admin") && pathname === "/admin"
+                  ? "bg-ink/5 text-ink font-bold"
+                  : "text-ink hover:text-accent-red hover:bg-ink/5"
+                }`}
             >
               Dashboard
             </Link>
             <Link
               href="/admin/templates"
               aria-current={pathname.startsWith("/admin/templates") ? "page" : undefined}
-              className={`text-[15px] font-medium transition-colors ${
-                pathname.startsWith("/admin/templates")
-                  ? "text-accent-red underline underline-offset-4 decoration-2"
-                  : "text-ink hover:text-accent-red"
-              }`}
+              className={`text-[15px] font-medium transition-colors px-3 py-1.5 rounded-md ${pathname.startsWith("/admin/templates")
+                  ? "bg-ink/5 text-ink font-bold"
+                  : "text-ink hover:text-accent-red hover:bg-ink/5"
+                }`}
             >
               Templates
             </Link>

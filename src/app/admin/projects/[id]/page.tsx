@@ -224,8 +224,9 @@ export default function ProjectDetailPage() {
             <EditorialInput readOnly value={projectShareLink} className="flex-1 md:w-[300px]" />
             <EditorialButton
               type="button"
-              variant="outline"
+              variant={shareLinkCopied ? "secondary" : "outline"} // Visual shift
               onClick={() => void copyShareLink(projectShareLink)}
+              className={shareLinkCopied ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:border-green-300" : ""}
             >
               {shareLinkCopied ? "Copied!" : "Copy"}
             </EditorialButton>

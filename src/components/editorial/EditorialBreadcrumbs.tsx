@@ -23,7 +23,7 @@ export function EditorialBreadcrumbs({
     return (
         <nav aria-label="Breadcrumb" className={cn("flex items-center", className)}>
             {/* Desktop: Show all items */}
-            <ol className="hidden sm:flex flex-wrap items-center gap-2 text-label font-medium uppercase tracking-label">
+            <ol className="hidden sm:flex flex-wrap items-center gap-2 text-[14px] font-medium uppercase tracking-label">
                 {items.map((item, index) => {
                     const isLast = index === items.length - 1;
 
