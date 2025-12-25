@@ -150,12 +150,10 @@ export function TypeformSurvey({
       >
         {typeformState.isWaiting ? (
           <WaitingCard
-            questionNumber={typeformState.displayNumber}
             language={currentLanguage}
           />
         ) : (
           <QuestionCard
-            questionNumber={typeformState.displayNumber}
             questionText={typeformState.displayText}
             onSubmit={handleSend}
             onFinish={handleFinish}

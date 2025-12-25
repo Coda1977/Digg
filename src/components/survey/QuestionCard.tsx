@@ -4,7 +4,6 @@ import { useRef, useEffect } from "react";
 import { Mic } from "lucide-react";
 
 type QuestionCardProps = {
-  questionNumber: number;
   questionText: string;
   onSubmit: (answer: string) => void;
   onFinish: () => void;
@@ -19,7 +18,6 @@ type QuestionCardProps = {
 };
 
 export function QuestionCard({
-  questionNumber,
   questionText,
   onSubmit,
   onFinish,
@@ -52,15 +50,9 @@ export function QuestionCard({
 
   return (
     <div className="w-full max-w-[700px] mx-auto animate-fadeInUp">
-      {/* Question Header with Drop Cap Number */}
-      <div className="flex gap-5 mb-12 items-start">
-        <span
-          className="text-[4rem] font-bold leading-none font-serif flex-shrink-0 min-w-[50px]"
-          style={{ color: '#DC2626' }}
-        >
-          {questionNumber}
-        </span>
-        <h2 className="font-serif text-[1.5rem] font-normal leading-[1.45] tracking-[-0.01em] pt-2 flex-1 min-w-0 break-words">
+      {/* Question Header */}
+      <div className="mb-12">
+        <h2 className="font-serif text-[1.5rem] font-normal leading-[1.45] tracking-[-0.01em] break-words">
           {questionText}
         </h2>
       </div>
