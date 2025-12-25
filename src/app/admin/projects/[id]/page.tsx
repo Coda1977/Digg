@@ -164,15 +164,14 @@ export default function ProjectDetailPage() {
     <div className="max-w-[900px] mx-auto space-y-12">
       {/* Header Section */}
       <section className="space-y-6">
-        <EditorialBreadcrumbs
-          items={[
-            { label: "Dashboard", href: "/admin" },
-            { label: project.subjectName },
-          ]}
-        />
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-2">
+              <div className="flex items-center gap-2 text-label font-medium uppercase tracking-label text-ink-soft mb-2">
+                <Link href="/admin" className="hover:text-ink transition-colors">Dashboard</Link>
+                <span className="text-ink-lighter">/</span>
+                <span className="text-ink">{project.subjectName}</span>
+              </div>
               <div className="flex items-center gap-3">
                 <EditorialHeadline as="h1" size="lg">
                   {project.subjectName}

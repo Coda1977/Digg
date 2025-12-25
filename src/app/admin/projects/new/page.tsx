@@ -152,10 +152,7 @@ export default function NewProjectPage() {
           ]}
         />
         <div>
-          <EditorialHeadline as="h1" size="lg">
-            New Project
-          </EditorialHeadline>
-          <p className="text-body-lg text-ink-soft mt-3">
+          <p className="text-body-lg text-ink-soft mt-1">
             Configure your feedback project in 3 steps.
           </p>
         </div>
