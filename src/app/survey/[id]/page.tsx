@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { IntroScreen } from "@/components/survey/IntroScreen";
-import { ChatInterface } from "@/components/chat/ChatInterface";
+import { TypeformSurvey } from "@/components/survey/TypeformSurvey";
 import { ThankYouScreen } from "@/components/survey/ThankYouScreen";
 import {
   EditorialHeadline,
@@ -100,10 +100,10 @@ export default function SurveyPage() {
     );
   }
 
-  // Chat state
+  // Survey state (Typeform UI)
   if (relationshipId && (surveyData.status === "in_progress" || relationship)) {
     return (
-      <ChatInterface
+      <TypeformSurvey
         uniqueId={uniqueId}
         surveyId={surveyData._id}
         template={surveyData.template}
