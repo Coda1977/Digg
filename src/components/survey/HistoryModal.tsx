@@ -34,14 +34,13 @@ export function HistoryModal({
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
     if (msg.role === "assistant") {
-      // Find the next user message
       const nextUserMsg = messages[i + 1];
       if (nextUserMsg && nextUserMsg.role === "user") {
         pairs.push({
           question: msg.content,
           answer: nextUserMsg.content,
         });
-        i++; // Skip the user message since we've paired it
+        i++;
       }
     }
   }
@@ -54,18 +53,31 @@ export function HistoryModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex justify-center items-center z-[200] animate-fadeIn"
+      className="fixed inset-0 z-[200] flex items-center justify-center animate-fadeIn"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
       onClick={handleBackdropClick}
     >
-      <div className="bg-paper max-w-[650px] w-[90%] max-h-[80vh] overflow-y-auto p-8 animate-modalIn">
+      <div
+        className="max-w-[650px] w-[90%] max-h-[80vh] overflow-y-auto p-8 animate-modalIn"
+        style={{ backgroundColor: '#FAFAF8' }}
+      >
         {/* Modal Header */}
-        <div className="flex justify-between items-center mb-8 pb-4 border-b border-ink/10">
-          <h2 className="font-sans text-[0.75rem] uppercase tracking-[0.1em] font-semibold">
+        <div
+          className="flex justify-between items-center mb-8 pb-4"
+          style={{ borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}
+        >
+          <h2
+            className="font-sans uppercase tracking-[0.1em] font-semibold"
+            style={{ fontSize: '0.75rem', color: '#0A0A0A' }}
+          >
             {language === "he" ? "התשובות שלך" : "Your Responses"}
           </h2>
           <button
             onClick={onClose}
-            className="text-[1.5rem] bg-transparent border-none cursor-pointer text-ink-soft hover:text-ink"
+            className="bg-transparent border-none cursor-pointer transition-colors"
+            style={{ fontSize: '1.5rem', color: '#52525B' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#0A0A0A'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#52525B'}
             aria-label="Close"
           >
             ×
@@ -75,17 +87,30 @@ export function HistoryModal({
         {/* History List */}
         <div>
           {pairs.length === 0 ? (
-            <p className="text-ink-soft text-center py-8">
+            <p className="text-center py-8" style={{ color: '#52525B' }}>
               {language === "he" ? "עדיין אין תשובות" : "No responses yet"}
             </p>
           ) : (
             pairs.map((pair, index) => (
               <div
                 key={index}
-                className="py-5 border-b border-ink/6 last:border-b-0"
+                className="py-5"
+                style={{
+                  borderBottom: index === pairs.length - 1 ? 'none' : '1px solid rgba(0, 0, 0, 0.06)'
+                }}
               >
-                <p className="text-[0.9rem] text-ink-soft mb-2">{pair.question}</p>
-                <p className="text-[1rem] text-ink leading-[1.5]">"{pair.answer}"</p>
+                <p
+                  className="mb-2 font-serif"
+                  style={{ fontSize: '0.9rem', color: '#52525B', lineHeight: '1.4' }}
+                >
+                  {pair.question}
+                </p>
+                <p
+                  className="font-serif"
+                  style={{ fontSize: '1rem', color: '#0A0A0A', lineHeight: '1.5' }}
+                >
+                  "{pair.answer}"
+                </p>
               </div>
             ))
           )}
