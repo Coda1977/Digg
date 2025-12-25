@@ -35,7 +35,6 @@ export function QuestionCard({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    // Auto-focus textarea on mount
     textareaRef.current?.focus();
   }, []);
 
@@ -55,7 +54,10 @@ export function QuestionCard({
     <div className="w-full max-w-[700px] mx-auto animate-fadeInUp">
       {/* Question Header with Drop Cap Number */}
       <div className="flex gap-5 mb-12 items-start">
-        <span className="text-[4rem] font-bold leading-none text-accent-red font-serif flex-shrink-0 min-w-[50px]">
+        <span
+          className="text-[4rem] font-bold leading-none font-serif flex-shrink-0 min-w-[50px]"
+          style={{ color: '#DC2626' }}
+        >
           {questionNumber}
         </span>
         <h2 className="font-serif text-[1.5rem] font-normal leading-[1.45] tracking-[-0.01em] pt-2 flex-1 min-w-0 break-words">
@@ -79,10 +81,10 @@ export function QuestionCard({
         {/* Voice Button - top-right of textarea */}
         <div className="absolute right-4 top-4 flex items-center gap-2 group">
           <span
-            className={`font-sans text-[0.7rem] uppercase tracking-wide transition-all duration-200 ${
+            className={`font-sans text-[0.7rem] uppercase tracking-wide transition-all duration-200 text-ink-lighter ${
               isListening
-                ? "opacity-100 translate-x-0 text-ink-lighter"
-                : "opacity-0 translate-x-2.5 group-hover:opacity-100 group-hover:translate-x-0 text-ink-lighter"
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 translate-x-2.5 group-hover:opacity-100 group-hover:translate-x-0"
             }`}
           >
             {isListening
@@ -97,11 +99,11 @@ export function QuestionCard({
             type="button"
             onClick={toggleVoice}
             disabled={voiceLoading || isGenerating}
-            className={`typeform-voice-btn w-11 h-11 flex items-center justify-center border-none cursor-pointer transition-all flex-shrink-0 ${
-              isListening
-                ? "bg-accent-red text-paper"
-                : "bg-ink text-paper hover:bg-accent-red hover:scale-105"
-            } disabled:opacity-40 disabled:cursor-not-allowed`}
+            style={{
+              backgroundColor: isListening ? '#DC2626' : '#0A0A0A',
+              color: '#FAFAF8',
+            }}
+            className="typeform-voice-btn w-11 h-11 flex items-center justify-center border-none cursor-pointer transition-all flex-shrink-0 hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label={isListening ? "Stop recording" : "Start recording"}
           >
             {isListening ? (
@@ -130,7 +132,12 @@ export function QuestionCard({
           type="button"
           onClick={handleSubmit}
           disabled={!draft.trim() || isGenerating}
-          className="typeform-hover-shadow inline-flex items-center justify-center gap-3 px-12 py-4 font-sans text-[1rem] font-semibold text-white bg-accent-red border-none cursor-pointer transition-all hover:bg-[#b91c1c] hover:-translate-y-0.5 disabled:opacity-100 disabled:cursor-not-allowed disabled:transform-none"
+          style={{
+            backgroundColor: '#DC2626',
+            color: 'white',
+            opacity: 1,
+          }}
+          className="inline-flex items-center justify-center gap-3 px-12 py-4 font-sans text-[1rem] font-semibold border-none cursor-pointer transition-all hover:brightness-90 disabled:cursor-not-allowed"
         >
           {isGenerating ? (language === "he" ? "שולח..." : "Sending...") : language === "he" ? "המשך" : "Continue"} →
         </button>
@@ -153,7 +160,8 @@ export function QuestionCard({
             type="button"
             onClick={onFinish}
             disabled={isGenerating}
-            className="font-sans text-[0.875rem] font-medium text-accent-red hover:text-[#b91c1c] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ color: '#DC2626' }}
+            className="font-sans text-[0.875rem] font-medium hover:brightness-75 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {language === "he" ? "סיים סקר" : "Finish Survey"}
           </button>

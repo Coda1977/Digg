@@ -29,7 +29,7 @@ export function IntroScreen({
   return (
     <div className="min-h-screen bg-paper text-ink flex flex-col justify-center px-8">
       <div className="w-full max-w-[520px] mx-auto text-center animate-fadeInUp">
-        <p className="font-sans text-[0.7rem] uppercase tracking-[0.2em] text-accent-red mb-5">
+        <p className="font-sans text-[0.7rem] uppercase tracking-[0.2em] mb-5" style={{ color: '#DC2626' }}>
           360° Feedback
         </p>
         <h1 className="font-serif text-[2.25rem] mb-5 leading-[1.2]">
@@ -56,11 +56,13 @@ export function IntroScreen({
             <button
               key={opt.id}
               onClick={() => setRelationshipId(opt.id)}
-              className={`px-7 py-4 font-sans text-[0.875rem] font-medium border-2 cursor-pointer transition-all ${
-                relationshipId === opt.id
-                  ? "bg-accent-red border-accent-red text-white scale-105"
-                  : "bg-white border-ink-lighter text-ink hover:border-ink"
-              }`}
+              style={{
+                backgroundColor: relationshipId === opt.id ? '#DC2626' : 'white',
+                borderColor: relationshipId === opt.id ? '#DC2626' : '#A1A1AA',
+                color: relationshipId === opt.id ? 'white' : '#0A0A0A',
+                transform: relationshipId === opt.id ? 'scale(1.05)' : 'scale(1)',
+              }}
+              className="px-7 py-4 font-sans text-[0.875rem] font-medium border-2 cursor-pointer transition-all hover:border-ink"
             >
               {opt.label}
             </button>
@@ -70,7 +72,12 @@ export function IntroScreen({
         <button
           onClick={handleSubmit}
           disabled={!relationshipId}
-          className="typeform-hover-shadow inline-flex items-center justify-center gap-3 px-12 py-4 font-sans text-[1rem] font-semibold text-white bg-accent-red border-none cursor-pointer transition-all hover:bg-[#b91c1c] hover:-translate-y-0.5 disabled:opacity-100 disabled:cursor-not-allowed disabled:transform-none"
+          style={{
+            backgroundColor: '#DC2626',
+            color: 'white',
+            opacity: 1,
+          }}
+          className="inline-flex items-center justify-center gap-3 px-12 py-4 font-sans text-[1rem] font-semibold border-none cursor-pointer transition-all hover:brightness-90 disabled:cursor-not-allowed"
         >
           Begin Survey →
         </button>
