@@ -158,6 +158,7 @@ export function TypeformSurvey({
             questionNumber={typeformState.displayNumber}
             questionText={typeformState.displayText}
             onSubmit={handleSend}
+            onFinish={handleFinish}
             isGenerating={isGenerating}
             textDirection={textareaDirection}
             language={currentLanguage}

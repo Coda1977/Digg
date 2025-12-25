@@ -7,6 +7,7 @@ type QuestionCardProps = {
   questionNumber: number;
   questionText: string;
   onSubmit: (answer: string) => void;
+  onFinish: () => void;
   isGenerating: boolean;
   textDirection: "ltr" | "rtl";
   language: "en" | "he";
@@ -21,6 +22,7 @@ export function QuestionCard({
   questionNumber,
   questionText,
   onSubmit,
+  onFinish,
   isGenerating,
   textDirection,
   language,
@@ -56,10 +58,7 @@ export function QuestionCard({
         <span className="text-[4rem] font-bold leading-none text-accent-red font-serif flex-shrink-0 min-w-[50px]">
           {questionNumber}
         </span>
-        <h2
-          className="text-[1.5rem] font-normal leading-[1.45] tracking-tight pt-2 flex-1 min-w-0 break-words"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
+        <h2 className="font-serif text-[1.5rem] font-normal leading-[1.45] tracking-[-0.01em] pt-2 flex-1 min-w-0 break-words">
           {questionText}
         </h2>
       </div>
@@ -80,10 +79,10 @@ export function QuestionCard({
         {/* Voice Button - top-right of textarea */}
         <div className="absolute right-4 top-4 flex items-center gap-2 group">
           <span
-            className={`font-sans text-[0.7rem] uppercase tracking-wide text-ink-lighter transition-all ${
+            className={`font-sans text-[0.7rem] uppercase tracking-wide transition-all duration-200 ${
               isListening
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 translate-x-2.5 group-hover:opacity-100 group-hover:translate-x-0"
+                ? "opacity-100 translate-x-0 text-ink-lighter"
+                : "opacity-0 translate-x-2.5 group-hover:opacity-100 group-hover:translate-x-0 text-ink-lighter"
             }`}
           >
             {isListening
@@ -131,23 +130,33 @@ export function QuestionCard({
           type="button"
           onClick={handleSubmit}
           disabled={!draft.trim() || isGenerating}
-          className="typeform-hover-shadow inline-flex items-center justify-center gap-3 px-12 py-4 font-sans text-[1rem] font-semibold text-white bg-accent-red border-none cursor-pointer transition-all hover:bg-[#b91c1c] hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
+          className="typeform-hover-shadow inline-flex items-center justify-center gap-3 px-12 py-4 font-sans text-[1rem] font-semibold text-white bg-accent-red border-none cursor-pointer transition-all hover:bg-[#b91c1c] hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
           {isGenerating ? (language === "he" ? "שולח..." : "Sending...") : language === "he" ? "המשך" : "Continue"} →
         </button>
-        <p className="font-sans text-[0.75rem] text-ink-lighter">
-          {language === "he" ? (
-            <>
-              לחץ <kbd className="bg-ink/5 px-2 py-1">Ctrl</kbd> +{" "}
-              <kbd className="bg-ink/5 px-2 py-1">Enter</kbd> לשלוח
-            </>
-          ) : (
-            <>
-              Press <kbd className="bg-ink/5 px-2 py-1">Ctrl</kbd> +{" "}
-              <kbd className="bg-ink/5 px-2 py-1">Enter</kbd> to submit
-            </>
-          )}
-        </p>
+        <div className="flex items-center gap-6">
+          <p className="font-sans text-[0.75rem] text-ink-lighter">
+            {language === "he" ? (
+              <>
+                לחץ <kbd className="bg-ink/5 px-2 py-1">Ctrl</kbd> +{" "}
+                <kbd className="bg-ink/5 px-2 py-1">Enter</kbd> לשלוח
+              </>
+            ) : (
+              <>
+                Press <kbd className="bg-ink/5 px-2 py-1">Ctrl</kbd> +{" "}
+                <kbd className="bg-ink/5 px-2 py-1">Enter</kbd> to submit
+              </>
+            )}
+          </p>
+          <button
+            type="button"
+            onClick={onFinish}
+            disabled={isGenerating}
+            className="font-sans text-[0.75rem] text-ink-soft hover:text-accent-red underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {language === "he" ? "סיים סקר" : "Finish Survey"}
+          </button>
+        </div>
       </div>
     </div>
   );

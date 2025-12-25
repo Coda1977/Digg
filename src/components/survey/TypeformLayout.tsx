@@ -26,7 +26,7 @@ export function TypeformLayout({
           {showHistory && (
             <button
               onClick={onHistoryClick}
-              className="font-sans text-[0.9rem] font-medium text-paper bg-ink border-2 border-ink px-5 py-2.5 rounded transition-all hover:bg-accent-red hover:border-accent-red"
+              className="font-sans text-[0.9rem] font-medium text-paper bg-ink border-2 border-ink px-5 py-2.5 transition-all duration-200 hover:bg-accent-red hover:border-accent-red"
             >
               View History
             </button>

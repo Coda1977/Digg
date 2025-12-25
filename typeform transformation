@@ -1,0 +1,177 @@
+Typeform-Style Survey Implementation Plan (Strict UI Layer)
+Overview
+Implement the approved "Typeform-style" design (vertical centering, drop-cap numbers) strictly as a visual layer over the existing AI chat logic.
+
+CRITICAL CONSTRAINT: Do NOT change the AI behavior, system prompt, or conversation flow. Use the existing messages stream and currentQuestionId tracking to drive the UI.
+
+Codex pointer: This is safe with the current chat architecture; keep all AI logic and message persistence exactly as-is.
+
+Design & Behavior Source of Truth
+THE GOLD STANDARD: All visual styling and UI behavior must be a 1:1 match with the finalized prototype: 
+typeform-survey-prototype.html
+
+Codex pointer: The file exists at prototype/typeform-survey-prototype.html. Use it as the CSS/DOM source of truth.
+
+Key Design Invariants (From Prototype):
+
+Vertical Centering: The .survey-container must use justify-content: center to center content in the viewport.
+Drop-Caps: Questions must start with a large (4rem), red (accent-red), serif number.
+Spacing: Maintenance of the 3rem gap between question header and input area.
+Input: Textarea has a 2px light border, white background, and min-height: 180px.
+Actions: Centered "Continue" button with hover-lift and keyboard hint below it.
+Voice: Repositioned "Speak" button to the top-right of the input box.
+
+Codex pointer: Carry over RTL handling for Hebrew (direction and alignment) and the existing voice input behavior.
+
+Architecture Strategy: "The Projector"
+Instead of creating a new data model, we will treat the TypeformSurvey component as a "Projector" that displays the linear chat history as a sequence of single screens.
+
+Chat Reality (Existing)	Typeform Projection (New UI)
+User: "Hi"	(Hidden / Auto-skipped)
+AI: "Q1 text..." (ID: q1)	Screen 1: Number "1", Text "Q1 text..."
+User: "Answer..."	(Transition Animation)
+AI: "Probing Q..." (ID: q1)	Screen 2: Number "1", Text "Probing Q..."
+User: "Answer..."	(Transition Animation)
+AI: "Q2 text..." (ID: q2)	Screen 3: Number "2", Text "Q2 text..."
+Data persistence
+Read: 
+convex/messages.ts
+ (Existing)
+Write: 
+convex/messages.ts
+ (Existing)
+State: surveys table (Existing) -> Add uiMode flag only.
+
+Codex pointer: Do not alter message ordering or trimming behavior; preserve the existing UI message cleaning logic.
+
+Proposed Changes
+1. Convex Backend (Minimal)
+[MODIFY] 
+schema.ts
+Add uiMode to allow toggling per survey.
+
+// Add strictly additive field
+uiMode: v.optional(v.union(v.literal("chat"), v.literal("typeform")))
+[NEW] 
+surveys.ts
+Add mutation to switch modes (for admin/testing).
+
+export const setUiMode = mutation({
+  args: { surveyId: v.id("surveys"), mode: v.literal("typeform") },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.surveyId, { uiMode: args.mode });
+  },
+});
+
+Codex pointer: Consider also allowing "chat" in the mutation for quick rollback during testing.
+
+2. Frontend Logic (The Adapter)
+[NEW] src/hooks/useTypeformAdapter.ts
+This hook adapts the chat stream into "Current Card" state without altering the stream logic.
+
+export function useTypeformAdapter(messages: UiMessage[], template: Template) {
+  // 1. Find the LATEST Assistant Message
+  const latestAssistantMsg = messages.findLast(m => m.role === "assistant");
+  
+  // 2. Determine Content
+  const displayText = latestAssistantMsg?.content || "Getting ready...";
+  
+  // 3. Determine Question Number
+  // We use the questionId attached to the message (already in DB)
+  // If id == "q1" -> Index 0 -> Number 1
+  // If id is null (intro/outro) -> Handle special screens
+  const currentQuestionId = latestAssistantMsg?.questionId;
+  const questionIndex = template.questions.findIndex(q => q.id === currentQuestionId);
+  const displayIndex = questionIndex >= 0 ? questionIndex : 0;
+  
+  // 4. Calculate Progress
+  const progress = Math.round(((displayIndex + 1) / template.questions.length) * 100);
+  return {
+    displayText,
+    displayNumber: displayIndex + 1,
+    progress,
+    isIntro: !latestAssistantMsg,
+    isComplete: latestAssistantMsg?.questionId === "completed" // or similar logic
+  };
+}
+
+Codex pointer: Use the last assistant message WITH a valid questionId to avoid jumping back to 1 when questionId is null. Also sort questions by template order before mapping.
+Codex pointer: Completion should be driven by existing "Finish Survey" flow or survey status, not a magic questionId.
+
+3. UI Components (The Design)
+[NEW] src/components/survey/TypeformLayout.tsx
+Exact CSS Port: Copy styles from 
+prototype/typeform-survey-prototype.html
+.
+Structure:
+<header>: Back (disabled logic) / History (opens modal).
+<main>: Centered Flexbox container.
+<footer>: Progress bar with glow effect.
+[NEW] src/components/survey/QuestionCard.tsx
+Visuals:
+.drop-cap: 4rem, serif, accent-red.
+.question-text: 1.5rem, serif, properly wrapped.
+.answer-input: min-height: 180px, white bg, lighter border.
+Action Row: Centered "Submit" button + Keyboard hint.
+Voice: Top-right VoiceControl with "Speak"/"Listening" label.
+[NEW] src/components/survey/HistoryModal.tsx
+Function: Renders the full chat transcript in a clean, read-only list for review.
+Styles: Overlay modal from prototype.
+
+Codex pointer: Preserve RTL direction and current language selection in both the question card and history modal.
+
+4. Integration
+[MODIFY] 
+page.tsx
+Conditional rendering based on feature flag or DB field.
+
+if (surveyData.uiMode === "typeform") {
+  return (
+    <TypeformSurvey
+      messages={messages}
+      sendMessage={sendMessage}
+      // ...
+    />
+  );
+}
+
+Codex pointer: The integration point is src/app/survey/[id]/page.tsx (not a generic page.tsx).
+
+Implementation Phases
+Phase 1: Setup & Backend (User: "Don't change AI")
+Add uiMode to schema.
+Create useTypeformAdapter hook to prove we can derive state from existing messages without new AI logic.
+Phase 2: Component Structure (User: "Match Design")
+Create TypeformLayout with the finalized CSS.
+Implement QuestionCard with the drop-cap and centered layout.
+Implement 
+VoiceInput
+ button matches the new prototype design (top-right of textarea).
+Phase 3: Integration & Polish
+Wire up 
+page.tsx
+.
+Test the "Probe" flow:
+User answers.
+Screen fades out.
+Screen fades in with Same Number but New Text (AI Probe).
+Verify "History" modal shows the full context.
+QA Plan (Strict)
+AI Logic Check:
+Start survey. Answer vaguely ("It's good").
+Expectation: AI asks "Why is it good?" (Probe).
+UI Result: Card updates text. Number stays same.
+Design Check:
+Take screenshot of React implementation.
+Compare pixel-perfect match with 
+typeform-survey-prototype.html
+.
+Verify vertical centering and input spacing (3rem).
+Data Check:
+Verify messages table in Dashboard populates exactly as it did in Chat Mode.
+Why this is better?
+Zero Risk to AI: We rely 100% on the existing, working AI loop.
+Zero Risk to Data: We use the same DB tables.
+Pure UI Change: We effectively just "skin" the chat into a slideshow.
+
+Codex pointer: Add a fallback to the current chat UI if template question mapping fails (unknown questionId), to avoid blocking users mid-survey.
