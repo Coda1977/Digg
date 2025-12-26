@@ -131,7 +131,7 @@ export function QuestionCard({
           }}
           className="inline-flex items-center justify-center gap-3 px-6 sm:px-10 md:px-12 py-3 sm:py-4 min-h-[48px] font-sans text-[1rem] font-semibold border-none cursor-pointer transition-all hover:brightness-90 disabled:cursor-not-allowed"
         >
-          {isGenerating ? (language === "he" ? "שולח..." : "Sending...") : language === "he" ? "המשך" : "Continue"} →
+          {isGenerating ? (language === "he" ? "שולח..." : "Sending...") : language === "he" ? "שלח" : "Send"} →
         </button>
         <div className="flex items-center gap-3 sm:gap-6">
           <span className="hidden sm:inline font-sans text-[0.75rem] text-ink-lighter">
@@ -143,7 +143,7 @@ export function QuestionCard({
             ) : (
               <>
                 Press <kbd className="bg-ink/5 px-2 py-1">Ctrl</kbd> +{" "}
-                <kbd className="bg-ink/5 px-2 py-1">Enter</kbd> to submit
+                <kbd className="bg-ink/5 px-2 py-1">Enter</kbd> to send
               </>
             )}
           </span>
