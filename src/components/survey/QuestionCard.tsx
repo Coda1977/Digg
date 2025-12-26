@@ -51,14 +51,14 @@ export function QuestionCard({
   return (
     <div className="w-full max-w-[700px] mx-auto animate-fadeInUp">
       {/* Question Header */}
-      <div className="mb-12">
-        <h2 className="font-serif text-[1.5rem] font-normal leading-[1.45] tracking-[-0.01em] break-words">
+      <div className="mb-6 sm:mb-8 md:mb-12">
+        <h2 className="font-serif text-[1.25rem] sm:text-[1.35rem] md:text-[1.5rem] font-normal leading-[1.45] tracking-[-0.01em] break-words">
           {questionText}
         </h2>
       </div>
 
       {/* Answer Input Area */}
-      <div className="relative mb-8">
+      <div className="relative mb-4 sm:mb-6 md:mb-8">
         <textarea
           ref={textareaRef}
           value={draft}
@@ -66,14 +66,14 @@ export function QuestionCard({
           onKeyDown={handleKeyDown}
           placeholder={language === "he" ? "שתף את מחשבותיך..." : "Share your thoughts..."}
           dir={textDirection}
-          className="typeform-focus-ring w-full px-6 py-6 pr-20 font-serif text-[1.125rem] leading-[1.7] border-2 border-ink/40 bg-white text-ink resize-none min-h-[180px] transition-all focus:outline-none focus:border-ink placeholder:text-ink-lighter"
+          className="typeform-focus-ring w-full px-3 py-4 pr-14 sm:px-5 sm:py-5 sm:pr-18 md:px-6 md:py-6 md:pr-20 font-serif text-base sm:text-[1.125rem] leading-[1.7] border-2 border-ink/40 bg-white text-ink resize-none min-h-[120px] sm:min-h-[150px] md:min-h-[180px] transition-all focus:outline-none focus:border-ink placeholder:text-ink-lighter"
           disabled={isGenerating}
         />
 
         {/* Voice Button - top-right of textarea */}
-        <div className="absolute right-4 top-4 flex items-center gap-2 group">
+        <div className="absolute right-3 sm:right-4 top-3 sm:top-4 flex items-center gap-2 group">
           <span
-            className={`font-sans text-[0.7rem] uppercase tracking-wide transition-all duration-200 text-ink-lighter ${
+            className={`font-sans text-[0.75rem] uppercase tracking-wide transition-all duration-200 text-ink-lighter hidden sm:inline ${
               isListening
                 ? "opacity-100 translate-x-0"
                 : "opacity-0 translate-x-2.5 group-hover:opacity-100 group-hover:translate-x-0"
@@ -119,7 +119,7 @@ export function QuestionCard({
       </div>
 
       {/* Action Row - centered submit button */}
-      <div className="flex flex-col items-center gap-6">
+      <div className="flex flex-col items-center gap-4 sm:gap-6">
         <button
           type="button"
           onClick={handleSubmit}
@@ -129,12 +129,12 @@ export function QuestionCard({
             color: 'white',
             opacity: 1,
           }}
-          className="inline-flex items-center justify-center gap-3 px-12 py-4 font-sans text-[1rem] font-semibold border-none cursor-pointer transition-all hover:brightness-90 disabled:cursor-not-allowed"
+          className="inline-flex items-center justify-center gap-3 px-6 sm:px-10 md:px-12 py-3 sm:py-4 min-h-[48px] font-sans text-[1rem] font-semibold border-none cursor-pointer transition-all hover:brightness-90 disabled:cursor-not-allowed"
         >
           {isGenerating ? (language === "he" ? "שולח..." : "Sending...") : language === "he" ? "המשך" : "Continue"} →
         </button>
-        <div className="flex items-center gap-6">
-          <p className="font-sans text-[0.75rem] text-ink-lighter">
+        <div className="flex items-center gap-3 sm:gap-6">
+          <span className="hidden sm:inline font-sans text-[0.75rem] text-ink-lighter">
             {language === "he" ? (
               <>
                 לחץ <kbd className="bg-ink/5 px-2 py-1">Ctrl</kbd> +{" "}
@@ -146,14 +146,14 @@ export function QuestionCard({
                 <kbd className="bg-ink/5 px-2 py-1">Enter</kbd> to submit
               </>
             )}
-          </p>
-          <span className="text-ink-lighter">•</span>
+          </span>
+          <span className="hidden sm:inline text-ink-lighter">•</span>
           <button
             type="button"
             onClick={onFinish}
             disabled={isGenerating}
             style={{ color: '#DC2626' }}
-            className="font-sans text-[0.875rem] font-medium hover:brightness-75 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="font-sans text-[0.875rem] font-medium min-h-[44px] py-2 hover:brightness-75 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {language === "he" ? "סיים סקר" : "Finish Survey"}
           </button>

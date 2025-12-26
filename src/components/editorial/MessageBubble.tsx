@@ -42,11 +42,11 @@ function parseMarkdown(text: string): React.ReactNode[] {
   return elements;
 }
 
-const messageBubbleVariants = cva("mb-10 animate-in fade-in slide-in-from-bottom-2 duration-300", {
+const messageBubbleVariants = cva("mb-6 sm:mb-8 md:mb-10 animate-in fade-in slide-in-from-bottom-2 duration-300", {
   variants: {
     variant: {
       assistant: "",
-      user: "bg-ink text-paper px-6 py-5",
+      user: "bg-ink text-paper px-4 py-4 sm:px-5 sm:py-5 md:px-6",
     },
   },
   defaultVariants: {
@@ -90,10 +90,10 @@ const MessageBubble = React.forwardRef<HTMLDivElement, MessageBubbleProps>(
         ref={ref}
         className={cn(
           messageBubbleVariants({ variant, className }),
-          variant === "assistant" && !isRtl && "border-l-4 border-ink pl-6 py-1",
-          variant === "assistant" && isRtl && "border-r-4 border-ink pr-6 py-1",
-          variant === "user" && !isRtl && "ml-0 md:ml-15",
-          variant === "user" && isRtl && "mr-0 md:mr-15"
+          variant === "assistant" && !isRtl && "border-l-3 sm:border-l-4 border-ink pl-4 sm:pl-5 md:pl-6 py-1",
+          variant === "assistant" && isRtl && "border-r-3 sm:border-r-4 border-ink pr-4 sm:pr-5 md:pr-6 py-1",
+          variant === "user" && !isRtl && "ml-0 sm:ml-8 md:ml-12 lg:ml-16",
+          variant === "user" && isRtl && "mr-0 sm:mr-8 md:mr-12 lg:mr-16"
         )}
         dir={direction}
         {...props}
@@ -101,7 +101,7 @@ const MessageBubble = React.forwardRef<HTMLDivElement, MessageBubbleProps>(
         {showRole && (
           <div
             className={cn(
-              "text-[11px] font-semibold uppercase tracking-[0.12em] mb-3",
+              "text-[11px] sm:text-[12px] font-semibold uppercase tracking-[0.12em] mb-2 sm:mb-3",
               variant === "assistant" ? "text-ink-soft" : "text-ink-lighter"
             )}
           >
@@ -110,7 +110,7 @@ const MessageBubble = React.forwardRef<HTMLDivElement, MessageBubbleProps>(
         )}
         <div
           className={cn(
-            "text-[17px] leading-[1.8]",
+            "text-[15px] sm:text-[16px] md:text-[17px] leading-[1.7] sm:leading-[1.8]",
             variant === "assistant" ? "text-ink" : "text-paper"
           )}
         >

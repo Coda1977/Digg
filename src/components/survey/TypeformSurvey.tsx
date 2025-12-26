@@ -170,7 +170,7 @@ export function TypeformSurvey({
 
         {/* Error display */}
         {error && (
-          <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-accent-red text-white px-6 py-3 rounded shadow-lg">
+          <div className="fixed bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 bg-accent-red text-white px-4 sm:px-6 py-3 rounded shadow-lg max-w-[90vw] sm:max-w-md text-center text-sm sm:text-base">
             {error}
           </div>
         )}

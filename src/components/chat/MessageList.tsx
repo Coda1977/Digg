@@ -14,9 +14,9 @@ export function MessageList() {
     <div className="flex-1 min-h-0 flex flex-col">
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-4 sm:px-6 py-8 sm:py-12"
+        className="flex-1 overflow-y-auto px-3 sm:px-5 md:px-6 lg:px-8 py-6 sm:py-8 md:py-10 lg:py-12"
       >
-        <div className="mx-auto max-w-[900px] space-y-8 sm:space-y-10">
+        <div className="mx-auto max-w-[900px] lg:max-w-[1000px] xl:max-w-[1100px] space-y-6 sm:space-y-8 md:space-y-10">
           {!uiMessages ? (
             <MessageBubble variant="assistant" direction="ltr">
               Loading conversation...

@@ -27,9 +27,9 @@ export function VoiceControls() {
       disabled={disabled}
       aria-pressed={isListening}
       aria-label={isListening ? "Stop voice input" : "Start voice input"}
-      className="flex-1"
+      className="flex-1 min-h-[48px]"
     >
-      {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+      {isListening ? <MicOff className="h-5 w-5 sm:h-6 sm:w-6" /> : <Mic className="h-5 w-5 sm:h-6 sm:w-6" />}
       {voiceLoading
         ? "..."
         : isListening

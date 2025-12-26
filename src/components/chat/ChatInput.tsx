@@ -95,7 +95,7 @@ export function ChatInput({ surveyId, onSend, onFinish }: ChatInputProps) {
           }}
           placeholder={placeholder}
           disabled={isGenerating || !messagesReady || isListening}
-          className="min-h-[70px] max-h-[180px] resize-y"
+          className="min-h-[60px] sm:min-h-[70px] md:min-h-[80px] max-h-[150px] sm:max-h-[180px] md:max-h-[220px] resize-y"
           dir={textareaDirection}
           style={{ textAlign: textareaDirection === "rtl" ? "right" : "left" }}
         />
@@ -106,8 +106,8 @@ export function ChatInput({ surveyId, onSend, onFinish }: ChatInputProps) {
           </p>
         )}
 
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <VoiceControls />
             <EditorialButton
               type="submit"

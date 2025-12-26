@@ -114,17 +114,17 @@ export function ChatInterface({
     <ChatProvider value={contextValue}>
       <div className="h-screen flex flex-col bg-paper text-ink overflow-hidden">
         <header className="border-b border-ink/20 bg-paper flex-shrink-0">
-          <div className="mx-auto max-w-[900px] px-4 sm:px-6 py-3 sm:py-4">
-            <div className="space-y-3">
+          <div className="mx-auto max-w-[900px] lg:max-w-[1000px] xl:max-w-[1100px] px-3 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-4">
+            <div className="space-y-2 sm:space-y-3">
               <div className="min-w-0">
-                <h1 className="font-serif font-bold tracking-headline text-[16px] sm:text-[18px] leading-tight truncate">
+                <h1 className="font-serif font-bold tracking-headline text-[15px] sm:text-[17px] md:text-[18px] lg:text-[20px] leading-tight truncate">
                   {project.subjectName}
                 </h1>
-                <p className="text-[10px] text-ink-soft uppercase tracking-wider mt-0.5">
+                <p className="text-[11px] sm:text-[12px] text-ink-soft uppercase tracking-wider mt-0.5">
                   {template.name}
                 </p>
               </div>
-              <div className="w-full h-2.5 bg-ink/10 rounded-full overflow-hidden">
+              <div className="w-full h-2 sm:h-2.5 bg-ink/10 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-accent-blue transition-all duration-500 ease-out rounded-full"
                   style={{ width: `${progressPercent}%` }}
@@ -137,7 +137,7 @@ export function ChatInterface({
           <MessageList />
         </main>
         <footer className="border-t border-ink/20 bg-paper flex-shrink-0">
-          <div className="mx-auto max-w-[900px] px-4 sm:px-6 py-2.5 sm:py-3 pb-[calc(0.625rem+env(safe-area-inset-bottom))]">
+          <div className="mx-auto max-w-[900px] lg:max-w-[1000px] xl:max-w-[1100px] px-3 sm:px-5 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))] sm:pb-[calc(0.625rem+env(safe-area-inset-bottom))]">
             <ChatInput surveyId={surveyId} onSend={handleSend} onFinish={handleFinish} />
           </div>
         </footer>
