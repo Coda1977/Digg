@@ -122,7 +122,7 @@ export function useMessages({
   ]);
 
   const sendMessage = useCallback(
-    async (userText: string) => {
+    async (userText: string, ratingValue?: number) => {
       if (!uiMessages) return;
       if (!userText.trim()) return;
       if (isGenerating) return;
@@ -142,6 +142,7 @@ export function useMessages({
           content: userText,
           questionId: currentQuestionId ?? undefined,
           questionText: currentQuestionText ?? undefined,
+          ratingValue: ratingValue ?? undefined,
         });
 
         const response = await generateAssistantMessage({

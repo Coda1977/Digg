@@ -97,10 +97,21 @@ export function TypeformSurvey({
     [currentLanguage, draft]
   );
 
+  // Find current question config from template
+  const currentQuestion = useMemo(() => {
+    if (!typeformState.currentQuestionId) return null;
+    return template.questions.find(q => q.id === typeformState.currentQuestionId) ?? null;
+  }, [typeformState.currentQuestionId, template.questions]);
+
   const handleSend = async (userText: string) => {
     stopListening();
     setDraft("");
     await sendMessage(userText);
+  };
+
+  const handleRatingSubmit = async (ratingValue: number) => {
+    // Send rating as message content with ratingValue attached
+    await sendMessage(ratingValue.toString(), ratingValue);
   };
 
   const handleFinish = async () => {
@@ -165,6 +176,9 @@ export function TypeformSurvey({
             toggleVoice={toggleListening}
             draft={draft}
             setDraft={setDraft}
+            questionType={currentQuestion?.type}
+            ratingScale={currentQuestion?.type === "rating" ? currentQuestion.ratingScale : undefined}
+            onRatingSubmit={handleRatingSubmit}
           />
         )}
 
