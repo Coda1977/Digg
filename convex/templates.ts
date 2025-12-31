@@ -63,6 +63,12 @@ export const create = mutation({
       v.object({
         text: v.string(),
         collectMultiple: v.boolean(),
+        type: v.optional(v.union(v.literal("text"), v.literal("rating"))),
+        ratingScale: v.optional(v.object({
+          max: v.number(),
+          lowLabel: v.optional(v.string()),
+          highLabel: v.optional(v.string()),
+        })),
       })
     ),
     relationshipOptions: v.array(
@@ -76,12 +82,29 @@ export const create = mutation({
     await requireAdmin(ctx);
     assertNoLegacyPlaceholders(args.systemPromptTemplate);
 
+    // Validate rating questions
+    for (const q of args.questions) {
+      if (q.type === "rating") {
+        if (!q.ratingScale) {
+          throw new ConvexError("Rating questions must have ratingScale");
+        }
+        if (![3, 4, 5, 7, 10].includes(q.ratingScale.max)) {
+          throw new ConvexError("Rating scale max must be 3, 4, 5, 7, or 10");
+        }
+        if (q.collectMultiple) {
+          throw new ConvexError("Rating questions cannot collect multiple responses");
+        }
+      }
+    }
+
     // Generate IDs and add order to questions
     const questions = args.questions.map((q, idx) => ({
       id: nanoid(8),
       text: q.text,
       collectMultiple: q.collectMultiple,
       order: idx + 1,
+      ...(q.type && { type: q.type }),
+      ...(q.ratingScale && { ratingScale: q.ratingScale }),
     }));
 
     // Generate IDs for relationship options
@@ -116,6 +139,12 @@ export const update = mutation({
         id: v.optional(v.string()), // Keep existing IDs if present
         text: v.string(),
         collectMultiple: v.boolean(),
+        type: v.optional(v.union(v.literal("text"), v.literal("rating"))),
+        ratingScale: v.optional(v.object({
+          max: v.number(),
+          lowLabel: v.optional(v.string()),
+          highLabel: v.optional(v.string()),
+        })),
       })
     ),
     relationshipOptions: v.array(
@@ -140,12 +169,29 @@ export const update = mutation({
       throw new Error("Cannot edit built-in templates");
     }
 
+    // Validate rating questions
+    for (const q of args.questions) {
+      if (q.type === "rating") {
+        if (!q.ratingScale) {
+          throw new ConvexError("Rating questions must have ratingScale");
+        }
+        if (![3, 4, 5, 7, 10].includes(q.ratingScale.max)) {
+          throw new ConvexError("Rating scale max must be 3, 4, 5, 7, or 10");
+        }
+        if (q.collectMultiple) {
+          throw new ConvexError("Rating questions cannot collect multiple responses");
+        }
+      }
+    }
+
     // Process questions: keep existing IDs or generate new ones
     const questions = args.questions.map((q, idx) => ({
       id: q.id || nanoid(8),
       text: q.text,
       collectMultiple: q.collectMultiple,
       order: idx + 1,
+      ...(q.type && { type: q.type }),
+      ...(q.ratingScale && { ratingScale: q.ratingScale }),
     }));
 
     // Process relationship options: keep existing IDs or generate new ones
@@ -214,6 +260,8 @@ export const duplicate = mutation({
       text: q.text,
       collectMultiple: q.collectMultiple,
       order: idx + 1,
+      ...("type" in q && q.type && { type: q.type }),
+      ...("ratingScale" in q && q.ratingScale && { ratingScale: q.ratingScale }),
     }));
 
     const relationshipOptions = template.relationshipOptions.map((r) => ({

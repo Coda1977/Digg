@@ -30,6 +30,16 @@ export default defineSchema({
         text: v.string(),
         collectMultiple: v.boolean(),
         order: v.number(),
+        // Rating question configuration (optional for backward compatibility)
+        type: v.optional(v.union(
+          v.literal("text"),
+          v.literal("rating")
+        )),
+        ratingScale: v.optional(v.object({
+          max: v.number(),  // 3, 4, 5, 7, or 10
+          lowLabel: v.optional(v.string()),   // e.g., "Poor"
+          highLabel: v.optional(v.string()),  // e.g., "Excellent"
+        }))
       })
     ),
     relationshipOptions: v.array(
@@ -164,6 +174,8 @@ export default defineSchema({
     // Question context - which template question this message relates to
     questionId: v.optional(v.string()),
     questionText: v.optional(v.string()),
+    // Rating value for rating-type questions
+    ratingValue: v.optional(v.number()),
   })
     .index("by_survey", ["surveyId"])
     .index("by_survey_order", ["surveyId", "order"]),
