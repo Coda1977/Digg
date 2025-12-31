@@ -114,8 +114,13 @@ function buildQuestionsText(template: Doc<"templates">, subjectName: string) {
   return sorted
     .map((q, idx) => {
       const text = q.text.replaceAll("{{subjectName}}", subjectName);
-      const meta = q.collectMultiple ? " (collect multiple responses)" : "";
-      return `${idx + 1}. [ID: ${q.id}] ${text}${meta}`;
+      const meta = [];
+      if (q.collectMultiple) meta.push("collect multiple responses");
+      if ("type" in q && q.type === "rating" && "ratingScale" in q && q.ratingScale) {
+        meta.push(`RATING SCALE: 1-${q.ratingScale.max}`);
+      }
+      const metaText = meta.length ? ` (${meta.join(", ")})` : "";
+      return `${idx + 1}. [ID: ${q.id}] ${text}${metaText}`;
     })
     .join("\n");
 }
@@ -152,6 +157,31 @@ function buildSurveySystemPrompt(args: {
   assertNoLegacyPlaceholders(personaSource);
   const persona = personaSource?.trim() || "";
 
+  // Check if template has any rating questions
+  const hasRatingQuestions = template.questions.some(
+    q => "type" in q && q.type === "rating"
+  );
+
+  const ratingInstructions = hasRatingQuestions ? `
+
+RATING QUESTION GUIDELINES:
+When a respondent provides a numeric rating:
+- The number is their rating on the specified scale (e.g., "7" on a 1-10 scale)
+- Acknowledge the specific rating value in your response
+- Ask adaptive follow-up questions based on their position on the scale
+
+Examples of adaptive follow-ups:
+- "A 7 out of 10—what would it take to move from a 7 to a 9?"
+- "You rated this a 4. What's holding it back from being higher?"
+- "A 9—that's strong! What makes it work so well?"
+- "You gave this a 5, right in the middle. What would need to change to push it higher?"
+
+- Use the REFLECT → PROBE methodology: acknowledge the rating, then ask about the gap
+- Explore what's working (strengths) and what's missing (improvements)
+- Reference the scale endpoints when relevant
+- Ask about concrete actions or changes that would move the rating
+` : "";
+
   return `${DIGG_INTERVIEWER_CORE}
 
 ---
@@ -163,7 +193,7 @@ ${persona ? `\nINTERVIEWER STYLE:\n${persona}` : ""}
 ${templateDescription ? `\nSURVEY DESCRIPTION:\n${templateDescription}` : ""}
 
 QUESTIONS TO COVER (with IDs for tracking):
-${questionsText}
+${questionsText}${ratingInstructions}
 
 QUESTION TRACKING:
 When you respond, always set currentQuestionId to the ID of the question you are currently exploring or asking about. Use the exact ID from the list above (e.g., "strengths", "improvements"). Set it to null only when you are wrapping up the interview or transitioning between questions without asking about a specific topic.
