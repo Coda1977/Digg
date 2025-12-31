@@ -19,12 +19,20 @@ import {
   EditorialButton,
   EditorialBreadcrumbs,
 } from "@/components/editorial";
+import { QuestionTypeSelector } from "@/components/admin/QuestionTypeSelector";
+import { RatingConfigPanel } from "@/components/admin/RatingConfigPanel";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 type Question = {
   id?: string;
   text: string;
   collectMultiple: boolean;
+  type?: "text" | "rating";
+  ratingScale?: {
+    max: number;
+    lowLabel?: string;
+    highLabel?: string;
+  };
   tempId: string;
 };
 
@@ -68,6 +76,8 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
             id: q.id,
             text: q.text,
             collectMultiple: q.collectMultiple,
+            type: "type" in q ? q.type : "text",
+            ratingScale: "ratingScale" in q ? q.ratingScale : undefined,
             tempId: crypto.randomUUID(),
           }))
       );
@@ -150,7 +160,7 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
   }
 
   function addQuestion() {
-    setQuestions([...questions, { text: "", collectMultiple: false, tempId: crypto.randomUUID() }]);
+    setQuestions([...questions, { text: "", collectMultiple: false, type: "text", tempId: crypto.randomUUID() }]);
   }
 
   function removeQuestion(tempId: string) {
@@ -159,9 +169,37 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
     }
   }
 
-  function updateQuestion(tempId: string, field: keyof Question, value: string | boolean) {
+  function updateQuestion(tempId: string, field: keyof Question, value: any) {
     setQuestions(
       questions.map((q) => (q.tempId === tempId ? { ...q, [field]: value } : q))
+    );
+  }
+
+  function updateQuestionType(tempId: string, type: "text" | "rating") {
+    setQuestions(
+      questions.map((q) =>
+        q.tempId === tempId
+          ? {
+              ...q,
+              type,
+              // Initialize rating config if switching to rating
+              ratingScale: type === "rating" ? { max: 10 } : undefined,
+              // Disable collectMultiple for rating questions
+              collectMultiple: type === "rating" ? false : q.collectMultiple,
+            }
+          : q
+      )
+    );
+  }
+
+  function updateRatingConfig(
+    tempId: string,
+    config: { max: number; lowLabel?: string; highLabel?: string }
+  ) {
+    setQuestions(
+      questions.map((q) =>
+        q.tempId === tempId ? { ...q, ratingScale: config } : q
+      )
     );
   }
 
@@ -234,6 +272,8 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
           id: q.id,
           text: q.text.trim(),
           collectMultiple: q.collectMultiple,
+          ...(q.type && { type: q.type }),
+          ...(q.ratingScale && { ratingScale: q.ratingScale }),
         })),
         relationshipOptions: validRelationships.map((r) => ({
           id: r.id,
@@ -371,7 +411,7 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
                   </button>
                 </div>
 
-                <div className="flex-1 space-y-3">
+                <div className="flex-1 space-y-4">
                   <EditorialTextarea
                     value={question.text}
                     onChange={(e) =>
@@ -381,21 +421,38 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
                     rows={2}
                     aria-label={`Question ${index + 1} text`}
                   />
-                  <label className="flex items-center gap-2 text-body-sm text-ink-soft cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={question.collectMultiple}
-                      onChange={(e) =>
-                        updateQuestion(
-                          question.tempId,
-                          "collectMultiple",
-                          e.target.checked
-                        )
-                      }
-                      className="h-4 w-4 rounded-none border-2 border-ink accent-ink"
+
+                  <QuestionTypeSelector
+                    value={question.type || "text"}
+                    onChange={(type) => updateQuestionType(question.tempId, type)}
+                  />
+
+                  {question.type === "rating" && question.ratingScale && (
+                    <RatingConfigPanel
+                      config={question.ratingScale}
+                      onChange={(config) => updateRatingConfig(question.tempId, config)}
                     />
-                    <span>Collect multiple responses (AI will prompt for more)</span>
-                  </label>
+                  )}
+
+                  {question.type !== "rating" && (
+                    <label className="flex items-center gap-2 text-body-sm text-ink-soft cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={question.collectMultiple}
+                        onChange={(e) =>
+                          updateQuestion(
+                            question.tempId,
+                            "collectMultiple",
+                            e.target.checked
+                          )
+                        }
+                        className="h-4 w-4 rounded-none border-2 border-ink accent-ink"
+                      />
+                      <span>
+                        Collect multiple responses (AI will prompt for more)
+                      </span>
+                    </label>
+                  )}
                 </div>
 
                 <button
