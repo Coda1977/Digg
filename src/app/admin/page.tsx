@@ -17,7 +17,6 @@ import {
 } from "@/components/editorial";
 import { EditorialSearchInput } from "@/components/editorial/EditorialSearchInput";
 import { EditorialEmptyState } from "@/components/editorial/EditorialEmptyState";
-import { AnimatedCounter } from "@/components/admin/AnimatedCounter";
 
 type SortOption = "newest" | "oldest" | "most_responses" | "alphabetical";
 
@@ -154,19 +153,19 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
           <div>
             <div className="font-serif font-bold text-ink leading-none text-[48px] sm:text-[64px]">
-              <AnimatedCounter value={stats.active} duration={800} />
+              {stats.active}
             </div>
             <p className="text-body text-ink-soft mt-1">Active Projects</p>
           </div>
           <div>
             <div className="font-serif font-bold text-ink leading-none text-[48px] sm:text-[64px]">
-              <AnimatedCounter value={stats.total} duration={1000} delay={100} />
+              {stats.total}
             </div>
             <p className="text-body text-ink-soft mt-1">Total Surveys</p>
           </div>
           <div>
             <div className="font-serif font-bold text-ink leading-none text-[48px] sm:text-[64px]">
-              <AnimatedCounter value={stats.completed} duration={1200} delay={200} />
+              {stats.completed}
             </div>
             <p className="text-body text-ink-soft mt-1">Completed</p>
           </div>
