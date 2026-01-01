@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "../../../convex/_generated/api";
 import Link from "next/link";
-import { Plus, CheckCircle2, Search, ArrowRight, X } from "lucide-react";
+import { Plus, CheckCircle2, ArrowRight, FolderOpen } from "lucide-react";
 import {
   EditorialSection,
   EditorialHeadline,
@@ -13,11 +13,27 @@ import {
   RuledDivider,
   EditorialDataRow,
   EditorialButton,
-  EditorialInput,
   StatusBadge,
 } from "@/components/editorial";
+import { EditorialSearchInput } from "@/components/editorial/EditorialSearchInput";
+import { EditorialEmptyState } from "@/components/editorial/EditorialEmptyState";
 
 type SortOption = "newest" | "oldest" | "most_responses" | "alphabetical";
+
+function formatRelativeTime(timestamp: number): string {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const minutes = Math.floor(diff / (1000 * 60));
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  return `${Math.floor(days / 30)}mo ago`;
+}
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -76,7 +92,7 @@ export default function AdminDashboard() {
     };
   }, [projects]);
 
-  const hasActiveFilters = searchQuery.trim() || statusFilter !== "all";
+  const hasActiveFilters = !!searchQuery.trim() || statusFilter !== "all";
 
   function clearFilters() {
     setSearchQuery("");
@@ -176,63 +192,47 @@ export default function AdminDashboard() {
                 aria-label="Sort projects"
                 className="text-label font-medium px-3 py-1 border border-ink/20 bg-paper text-ink cursor-pointer focus:outline-none focus:border-ink"
               >
-                <option value="newest">Newest</option>
-                <option value="oldest">Oldest</option>
-                <option value="most_responses">Most Responses</option>
-                <option value="alphabetical">Alphabetical</option>
+                <option value="newest">↓ Newest First</option>
+                <option value="oldest">↑ Oldest First</option>
+                <option value="most_responses">↓ Most Responses</option>
+                <option value="alphabetical">↓ A-Z</option>
               </select>
             </div>
           </div>
 
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-ink-soft pointer-events-none" />
-              <EditorialInput
-                type="search"
-                placeholder="Search by name, subject, or role..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12"
-                aria-label="Search projects"
-              />
-            </div>
-            {hasActiveFilters && (
-              <EditorialButton
-                type="button"
-                variant="ghost"
-                size="small"
-                onClick={clearFilters}
-                aria-label="Clear all filters"
-              >
-                <X className="h-4 w-4" />
-                Clear
-              </EditorialButton>
-            )}
-          </div>
+          <EditorialSearchInput
+            placeholder="Search by name, subject, or role..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onClear={clearFilters}
+            showClearButton={hasActiveFilters}
+            aria-label="Search projects"
+          />
         </div>
 
         {/* Projects List */}
         <div>
           {!filteredProjects || filteredProjects.length === 0 ? (
-            <div className="py-16 text-center">
-              {projects.length === 0 ? (
-                <div className="space-y-6">
-                  <p className="text-body-lg text-ink-soft max-w-md mx-auto">
-                    No projects yet. Create your first feedback project to get started.
-                  </p>
+            projects.length === 0 ? (
+              <EditorialEmptyState
+                icon={<FolderOpen className="h-12 w-12" />}
+                title="No projects yet"
+                description="Create your first feedback project to get started collecting insights."
+                action={
                   <EditorialButton variant="primary" asChild>
                     <Link href="/admin/projects/new">
                       <Plus className="h-5 w-5" />
                       Create Your First Project
                     </Link>
                   </EditorialButton>
-                </div>
-              ) : (
-                <p className="text-body-lg text-ink-soft">
-                  No projects match your search criteria.
-                </p>
-              )}
-            </div>
+                }
+              />
+            ) : (
+              <EditorialEmptyState
+                title="No matching projects"
+                description="No projects match your search criteria. Try adjusting your filters."
+              />
+            )
           ) : (
             <div>
               {filteredProjects.map((project) => {
@@ -258,6 +258,9 @@ export default function AdminDashboard() {
                         )}
                         <span className="text-ink-lighter flex items-center gap-1">
                           <CheckCircle2 className="h-4 w-4" /> {responseRate} completed
+                        </span>
+                        <span className="text-ink-lighter text-xs">
+                          Created {formatRelativeTime(project._creationTime)}
                         </span>
                       </>
                     }

@@ -22,7 +22,7 @@ export function EditorialDataRow({
     return (
         <article
             className={cn(
-                "group flex flex-col sm:flex-row sm:items-baseline gap-4 py-4 px-4 -mx-4 rounded-lg transition-all hover:bg-ink/5 cursor-pointer border-b border-ink/10 last:border-b-0",
+                "group flex flex-col sm:flex-row sm:items-baseline gap-4 py-4 px-4 -mx-4 transition-all hover:bg-ink/5 hover:pl-5 cursor-pointer border-b border-ink/10 last:border-b-0",
                 className
             )}
             onClick={onClick}

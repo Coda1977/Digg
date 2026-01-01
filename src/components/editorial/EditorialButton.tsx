@@ -16,6 +16,8 @@ const buttonVariants = cva(
           "bg-transparent border-3 border-ink text-ink hover:bg-ink hover:text-paper",
         ghost:
           "border-2 border-ink-lighter text-ink hover:border-ink",
+        destructive:
+          "bg-accent-red border-3 border-accent-red text-white hover:bg-red-700 hover:border-red-700",
       },
       size: {
         default: "px-7 py-3 text-[15px] min-h-[48px]",

@@ -19,7 +19,10 @@ import {
   EditorialBreadcrumbs,
   EditorialDataRow,
 } from "@/components/editorial";
+import { EditorialConfirmDialog } from "@/components/editorial/EditorialConfirmDialog";
+import { EditorialEmptyState } from "@/components/editorial/EditorialEmptyState";
 import { useCopyFeedback } from "@/hooks/useCopyFeedback";
+import { MessageSquare, Trash2 } from "lucide-react";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -42,6 +45,12 @@ export default function ProjectDetailPage() {
   const [deletingSurveyId, setDeletingSurveyId] = useState<Id<"surveys"> | null>(
     null
   );
+
+  // Confirmation dialog states
+  const [projectDeleteDialogOpen, setProjectDeleteDialogOpen] = useState(false);
+  const [surveyDeleteDialogOpen, setSurveyDeleteDialogOpen] = useState(false);
+  const [surveyToDelete, setSurveyToDelete] = useState<Id<"surveys"> | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Copy feedback hooks
   const { copied: shareLinkCopied, onCopy: copyShareLink } = useCopyFeedback();
@@ -90,33 +99,42 @@ export default function ProjectDetailPage() {
     }
   }
 
-  async function onDeleteProject() {
-    if (!confirm("Delete this project and all related interviews and messages?")) {
-      return;
-    }
-    setError(null);
+  function handleDeleteProjectClick() {
+    setDeleteError(null);
+    setProjectDeleteDialogOpen(true);
+  }
+
+  async function handleDeleteProjectConfirm() {
+    setDeleteError(null);
     setBusy(true);
     try {
       await removeProject({ id: projectId });
+      setProjectDeleteDialogOpen(false);
       router.replace("/admin");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete project");
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete project");
     } finally {
       setBusy(false);
     }
   }
 
-  async function onDeleteSurvey(surveyId: Id<"surveys">) {
-    if (!confirm("Delete this interview and all related messages?")) {
-      return;
-    }
+  function handleDeleteSurveyClick(surveyId: Id<"surveys">) {
+    setSurveyToDelete(surveyId);
+    setDeleteError(null);
+    setSurveyDeleteDialogOpen(true);
+  }
 
-    setError(null);
-    setDeletingSurveyId(surveyId);
+  async function handleDeleteSurveyConfirm() {
+    if (!surveyToDelete) return;
+
+    setDeleteError(null);
+    setDeletingSurveyId(surveyToDelete);
     try {
-      await removeSurvey({ id: surveyId });
+      await removeSurvey({ id: surveyToDelete });
+      setSurveyDeleteDialogOpen(false);
+      setSurveyToDelete(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete interview");
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete interview");
     } finally {
       setDeletingSurveyId(null);
     }
@@ -264,11 +282,12 @@ export default function ProjectDetailPage() {
         )}
 
         {!surveys || surveys.length === 0 ? (
-          <div className="py-12 text-center border-t border-ink/10">
-            <p className="text-body text-ink-soft">
-              No interviews yet. Share the link above to start collecting responses.
-            </p>
-          </div>
+          <EditorialEmptyState
+            icon={<MessageSquare className="h-10 w-10" />}
+            title="No interviews yet"
+            description="Share the project link above to start collecting feedback responses."
+            className="border-t border-ink/10"
+          />
         ) : (
           <div>
             {surveys.map((s) => {
@@ -313,11 +332,12 @@ export default function ProjectDetailPage() {
                       </EditorialButton>
                       <EditorialButton
                         type="button"
-                        variant="ghost"
+                        variant="destructive"
                         size="small"
-                        onClick={() => void onDeleteSurvey(s._id)}
+                        onClick={() => handleDeleteSurveyClick(s._id)}
                         disabled={deletingSurveyId === s._id}
                       >
+                        <Trash2 className="h-4 w-4" />
                         {deletingSurveyId === s._id ? "Deleting..." : "Delete"}
                       </EditorialButton>
                     </>
@@ -332,15 +352,43 @@ export default function ProjectDetailPage() {
       <RuledDivider weight="thin" />
 
       <section className="pt-4 pb-12">
-        <button
+        <EditorialButton
           type="button"
-          onClick={() => void onDeleteProject()}
+          variant="destructive"
+          size="small"
+          onClick={handleDeleteProjectClick}
           disabled={busy}
-          className="text-label text-accent-red hover:text-red-700 transition-colors"
         >
+          <Trash2 className="h-4 w-4" />
           Delete this project
-        </button>
+        </EditorialButton>
       </section>
+
+      {/* Delete Project Confirmation Dialog */}
+      <EditorialConfirmDialog
+        open={projectDeleteDialogOpen}
+        onOpenChange={setProjectDeleteDialogOpen}
+        title="Delete Project"
+        description={`Are you sure you want to delete "${project?.subjectName}"? This will permanently delete all interviews and messages associated with this project.`}
+        confirmLabel="Delete Project"
+        isDestructive
+        isLoading={busy}
+        error={deleteError}
+        onConfirm={handleDeleteProjectConfirm}
+      />
+
+      {/* Delete Survey Confirmation Dialog */}
+      <EditorialConfirmDialog
+        open={surveyDeleteDialogOpen}
+        onOpenChange={setSurveyDeleteDialogOpen}
+        title="Delete Interview"
+        description="Are you sure you want to delete this interview? All messages will be permanently deleted."
+        confirmLabel="Delete Interview"
+        isDestructive
+        isLoading={deletingSurveyId !== null}
+        error={deleteError}
+        onConfirm={handleDeleteSurveyConfirm}
+      />
     </div>
   );
 }

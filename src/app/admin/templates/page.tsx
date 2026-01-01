@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, AlertCircle, Search, Copy, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Pencil, Trash2, Copy, ChevronDown, ChevronUp, FileText } from "lucide-react";
 import {
   EditorialSection,
   EditorialHeadline,
@@ -14,17 +14,11 @@ import {
   RuledDivider,
   EditorialButton,
   EditorialBreadcrumbs,
-  EditorialInput,
 } from "@/components/editorial";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { EditorialSearchInput } from "@/components/editorial/EditorialSearchInput";
+import { EditorialConfirmDialog } from "@/components/editorial/EditorialConfirmDialog";
+import { EditorialEmptyState } from "@/components/editorial/EditorialEmptyState";
 
 function TemplatesPage() {
   const router = useRouter();
@@ -156,14 +150,13 @@ function TemplatesPage() {
       {
         templates && templates.length > 0 && (
           <EditorialSection spacing="sm">
-            <div className="relative max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-ink-soft pointer-events-none" />
-              <EditorialInput
-                type="search"
+            <div className="max-w-md">
+              <EditorialSearchInput
                 placeholder="Search templates..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12"
+                onClear={() => setSearchQuery("")}
+                showClearButton={!!searchQuery.trim()}
                 aria-label="Search templates"
               />
             </div>
@@ -246,10 +239,9 @@ function TemplatesPage() {
                               Edit
                             </EditorialButton>
                             <EditorialButton
-                              variant="primary"
+                              variant="destructive"
                               size="small"
                               onClick={() => handleDeleteClick(template._id)}
-                              className="bg-accent-red border-accent-red hover:bg-red-700 hover:border-red-700"
                               aria-label={`Delete ${template.name}`}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -352,58 +344,35 @@ function TemplatesPage() {
       {
         customTemplates.length === 0 && builtInTemplates.length === 0 && (
           <EditorialSection spacing="lg">
-            <div className="text-center py-editorial-lg">
-              <p className="text-body-lg text-ink-soft mb-6">
-                No templates yet. Create your first template to get started.
-              </p>
-              <EditorialButton variant="primary" asChild>
-                <Link href="/admin/templates/new">
-                  <Plus className="h-5 w-5" />
-                  Create Template
-                </Link>
-              </EditorialButton>
-            </div>
+            <EditorialEmptyState
+              icon={<FileText className="h-12 w-12" />}
+              title="No templates yet"
+              description="Create your first template to define the questions, relationship types, and AI interviewer behavior for your feedback surveys."
+              action={
+                <EditorialButton variant="primary" asChild>
+                  <Link href="/admin/templates/new">
+                    <Plus className="h-5 w-5" />
+                    Create Template
+                  </Link>
+                </EditorialButton>
+              }
+            />
           </EditorialSection>
         )
       }
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Template</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete &quot;{templateToDeleteData?.name}&quot;?
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-
-          {deleteError && (
-            <div className="flex items-start gap-3 p-4 bg-accent-red/10 border-l-4 border-accent-red">
-              <AlertCircle className="h-5 w-5 text-accent-red flex-shrink-0 mt-0.5" />
-              <p className="text-body text-accent-red">{deleteError}</p>
-            </div>
-          )}
-
-          <DialogFooter className="gap-3">
-            <EditorialButton
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-              disabled={isDeleting}
-            >
-              Cancel
-            </EditorialButton>
-            <EditorialButton
-              variant="primary"
-              onClick={handleDeleteConfirm}
-              disabled={isDeleting}
-              className="bg-accent-red border-accent-red hover:bg-red-700 hover:border-red-700"
-            >
-              {isDeleting ? "Deleting..." : "Delete Template"}
-            </EditorialButton>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EditorialConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Template"
+        description={`Are you sure you want to delete "${templateToDeleteData?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete Template"
+        isDestructive
+        isLoading={isDeleting}
+        error={deleteError}
+        onConfirm={handleDeleteConfirm}
+      />
     </div >
   );
 }
