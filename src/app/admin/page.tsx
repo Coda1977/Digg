@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "../../../convex/_generated/api";
@@ -100,6 +100,23 @@ export default function AdminDashboard() {
     setStatusFilter("all");
   }
 
+  // Cache stats to prevent jumping when Convex refetches
+  const statsCache = useRef({ active: 0, total: 0, completed: 0 });
+
+  // Calculate and cache stats only when we have valid data
+  const stats = useMemo(() => {
+    if (!projects || projects.length === 0) {
+      return statsCache.current;
+    }
+    const newStats = {
+      active: projects.filter((p) => p.status === "active").length,
+      total: projects.reduce((sum, p) => sum + p.stats.total, 0),
+      completed: projects.reduce((sum, p) => sum + p.stats.completed, 0),
+    };
+    statsCache.current = newStats;
+    return newStats;
+  }, [projects]);
+
   if (projects === undefined) {
     return (
       <EditorialSection spacing="lg">
@@ -113,11 +130,6 @@ export default function AdminDashboard() {
   }
 
   const activeProjects = projects.filter((p) => p.status === "active");
-  const totalSurveys = projects.reduce((sum, p) => sum + p.stats.total, 0);
-  const completedSurveys = projects.reduce(
-    (sum, p) => sum + p.stats.completed,
-    0
-  );
   return (
     <div className="space-y-12 sm:space-y-16">
       {/* Hero Section */}
@@ -142,19 +154,19 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
           <div>
             <div className="font-serif font-bold text-ink leading-none text-[48px] sm:text-[64px]">
-              <AnimatedCounter value={activeProjects.length} duration={800} />
+              <AnimatedCounter value={stats.active} duration={800} />
             </div>
             <p className="text-body text-ink-soft mt-1">Active Projects</p>
           </div>
           <div>
             <div className="font-serif font-bold text-ink leading-none text-[48px] sm:text-[64px]">
-              <AnimatedCounter value={totalSurveys} duration={1000} delay={100} />
+              <AnimatedCounter value={stats.total} duration={1000} delay={100} />
             </div>
             <p className="text-body text-ink-soft mt-1">Total Surveys</p>
           </div>
           <div>
             <div className="font-serif font-bold text-ink leading-none text-[48px] sm:text-[64px]">
-              <AnimatedCounter value={completedSurveys} duration={1200} delay={200} />
+              <AnimatedCounter value={stats.completed} duration={1200} delay={200} />
             </div>
             <p className="text-body text-ink-soft mt-1">Completed</p>
           </div>
