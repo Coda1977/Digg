@@ -17,6 +17,4 @@
 - J/K navigation, / for search
 
 ### 4. Animation Polish
-- Animate stat counters on load
-- Smooth progress bar transitions
 - Message send sound/haptic feedback
