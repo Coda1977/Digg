@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type UseAnimatedCounterOptions = {
   /** Target value to count to */
@@ -18,7 +18,8 @@ const easeOutQuart = (t: number): number => 1 - Math.pow(1 - t, 4);
 
 /**
  * Hook that animates a number from 0 to a target value.
- * Perfect for stat counters that should animate on page load.
+ * Only animates once when a non-zero value is first received.
+ * Subsequent value changes update immediately without re-animating.
  */
 export function useAnimatedCounter({
   target,
@@ -26,14 +27,26 @@ export function useAnimatedCounter({
   delay = 0,
   easing = easeOutQuart,
 }: UseAnimatedCounterOptions): number {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(target);
+  const hasAnimated = useRef(false);
+  const initialTarget = useRef<number | null>(null);
 
   useEffect(() => {
-    // Don't animate if target is 0
+    // If we've already animated, just update to new value immediately
+    if (hasAnimated.current) {
+      setCount(target);
+      return;
+    }
+
+    // Don't animate if target is 0 (data still loading)
     if (target === 0) {
       setCount(0);
       return;
     }
+
+    // First time we have a non-zero value - animate it
+    initialTarget.current = target;
+    hasAnimated.current = true;
 
     let animationFrameId: number;
     let startTime: number | null = null;
@@ -58,6 +71,7 @@ export function useAnimatedCounter({
 
     // Start animation after delay
     timeoutId = setTimeout(() => {
+      setCount(0); // Start from 0
       animationFrameId = requestAnimationFrame(animate);
     }, delay);
 
