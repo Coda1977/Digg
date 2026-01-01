@@ -20,10 +20,10 @@ export function RatingInput({
 
   const handleSelect = (value: number) => {
     setSelectedValue(value);
-    // Auto-submit after delay for visual feedback (500ms to see selection)
+    // Auto-submit after delay for visual feedback (800ms to see selection)
     setTimeout(() => {
       onSubmit(value);
-    }, 500);
+    }, 800);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, value: number) => {

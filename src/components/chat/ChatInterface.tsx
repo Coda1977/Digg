@@ -124,9 +124,9 @@ export function ChatInterface({
                   {template.name}
                 </p>
               </div>
-              <div className="w-full h-2 sm:h-2.5 bg-ink/10 rounded-full overflow-hidden">
+              <div className="w-full h-2 sm:h-2.5 bg-ink/10 overflow-hidden">
                 <div
-                  className="h-full bg-accent-blue transition-all duration-500 ease-out rounded-full"
+                  className="h-full bg-gradient-to-r from-accent-red to-[#ef4444] transition-all duration-500 ease-out"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>

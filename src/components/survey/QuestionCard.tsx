@@ -94,11 +94,12 @@ export function QuestionCard({
 
             {/* Voice Button - top-right of textarea */}
             <div className="absolute right-3 sm:right-4 top-3 sm:top-4 flex items-center gap-2 group">
+              {/* Desktop: shows on hover, Mobile: always visible */}
               <span
-                className={`font-sans text-[0.75rem] uppercase tracking-wide transition-all duration-200 text-ink-lighter hidden sm:inline ${
+                className={`font-sans text-[0.75rem] uppercase tracking-wide transition-all duration-200 text-ink-lighter ${
                   isListening
                     ? "opacity-100 translate-x-0"
-                    : "opacity-0 translate-x-2.5 group-hover:opacity-100 group-hover:translate-x-0"
+                    : "sm:opacity-0 sm:translate-x-2.5 sm:group-hover:opacity-100 sm:group-hover:translate-x-0"
                 }`}
               >
                 {isListening
@@ -106,8 +107,8 @@ export function QuestionCard({
                     ? "מאזין..."
                     : "Listening..."
                   : language === "he"
-                    ? "דבר"
-                    : "Speak"}
+                    ? "נסה קול"
+                    : "Try voice"}
               </span>
               <button
                 type="button"
