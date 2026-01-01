@@ -19,6 +19,7 @@ import {
   EditorialButton,
   EditorialBreadcrumbs,
 } from "@/components/editorial";
+import { EditorialFixedBottomBar } from "@/components/editorial/EditorialFixedBottomBar";
 import { QuestionTypeSelector } from "@/components/admin/QuestionTypeSelector";
 import { RatingConfigPanel } from "@/components/admin/RatingConfigPanel";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -544,7 +545,7 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
           </div>
         )}
 
-        <div className="flex flex-col-reverse sm:flex-row items-center gap-3 fixed bottom-0 left-0 right-0 p-4 bg-paper/80 backdrop-blur-md border-t border-ink/10 sm:static sm:bg-transparent sm:border-0 sm:p-0">
+        <EditorialFixedBottomBar>
           <EditorialButton variant="ghost" asChild className="w-full sm:w-auto">
             <Link href="/admin/templates">Cancel</Link>
           </EditorialButton>
@@ -556,7 +557,7 @@ function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
           >
             {updating ? "Saving..." : "Save Changes"}
           </EditorialButton>
-        </div>
+        </EditorialFixedBottomBar>
       </form>
     </div>
   );

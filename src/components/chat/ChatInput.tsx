@@ -2,6 +2,7 @@
 
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
+import { RotateCcw } from "lucide-react";
 
 import { EditorialButton, EditorialTextarea } from "@/components/editorial";
 import { useDraftStorage } from "@/hooks/useDraftStorage";
@@ -29,11 +30,19 @@ export function ChatInput({ surveyId, onSend, onFinish }: ChatInputProps) {
   } = useChatContext();
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const messagesReady = uiMessages !== null;
   const { clearDraftStorage } = useDraftStorage({ surveyId, draft, setDraft });
+
+  // Clear failed message state when error clears
+  useEffect(() => {
+    if (!error) {
+      setLastFailedMessage(null);
+    }
+  }, [error]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -59,14 +68,35 @@ export function ChatInput({ surveyId, onSend, onFinish }: ChatInputProps) {
       ? "התשובה שלך..."
       : "Your response...";
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!messagesReady || isGenerating) return;
     const userText = draft.trim();
     if (!userText) return;
+
+    // Store message before clearing in case of failure
+    const messageToSend = userText;
     setDraft("");
     clearDraftStorage();
-    void onSend(userText);
+    setLastFailedMessage(messageToSend);
+
+    try {
+      await onSend(messageToSend);
+      setLastFailedMessage(null);
+    } catch {
+      // Restore draft on failure so user can retry
+      setDraft(messageToSend);
+    }
+  }
+
+  async function handleRetry() {
+    if (!lastFailedMessage || isGenerating) return;
+    setLastFailedMessage(null);
+    try {
+      await onSend(lastFailedMessage);
+    } catch {
+      setDraft(lastFailedMessage);
+    }
   }
 
   function handleFinish() {
@@ -101,9 +131,22 @@ export function ChatInput({ surveyId, onSend, onFinish }: ChatInputProps) {
         />
 
         {error && (
-          <p className="text-body text-accent-red text-sm" role="alert">
-            {error}
-          </p>
+          <div className="flex items-center gap-2" role="alert">
+            <p className="text-body text-accent-red text-sm flex-1">
+              {error}
+            </p>
+            {lastFailedMessage && (
+              <button
+                type="button"
+                onClick={() => void handleRetry()}
+                disabled={isGenerating}
+                className="flex items-center gap-1 text-sm font-medium text-accent-red hover:text-red-700 transition-colors disabled:opacity-50"
+              >
+                <RotateCcw className="h-4 w-4" />
+                {currentLanguage === "he" ? "נסה שוב" : "Retry"}
+              </button>
+            )}
+          </div>
         )}
 
         <div className="flex flex-col gap-2 sm:gap-3">

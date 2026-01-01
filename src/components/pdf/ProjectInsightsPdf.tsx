@@ -132,11 +132,13 @@ export function ProjectInsightsPdf(props: {
             </View>
           )}
         </View>
+        <Text style={styles.pageNumber} render={({ pageNumber }) => `${pageNumber}`} fixed />
       </Page>
 
       {/* PART 1: WHAT PEOPLE SAID */}
       {responsesByQuestion && responsesByQuestion.length > 0 && (
         <Page size="A4" style={styles.page}>
+          <Text style={styles.pageNumber} render={({ pageNumber }) => `${pageNumber}`} fixed />
           <Text style={styles.partTitle}>Part 1: What People Said</Text>
           <Text style={styles.partDescription}>
             Responses organized by interview questions, ordered by relationship type.
@@ -242,6 +244,7 @@ export function ProjectInsightsPdf(props: {
 
       {/* PART 2: AI ANALYSIS */}
       <Page size="A4" style={styles.page}>
+        <Text style={styles.pageNumber} render={({ pageNumber }) => `${pageNumber}`} fixed />
         <Text style={styles.partTitle}>Part 2: AI Analysis</Text>
 
         {!analysis ? (
@@ -380,6 +383,7 @@ export function ProjectInsightsPdf(props: {
       {/* APPENDIX: FULL TRANSCRIPTS */}
       {transcripts && transcripts.length > 0 && (
         <Page size="A4" style={styles.page}>
+          <Text style={styles.pageNumber} render={({ pageNumber }) => `${pageNumber}`} fixed />
           <Text style={styles.partTitle}>Appendix: Full Transcripts</Text>
 
           {transcripts.map((transcript, idx) => (
@@ -479,10 +483,21 @@ function RatingScalePdf(props: {
 const styles = StyleSheet.create({
   page: {
     padding: 40,
+    paddingBottom: 60, // Extra space for page number
     fontSize: 11,
     fontFamily: "Helvetica",
     lineHeight: 1.5,
     color: "#1a1a1a",
+  },
+  pageNumber: {
+    position: "absolute",
+    bottom: 30,
+    left: 0,
+    right: 0,
+    textAlign: "center",
+    fontSize: 9,
+    color: "#6a6a6a",
+    fontFamily: "Helvetica",
   },
 
   // Cover page styles
@@ -492,14 +507,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   coverTitle: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 700,
+    fontFamily: "Times-Roman",
     marginBottom: 16,
     color: "#1a1a1a",
+    letterSpacing: -1,
   },
   coverSubject: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 600,
+    fontFamily: "Times-Roman",
     marginBottom: 8,
     color: "#1a1a1a",
   },
@@ -521,12 +539,14 @@ const styles = StyleSheet.create({
 
   // Part title styles
   partTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 700,
+    fontFamily: "Times-Roman",
     marginBottom: 8,
     color: "#1a1a1a",
-    borderBottom: "2 solid #1a1a1a",
-    paddingBottom: 6,
+    borderBottom: "3 solid #1a1a1a",
+    paddingBottom: 8,
+    letterSpacing: -0.5,
   },
   partDescription: {
     fontSize: 10,
@@ -540,8 +560,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   questionTitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 700,
+    fontFamily: "Times-Roman",
     marginBottom: 8,
     color: "#1a1a1a",
   },
@@ -570,8 +591,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: 700,
+    fontFamily: "Times-Roman",
     marginBottom: 8,
     color: "#1a1a1a",
   },
@@ -579,8 +601,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   subsectionTitle: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: 700,
+    fontFamily: "Times-Roman",
     marginBottom: 5,
     color: "#2a2a2a",
   },
@@ -597,8 +620,9 @@ const styles = StyleSheet.create({
     borderLeft: "2 solid #e0e0e0",
   },
   segmentTitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 700,
+    fontFamily: "Times-Roman",
     marginBottom: 6,
     color: "#1a1a1a",
   },
@@ -610,8 +634,9 @@ const styles = StyleSheet.create({
     borderBottom: "1 solid #e0e0e0",
   },
   transcriptHeader: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: 700,
+    fontFamily: "Times-Roman",
     marginBottom: 10,
     color: "#1a1a1a",
   },
