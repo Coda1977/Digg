@@ -10,6 +10,7 @@ type Message = {
   content: string;
   questionId?: string;
   questionText?: string;
+  ratingValue?: number;
 };
 
 type Survey = {
@@ -22,13 +23,24 @@ type Survey = {
 export type ResponseByQuestion = {
   questionId: string;
   questionText: string;
+  questionType?: "text" | "rating";
+  ratingScale?: {
+    max: number;
+    lowLabel?: string;
+    highLabel?: string;
+  };
   responses: Array<{
     surveyId: string;
     respondentName: string;
     relationshipId: string;
     relationshipLabel: string;
     content: string;
+    ratingValue?: number;
   }>;
+  ratingStats?: {
+    average: number;
+    distribution: Record<number, number>;
+  };
 };
 
 type RelationshipOption = {
@@ -36,15 +48,50 @@ type RelationshipOption = {
   label: string;
 };
 
+type TemplateQuestion = {
+  id: string;
+  text: string;
+  type?: "text" | "rating";
+  ratingScale?: {
+    max: number;
+    lowLabel?: string;
+    highLabel?: string;
+  };
+};
+
+/**
+ * Calculate rating statistics from responses
+ */
+function calculateRatingStats(responses: Array<{ ratingValue?: number }>) {
+  const ratings = responses
+    .map(r => r.ratingValue)
+    .filter((v): v is number => v !== undefined);
+
+  if (ratings.length === 0) {
+    return undefined;
+  }
+
+  const distribution = ratings.reduce((acc, rating) => {
+    acc[rating] = (acc[rating] || 0) + 1;
+    return acc;
+  }, {} as Record<number, number>);
+
+  const average = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
+
+  return { average, distribution };
+}
+
 /**
  * Extract responses organized by template question
  * @param surveys Array of surveys with messages
  * @param relationshipOptions Relationship options for label mapping
+ * @param templateQuestions Template questions for type information
  * @returns Array of questions with their responses, sorted by relationship
  */
 export function extractResponsesByQuestion(
   surveys: Survey[],
-  relationshipOptions: RelationshipOption[]
+  relationshipOptions: RelationshipOption[],
+  templateQuestions?: TemplateQuestion[]
 ): ResponseByQuestion[] {
   // Map to store responses grouped by questionId
   const questionMap = new Map<string, ResponseByQuestion>();
@@ -62,9 +109,14 @@ export function extractResponsesByQuestion(
       if (msg.role === "user" && msg.questionId && msg.questionText) {
         // Get or create question entry
         if (!questionMap.has(msg.questionId)) {
+          // Find question type from template
+          const templateQuestion = templateQuestions?.find(q => q.id === msg.questionId);
+
           questionMap.set(msg.questionId, {
             questionId: msg.questionId,
             questionText: msg.questionText,
+            questionType: templateQuestion?.type,
+            ratingScale: templateQuestion?.ratingScale,
             responses: [],
           });
         }
@@ -76,19 +128,30 @@ export function extractResponsesByQuestion(
           relationshipId,
           relationshipLabel,
           content: msg.content,
+          ratingValue: msg.ratingValue,
         });
       }
     });
   });
 
-  // Convert map to array and sort responses by relationship
-  const result = Array.from(questionMap.values()).map((question) => ({
-    ...question,
-    responses: sortByRelationship(
+  // Convert map to array, sort responses, and calculate rating stats
+  const result = Array.from(questionMap.values()).map((question) => {
+    const sortedResponses = sortByRelationship(
       question.responses,
       (r) => r.relationshipId
-    ),
-  }));
+    );
+
+    // Calculate rating stats if this is a rating question
+    const ratingStats = question.questionType === "rating"
+      ? calculateRatingStats(sortedResponses)
+      : undefined;
+
+    return {
+      ...question,
+      responses: sortedResponses,
+      ratingStats,
+    };
+  });
 
   return result;
 }

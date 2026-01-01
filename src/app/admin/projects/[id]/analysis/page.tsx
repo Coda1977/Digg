@@ -27,6 +27,7 @@ import {
   extractResponsesByQuestion,
   getCoverageStats,
 } from "@/lib/responseExtraction";
+import { RatingScaleDisplay } from "@/components/analysis/RatingScaleDisplay";
 
 async function generateInterviewSummary(input: {
   subjectName: string;
@@ -143,7 +144,8 @@ export default function ProjectAnalysisPage() {
 
     return extractResponsesByQuestion(
       completedSurveys,
-      project.template.relationshipOptions
+      project.template.relationshipOptions,
+      project.template.questions
     );
   }, [surveysWithMessages, project?.template]);
 
@@ -858,15 +860,72 @@ export default function ProjectAnalysisPage() {
                           </h3>
                         </div>
 
+                        {/* Rating Statistics */}
+                        {question.questionType === "rating" && question.ratingStats && question.ratingScale && (
+                          <div className="bg-ink/5 px-6 py-4 space-y-4">
+                            <div className="space-y-3">
+                              <p className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
+                                Average Rating
+                              </p>
+                              <RatingScaleDisplay
+                                max={question.ratingScale.max}
+                                value={question.ratingStats.average}
+                                lowLabel={question.ratingScale.lowLabel}
+                                highLabel={question.ratingScale.highLabel}
+                                isAverage={true}
+                              />
+                            </div>
+
+                            {/* Distribution */}
+                            <div className="space-y-2">
+                              <p className="text-label font-sans font-medium uppercase tracking-label text-ink-soft">
+                                Distribution
+                              </p>
+                              <div className="flex gap-2 flex-wrap">
+                                {Object.entries(question.ratingStats.distribution)
+                                  .sort(([a], [b]) => Number(a) - Number(b))
+                                  .map(([rating, count]) => (
+                                    <div
+                                      key={rating}
+                                      className="flex items-center gap-2 px-3 py-2 bg-paper border-2 border-ink"
+                                    >
+                                      <span className="font-sans font-bold text-ink">
+                                        {rating}
+                                      </span>
+                                      <span className="text-ink-lighter">×</span>
+                                      <span className="font-sans text-ink-soft">
+                                        {count}
+                                      </span>
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="border-t-3 border-ink pt-4 space-y-5">
                           {question.responses.map((response, rIdx) => (
                             <div key={`${response.surveyId}-${rIdx}`} className="space-y-2">
                               <p className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
                                 {response.relationshipLabel} - {response.respondentName}
                               </p>
-                              <p className="text-body text-ink-soft pl-4 border-l-2 border-ink-soft/30">
-                                {response.content}
-                              </p>
+                              {/* Show rating scale if this is a rating response */}
+                              {response.ratingValue !== undefined && question.ratingScale && (
+                                <div className="pl-4 border-l-2 border-ink-soft/30">
+                                  <RatingScaleDisplay
+                                    max={question.ratingScale.max}
+                                    value={response.ratingValue}
+                                    lowLabel={question.ratingScale.lowLabel}
+                                    highLabel={question.ratingScale.highLabel}
+                                  />
+                                </div>
+                              )}
+                              {/* Show text content (may be just the number for ratings, or follow-up text) */}
+                              {response.content && response.ratingValue === undefined && (
+                                <p className="text-body text-ink-soft pl-4 border-l-2 border-ink-soft/30">
+                                  {response.content}
+                                </p>
+                              )}
                             </div>
                           ))}
                         </div>

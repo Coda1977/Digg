@@ -18,6 +18,7 @@ export const save = mutation({
     content: v.string(),
     questionId: v.optional(v.string()),
     questionText: v.optional(v.string()),
+    ratingValue: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const lastMessage = await ctx.db
@@ -36,6 +37,7 @@ export const save = mutation({
       createdAt: Date.now(),
       questionId: args.questionId,
       questionText: args.questionText,
+      ratingValue: args.ratingValue,
     });
 
     return messageId;

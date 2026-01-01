@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { Mic } from "lucide-react";
+import { RatingInput } from "./RatingInput";
 
 type QuestionCardProps = {
   questionText: string;
@@ -15,6 +16,14 @@ type QuestionCardProps = {
   toggleVoice: () => void;
   draft: string;
   setDraft: (value: string) => void;
+  // Rating question props
+  questionType?: "text" | "rating";
+  ratingScale?: {
+    max: number;
+    lowLabel?: string;
+    highLabel?: string;
+  };
+  onRatingSubmit?: (value: number) => void;
 };
 
 export function QuestionCard({
@@ -29,6 +38,9 @@ export function QuestionCard({
   toggleVoice,
   draft,
   setDraft,
+  questionType = "text",
+  ratingScale,
+  onRatingSubmit,
 }: QuestionCardProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -59,106 +71,120 @@ export function QuestionCard({
 
       {/* Answer Input Area */}
       <div className="relative mb-4 sm:mb-6 md:mb-8">
-        <textarea
-          ref={textareaRef}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={language === "he" ? "שתף את מחשבותיך..." : "Share your thoughts..."}
-          dir={textDirection}
-          className="typeform-focus-ring w-full px-3 py-4 pr-14 sm:px-5 sm:py-5 sm:pr-18 md:px-6 md:py-6 md:pr-20 font-serif text-base sm:text-[1.125rem] leading-[1.7] border-2 border-ink/40 bg-white text-ink resize-none min-h-[120px] sm:min-h-[150px] md:min-h-[180px] transition-all focus:outline-none focus:border-ink placeholder:text-ink-lighter"
-          disabled={isGenerating}
-        />
+        {questionType === "rating" && ratingScale && onRatingSubmit ? (
+          <RatingInput
+            max={ratingScale.max}
+            lowLabel={ratingScale.lowLabel}
+            highLabel={ratingScale.highLabel}
+            onSubmit={onRatingSubmit}
+            language={language}
+          />
+        ) : (
+          <>
+            <textarea
+              ref={textareaRef}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={language === "he" ? "שתף את מחשבותיך..." : "Share your thoughts..."}
+              dir={textDirection}
+              className="typeform-focus-ring w-full px-3 py-4 pr-14 sm:px-5 sm:py-5 sm:pr-18 md:px-6 md:py-6 md:pr-20 font-serif text-base sm:text-[1.125rem] leading-[1.7] border-2 border-ink/40 bg-white text-ink resize-none min-h-[120px] sm:min-h-[150px] md:min-h-[180px] transition-all focus:outline-none focus:border-ink placeholder:text-ink-lighter"
+              disabled={isGenerating}
+            />
 
-        {/* Voice Button - top-right of textarea */}
-        <div className="absolute right-3 sm:right-4 top-3 sm:top-4 flex items-center gap-2 group">
-          <span
-            className={`font-sans text-[0.75rem] uppercase tracking-wide transition-all duration-200 text-ink-lighter hidden sm:inline ${
-              isListening
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 translate-x-2.5 group-hover:opacity-100 group-hover:translate-x-0"
-            }`}
-          >
-            {isListening
-              ? language === "he"
-                ? "מאזין..."
-                : "Listening..."
-              : language === "he"
-                ? "דבר"
-                : "Speak"}
-          </span>
+            {/* Voice Button - top-right of textarea */}
+            <div className="absolute right-3 sm:right-4 top-3 sm:top-4 flex items-center gap-2 group">
+              <span
+                className={`font-sans text-[0.75rem] uppercase tracking-wide transition-all duration-200 text-ink-lighter hidden sm:inline ${
+                  isListening
+                    ? "opacity-100 translate-x-0"
+                    : "opacity-0 translate-x-2.5 group-hover:opacity-100 group-hover:translate-x-0"
+                }`}
+              >
+                {isListening
+                  ? language === "he"
+                    ? "מאזין..."
+                    : "Listening..."
+                  : language === "he"
+                    ? "דבר"
+                    : "Speak"}
+              </span>
+              <button
+                type="button"
+                onClick={toggleVoice}
+                disabled={voiceLoading || isGenerating}
+                style={{
+                  backgroundColor: isListening ? '#DC2626' : '#0A0A0A',
+                  color: '#FAFAF8',
+                }}
+                className="typeform-voice-btn w-11 h-11 flex items-center justify-center border-none cursor-pointer transition-all flex-shrink-0 hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label={isListening ? "Stop recording" : "Start recording"}
+              >
+                {isListening ? (
+                  <div className="flex items-center gap-0.5 h-5">
+                    {[...Array(5)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="w-0.5 bg-white animate-wave"
+                        style={{
+                          height: [6, 12, 18, 12, 6][i] + "px",
+                          animationDelay: `${i * 0.1}s`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <Mic className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Action Row - only show for text questions (rating auto-submits) */}
+      {questionType !== "rating" && (
+        <div className="flex flex-col items-center gap-4 sm:gap-6">
           <button
             type="button"
-            onClick={toggleVoice}
-            disabled={voiceLoading || isGenerating}
+            onClick={handleSubmit}
+            disabled={!draft.trim() || isGenerating}
             style={{
-              backgroundColor: isListening ? '#DC2626' : '#0A0A0A',
-              color: '#FAFAF8',
+              backgroundColor: '#DC2626',
+              color: 'white',
+              opacity: 1,
             }}
-            className="typeform-voice-btn w-11 h-11 flex items-center justify-center border-none cursor-pointer transition-all flex-shrink-0 hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed"
-            aria-label={isListening ? "Stop recording" : "Start recording"}
+            className="inline-flex items-center justify-center gap-3 px-6 sm:px-10 md:px-12 py-3 sm:py-4 min-h-[48px] font-sans text-[1rem] font-semibold border-none cursor-pointer transition-all hover:brightness-90 disabled:cursor-not-allowed"
           >
-            {isListening ? (
-              <div className="flex items-center gap-0.5 h-5">
-                {[...Array(5)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-0.5 bg-white animate-wave"
-                    style={{
-                      height: [6, 12, 18, 12, 6][i] + "px",
-                      animationDelay: `${i * 0.1}s`,
-                    }}
-                  />
-                ))}
-              </div>
-            ) : (
-              <Mic className="w-5 h-5" />
-            )}
+            {isGenerating ? (language === "he" ? "שולח..." : "Sending...") : language === "he" ? "שלח" : "Send"} →
           </button>
+          <div className="flex items-center gap-3 sm:gap-6">
+            <span className="hidden sm:inline font-sans text-[0.75rem] text-ink-lighter">
+              {language === "he" ? (
+                <>
+                  לחץ <kbd className="bg-ink/5 px-2 py-1">Ctrl</kbd> +{" "}
+                  <kbd className="bg-ink/5 px-2 py-1">Enter</kbd> לשלוח
+                </>
+              ) : (
+                <>
+                  Press <kbd className="bg-ink/5 px-2 py-1">Ctrl</kbd> +{" "}
+                  <kbd className="bg-ink/5 px-2 py-1">Enter</kbd> to send
+                </>
+              )}
+            </span>
+            <span className="hidden sm:inline text-ink-lighter">•</span>
+            <button
+              type="button"
+              onClick={onFinish}
+              disabled={isGenerating}
+              style={{ color: '#DC2626' }}
+              className="font-sans text-[0.875rem] font-medium min-h-[44px] py-2 hover:brightness-75 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {language === "he" ? "סיים סקר" : "Finish Survey"}
+            </button>
+          </div>
         </div>
-      </div>
-
-      {/* Action Row - centered submit button */}
-      <div className="flex flex-col items-center gap-4 sm:gap-6">
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={!draft.trim() || isGenerating}
-          style={{
-            backgroundColor: '#DC2626',
-            color: 'white',
-            opacity: 1,
-          }}
-          className="inline-flex items-center justify-center gap-3 px-6 sm:px-10 md:px-12 py-3 sm:py-4 min-h-[48px] font-sans text-[1rem] font-semibold border-none cursor-pointer transition-all hover:brightness-90 disabled:cursor-not-allowed"
-        >
-          {isGenerating ? (language === "he" ? "שולח..." : "Sending...") : language === "he" ? "שלח" : "Send"} →
-        </button>
-        <div className="flex items-center gap-3 sm:gap-6">
-          <span className="hidden sm:inline font-sans text-[0.75rem] text-ink-lighter">
-            {language === "he" ? (
-              <>
-                לחץ <kbd className="bg-ink/5 px-2 py-1">Ctrl</kbd> +{" "}
-                <kbd className="bg-ink/5 px-2 py-1">Enter</kbd> לשלוח
-              </>
-            ) : (
-              <>
-                Press <kbd className="bg-ink/5 px-2 py-1">Ctrl</kbd> +{" "}
-                <kbd className="bg-ink/5 px-2 py-1">Enter</kbd> to send
-              </>
-            )}
-          </span>
-          <span className="hidden sm:inline text-ink-lighter">•</span>
-          <button
-            type="button"
-            onClick={onFinish}
-            disabled={isGenerating}
-            style={{ color: '#DC2626' }}
-            className="font-sans text-[0.875rem] font-medium min-h-[44px] py-2 hover:brightness-75 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {language === "he" ? "סיים סקר" : "Finish Survey"}
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
