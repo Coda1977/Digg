@@ -29,13 +29,13 @@ export function EditorialDataRow({
         >
             {/* Main Content Column */}
             <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                     <h3 className="font-serif font-bold text-xl leading-tight text-ink group-hover:text-ink">
                         {title}
                     </h3>
-                    {/* Status inline on desktop */}
+                    {/* Status inline on both mobile and desktop */}
                     {status && (
-                        <div className="hidden sm:block">
+                        <div className="flex-shrink-0">
                             {typeof status === "string" ? (
                                 <EditorialLabel className="text-xs">{status}</EditorialLabel>
                             ) : (
@@ -48,17 +48,6 @@ export function EditorialDataRow({
                 {meta && (
                     <div className="text-body text-ink-soft flex flex-wrap items-center gap-x-4 gap-y-1">
                         {meta}
-                    </div>
-                )}
-
-                {/* Status block on mobile */}
-                {status && (
-                    <div className="sm:hidden mt-2">
-                        {typeof status === "string" ? (
-                            <EditorialLabel className="text-xs">{status}</EditorialLabel>
-                        ) : (
-                            status
-                        )}
                     </div>
                 )}
             </div>

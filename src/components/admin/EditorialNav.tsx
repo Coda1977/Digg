@@ -48,8 +48,13 @@ export function EditorialNav({ onSignOut }: EditorialNavProps) {
 
       {/* Full-Screen Editorial Overlay */}
       {isOpen && (
-        <div className="sm:hidden fixed inset-0 z-50 bg-paper overflow-y-auto">
-          <EditorialSection spacing="lg">
+        <div
+          className="sm:hidden fixed inset-0 z-50 isolate overflow-y-auto"
+          style={{ backgroundColor: '#FAFAF8' }}
+        >
+          {/* Solid backdrop to ensure nothing shows through */}
+          <div className="absolute inset-0 bg-paper" aria-hidden="true" />
+          <EditorialSection spacing="lg" className="relative z-10">
             {/* Header */}
             <div className="flex items-center justify-between mb-editorial-sm">
               <EditorialLabel>Navigation</EditorialLabel>
