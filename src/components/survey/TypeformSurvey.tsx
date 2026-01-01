@@ -103,6 +103,28 @@ export function TypeformSurvey({
     return template.questions.find(q => q.id === typeformState.currentQuestionId) ?? null;
   }, [typeformState.currentQuestionId, template.questions]);
 
+  // Check if a rating has already been submitted for current question
+  // If so, follow-up messages should use text input, not rating buttons
+  const hasRatingBeenSubmitted = useMemo(() => {
+    if (!rawMessages || !typeformState.currentQuestionId) return false;
+    // Look for a user message with ratingValue for this question
+    return rawMessages.some(
+      (msg) =>
+        msg.role === "user" &&
+        msg.questionId === typeformState.currentQuestionId &&
+        msg.ratingValue !== undefined
+    );
+  }, [rawMessages, typeformState.currentQuestionId]);
+
+  // Determine if we should show rating input or text input
+  // Show rating only for initial rating questions, not for follow-ups
+  const shouldShowRatingInput = useMemo(() => {
+    if (!currentQuestion) return false;
+    if (currentQuestion.type !== "rating") return false;
+    // If rating already submitted for this question, show text input for follow-up
+    return !hasRatingBeenSubmitted;
+  }, [currentQuestion, hasRatingBeenSubmitted]);
+
   const handleSend = async (userText: string) => {
     stopListening();
     setDraft("");
@@ -176,8 +198,8 @@ export function TypeformSurvey({
             toggleVoice={toggleListening}
             draft={draft}
             setDraft={setDraft}
-            questionType={currentQuestion?.type}
-            ratingScale={currentQuestion?.type === "rating" ? currentQuestion.ratingScale : undefined}
+            questionType={shouldShowRatingInput ? "rating" : "text"}
+            ratingScale={shouldShowRatingInput ? currentQuestion?.ratingScale : undefined}
             onRatingSubmit={handleRatingSubmit}
           />
         )}

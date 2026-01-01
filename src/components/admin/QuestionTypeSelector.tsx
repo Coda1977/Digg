@@ -1,12 +1,14 @@
 type QuestionTypeSelectorProps = {
   value: "text" | "rating";
   onChange: (type: "text" | "rating") => void;
+  name?: string;
   disabled?: boolean;
 };
 
 export function QuestionTypeSelector({
   value,
   onChange,
+  name = "questionType",
   disabled = false,
 }: QuestionTypeSelectorProps) {
   return (
@@ -18,7 +20,7 @@ export function QuestionTypeSelector({
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="radio"
-            name="questionType"
+            name={name}
             value="text"
             checked={value === "text"}
             onChange={() => onChange("text")}
@@ -32,7 +34,7 @@ export function QuestionTypeSelector({
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="radio"
-            name="questionType"
+            name={name}
             value="rating"
             checked={value === "rating"}
             onChange={() => onChange("rating")}

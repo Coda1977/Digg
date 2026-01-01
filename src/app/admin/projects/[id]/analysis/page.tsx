@@ -27,6 +27,7 @@ import {
   extractResponsesByQuestion,
   getCoverageStats,
 } from "@/lib/responseExtraction";
+import { RatingScaleDisplay } from "@/components/analysis/RatingScaleDisplay";
 
 async function generateInterviewSummary(input: {
   subjectName: string;
@@ -860,20 +861,19 @@ export default function ProjectAnalysisPage() {
                         </div>
 
                         {/* Rating Statistics */}
-                        {question.questionType === "rating" && question.ratingStats && (
+                        {question.questionType === "rating" && question.ratingStats && question.ratingScale && (
                           <div className="bg-ink/5 px-6 py-4 space-y-4">
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                               <p className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
-                                Rating Statistics
+                                Average Rating
                               </p>
-                              <div className="flex items-baseline gap-3">
-                                <span className="font-serif text-[2.5rem] font-bold text-ink">
-                                  {question.ratingStats.average.toFixed(1)}
-                                </span>
-                                <span className="text-body text-ink-soft">
-                                  average rating
-                                </span>
-                              </div>
+                              <RatingScaleDisplay
+                                max={question.ratingScale.max}
+                                value={question.ratingStats.average}
+                                lowLabel={question.ratingScale.lowLabel}
+                                highLabel={question.ratingScale.highLabel}
+                                isAverage={true}
+                              />
                             </div>
 
                             {/* Distribution */}
@@ -909,9 +909,23 @@ export default function ProjectAnalysisPage() {
                               <p className="text-label font-sans font-semibold uppercase tracking-label text-ink-soft">
                                 {response.relationshipLabel} - {response.respondentName}
                               </p>
-                              <p className="text-body text-ink-soft pl-4 border-l-2 border-ink-soft/30">
-                                {response.content}
-                              </p>
+                              {/* Show rating scale if this is a rating response */}
+                              {response.ratingValue !== undefined && question.ratingScale && (
+                                <div className="pl-4 border-l-2 border-ink-soft/30">
+                                  <RatingScaleDisplay
+                                    max={question.ratingScale.max}
+                                    value={response.ratingValue}
+                                    lowLabel={question.ratingScale.lowLabel}
+                                    highLabel={question.ratingScale.highLabel}
+                                  />
+                                </div>
+                              )}
+                              {/* Show text content (may be just the number for ratings, or follow-up text) */}
+                              {response.content && response.ratingValue === undefined && (
+                                <p className="text-body text-ink-soft pl-4 border-l-2 border-ink-soft/30">
+                                  {response.content}
+                                </p>
+                              )}
                             </div>
                           ))}
                         </div>

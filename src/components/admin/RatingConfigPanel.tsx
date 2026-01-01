@@ -25,8 +25,8 @@ export function RatingConfigPanel({ config, onChange }: RatingConfigPanelProps) 
         </label>
         <EditorialSelect
           value={config.max.toString()}
-          onValueChange={(value) =>
-            onChange({ ...config, max: parseInt(value) })
+          onChange={(e) =>
+            onChange({ ...config, max: parseInt(e.target.value) })
           }
         >
           <option value="3">1-3 (Low/Medium/High)</option>

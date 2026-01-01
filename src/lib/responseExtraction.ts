@@ -24,6 +24,11 @@ export type ResponseByQuestion = {
   questionId: string;
   questionText: string;
   questionType?: "text" | "rating";
+  ratingScale?: {
+    max: number;
+    lowLabel?: string;
+    highLabel?: string;
+  };
   responses: Array<{
     surveyId: string;
     respondentName: string;
@@ -111,6 +116,7 @@ export function extractResponsesByQuestion(
             questionId: msg.questionId,
             questionText: msg.questionText,
             questionType: templateQuestion?.type,
+            ratingScale: templateQuestion?.ratingScale,
             responses: [],
           });
         }

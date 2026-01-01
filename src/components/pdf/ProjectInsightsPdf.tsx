@@ -149,12 +149,90 @@ export function ProjectInsightsPdf(props: {
               </Text>
               <View style={styles.divider} />
 
+              {/* Rating Statistics with visual scale */}
+              {question.questionType === "rating" && question.ratingStats && question.ratingScale && (
+                <View style={{ backgroundColor: "#f5f5f5", padding: 10, marginBottom: 10 }}>
+                  <Text style={{ fontSize: 9, fontWeight: "bold", color: "#666666", marginBottom: 6 }}>
+                    AVERAGE RATING
+                  </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    {Array.from({ length: question.ratingScale.max }, (_, i) => i + 1).map((num) => {
+                      const isHighlighted = num === Math.round(question.ratingStats!.average);
+                      return (
+                        <View
+                          key={String(num)}
+                          style={{
+                            width: 20,
+                            height: 20,
+                            marginRight: 3,
+                            backgroundColor: isHighlighted ? "#DC2626" : "#ffffff",
+                            borderWidth: 1,
+                            borderColor: isHighlighted ? "#DC2626" : "#cccccc",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Text style={{ fontSize: 9, fontWeight: "bold", color: isHighlighted ? "#ffffff" : "#666666" }}>
+                            {String(num)}
+                          </Text>
+                        </View>
+                      );
+                    })}
+                    <Text style={{ fontSize: 16, fontWeight: "bold", color: "#1a1a1a", marginLeft: 10 }}>
+                      {question.ratingStats.average.toFixed(1)}
+                    </Text>
+                  </View>
+                  {(question.ratingScale.lowLabel || question.ratingScale.highLabel) && (
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 4, width: (question.ratingScale.max * 23) }}>
+                      <Text style={{ fontSize: 7, color: "#888888" }}>{question.ratingScale.lowLabel || ""}</Text>
+                      <Text style={{ fontSize: 7, color: "#888888" }}>{question.ratingScale.highLabel || ""}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
               {question.responses.map((response, rIdx) => (
                 <View key={`${response.surveyId}-${rIdx}`} style={styles.responseItem}>
                   <Text style={styles.responseHeader}>
                     {response.relationshipLabel} - {response.respondentName}:
                   </Text>
-                  <Text style={styles.responseContent}>{response.content}</Text>
+                  {/* Show rating with visual scale */}
+                  {response.ratingValue !== undefined && question.ratingScale ? (
+                    <View style={{ marginTop: 2 }}>
+                      <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        {Array.from({ length: question.ratingScale.max }, (_, i) => i + 1).map((num) => {
+                          const isHighlighted = num === response.ratingValue;
+                          return (
+                            <View
+                              key={String(num)}
+                              style={{
+                                width: 20,
+                                height: 20,
+                                marginRight: 3,
+                                backgroundColor: isHighlighted ? "#DC2626" : "#ffffff",
+                                borderWidth: 1,
+                                borderColor: isHighlighted ? "#DC2626" : "#cccccc",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              <Text style={{ fontSize: 9, fontWeight: "bold", color: isHighlighted ? "#ffffff" : "#666666" }}>
+                                {String(num)}
+                              </Text>
+                            </View>
+                          );
+                        })}
+                      </View>
+                      {(question.ratingScale.lowLabel || question.ratingScale.highLabel) && (
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 2, width: (question.ratingScale.max * 23) }}>
+                          <Text style={{ fontSize: 7, color: "#888888" }}>{question.ratingScale.lowLabel || ""}</Text>
+                          <Text style={{ fontSize: 7, color: "#888888" }}>{question.ratingScale.highLabel || ""}</Text>
+                        </View>
+                      )}
+                    </View>
+                  ) : (
+                    <Text style={styles.responseContent}>{response.content}</Text>
+                  )}
                 </View>
               ))}
             </View>
@@ -353,6 +431,47 @@ function Subsection(props: { title: string; children: ReactNode }) {
     <View style={styles.subsection}>
       <Text style={styles.subsectionTitle}>{props.title}</Text>
       {props.children}
+    </View>
+  );
+}
+
+function RatingScalePdf(props: {
+  max: number;
+  value: number;
+  lowLabel?: string;
+  highLabel?: string;
+  isAverage?: boolean;
+}) {
+  const { max, value, lowLabel, highLabel, isAverage = false } = props;
+  const scaleValues = Array.from({ length: max }, (_, i) => i + 1);
+  const highlightValue = isAverage ? Math.round(value) : value;
+
+  return (
+    <View>
+      <View style={styles.ratingScaleContainer}>
+        {scaleValues.map((num) => {
+          const isHighlighted = num === highlightValue;
+          return (
+            <View
+              key={String(num)}
+              style={isHighlighted ? styles.ratingBoxHighlighted : styles.ratingBox}
+            >
+              <Text style={isHighlighted ? styles.ratingNumberHighlighted : styles.ratingNumber}>
+                {String(num)}
+              </Text>
+            </View>
+          );
+        })}
+        {isAverage && (
+          <Text style={styles.ratingAverageValue}>{value.toFixed(1)}</Text>
+        )}
+      </View>
+      {(lowLabel || highLabel) && (
+        <View style={styles.ratingLabels}>
+          <Text style={styles.ratingLabel}>{lowLabel || ""}</Text>
+          <Text style={styles.ratingLabel}>{highLabel || ""}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -580,6 +699,79 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 10,
     marginBottom: 3,
+  },
+
+  // Rating scale styles
+  ratingScaleContainer: {
+    flexDirection: "row",
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  ratingBox: {
+    width: 18,
+    height: 18,
+    borderWidth: 1,
+    borderColor: "#cccccc",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    marginRight: 3,
+  },
+  ratingBoxHighlighted: {
+    width: 18,
+    height: 18,
+    borderWidth: 1,
+    borderColor: "#DC2626",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#DC2626",
+    marginRight: 3,
+  },
+  ratingNumber: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#666666",
+  },
+  ratingNumberHighlighted: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#ffffff",
+  },
+  ratingLabels: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 2,
+  },
+  ratingLabel: {
+    fontSize: 7,
+    color: "#888888",
+  },
+  ratingStatsBox: {
+    backgroundColor: "#f5f5f5",
+    padding: 10,
+    marginBottom: 10,
+  },
+  ratingStatsTitle: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#666666",
+    textTransform: "uppercase",
+    marginBottom: 6,
+  },
+  ratingAverage: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  ratingAverageValue: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1a1a1a",
+    marginLeft: 8,
+  },
+  ratingAverageLabel: {
+    fontSize: 9,
+    color: "#666666",
   },
 
   // Legacy styles (kept for backwards compatibility)

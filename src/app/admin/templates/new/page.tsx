@@ -299,6 +299,7 @@ export default function NewTemplatePage() {
                   <QuestionTypeSelector
                     value={question.type || "text"}
                     onChange={(type) => updateQuestionType(question.tempId, type)}
+                    name={`questionType-${question.tempId}`}
                   />
 
                   {question.type === "rating" && question.ratingScale && (

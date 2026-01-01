@@ -6,6 +6,7 @@ AI-powered 360 feedback platform with conversational interviews and intelligent 
 
 - **AI-Powered Interviews**: Natural conversation flow using Claude Sonnet 4.5
 - **Voice Input**: Speech-to-text via Deepgram for hands-free responses
+- **Rating Scale Questions**: Configurable 1-3 to 1-10 scales with visual input and statistics
 - **Smart Question Tracking**: AI tracks which template question it's exploring in real-time
 - **Auto-Generated Summaries**: Interview summaries generated automatically on completion
 - **Intelligent Analysis**: Map-reduce aggregation across interviews with actionable insights

@@ -561,6 +561,121 @@ Created reusable components in `src/components/editorial/`:
 
 ---
 
+### Phase 11: Rating Scale Questions
+
+#### 1. Rating Question Type for Templates
+- **Implemented**: New "rating" question type alongside existing "text" type
+- **Features**:
+  - Configurable scale sizes: 1-3, 1-4, 1-5, 1-7, 1-10
+  - Optional low/high endpoint labels (e.g., "Poor" to "Excellent")
+  - Visual scale configuration panel in template builder
+  - Automatic AI follow-up questions based on rating given
+- **Schema Changes**:
+  - Added `type?: "text" | "rating"` field to questions
+  - Added `ratingScale?: { max, lowLabel?, highLabel? }` configuration
+  - Messages now include `ratingValue?: number` for storing ratings
+- **Files**:
+  - `convex/schema.ts` (question type and rating fields)
+  - `src/components/admin/QuestionTypeSelector.tsx` (NEW)
+  - `src/components/admin/RatingConfigPanel.tsx` (NEW)
+  - `src/app/admin/templates/new/page.tsx` (rating UI)
+  - `src/app/admin/templates/[id]/edit/page.tsx` (rating UI)
+
+#### 2. Rating Input UI for Respondents
+- **Created**: `src/components/survey/RatingInput.tsx`
+- **Features**:
+  - Touch-friendly number buttons (min 48x48px)
+  - Visual feedback on selection (red highlight, scale animation)
+  - Auto-submit after 500ms delay for smooth UX
+  - Keyboard navigation support (Enter/Space)
+  - Full ARIA accessibility (radiogroup, aria-checked)
+  - RTL support for Hebrew
+  - Responsive layout (wraps on mobile for scales >7)
+- **Integration**:
+  - `TypeformSurvey.tsx` detects rating questions and shows RatingInput
+  - Rating value stored in message with `ratingValue` field
+  - AI receives rating context for adaptive follow-ups
+
+#### 3. AI Rating Awareness
+- **Updated**: `src/app/api/chat/route.ts`
+- **Features**:
+  - AI receives rating value with context (e.g., "User rated 8/10")
+  - Adaptive follow-up questions based on rating level
+  - Low ratings trigger "what would improve it?" probes
+  - High ratings trigger "what specifically stands out?" probes
+- **Result**: Natural conversation flow that acknowledges the rating
+
+#### 4. Rating Statistics in Analysis
+- **Created**: `src/components/analysis/RatingScaleDisplay.tsx`
+- **Features**:
+  - Visual scale display with highlighted value
+  - Average rating calculation across all responses
+  - Distribution showing count per rating value
+  - Low/high labels displayed below scale
+  - Works for both individual responses and averages
+- **Updated**: `src/lib/responseExtraction.ts`
+  - Added `ratingStats` calculation (average, distribution)
+  - Added `ratingScale` to question data for display
+  - Added `questionType` to differentiate rating vs text
+
+#### 5. PDF Report Rating Display
+- **Updated**: `src/components/pdf/ProjectInsightsPdf.tsx`
+- **Features**:
+  - Visual rating scale boxes in PDF (matching web UI)
+  - Average rating display with highlighted box
+  - Individual response ratings with visual scale
+  - Low/high endpoint labels
+  - React-pdf compatible styling (inline styles, no gap/flexWrap)
+- **Challenges Solved**:
+  - React-pdf CSS limitations (no `gap`, `flexWrap`, numeric `fontWeight`)
+  - Text rendering in small boxes (20x20px with 9pt font)
+
+#### 6. Comprehensive Testing
+- **Unit Tests** (`src/lib/__tests__/responseExtraction.test.ts`):
+  - Average and distribution calculation
+  - Duplicate rating handling
+  - Text questions excluded from rating stats
+- **Component Tests** (`src/components/survey/__tests__/RatingInput.test.tsx`):
+  - Correct number of buttons rendered
+  - Endpoint labels display
+  - Hebrew RTL support
+  - Auto-submit after delay
+  - Keyboard navigation
+  - ARIA accessibility structure
+  - Different scale sizes
+- **E2E Test** (`e2e/rating-questions.spec.ts`):
+  - Full workflow: template → project → survey → analysis
+  - Rating UI verification (10 buttons, labels)
+  - Rating submission and AI follow-up
+  - Analysis page displays average rating
+- **Dependencies Added**:
+  - `@testing-library/user-event` for component tests
+  - `dotenv` for E2E credential loading
+
+#### 7. Deployment
+- **Files Created**:
+  - `src/components/admin/QuestionTypeSelector.tsx`
+  - `src/components/admin/RatingConfigPanel.tsx`
+  - `src/components/survey/RatingInput.tsx`
+  - `src/components/analysis/RatingScaleDisplay.tsx`
+  - `src/components/survey/__tests__/RatingInput.test.tsx`
+  - `src/lib/__tests__/responseExtraction.test.ts`
+  - `e2e/rating-questions.spec.ts`
+- **Files Modified**:
+  - `convex/schema.ts`
+  - `src/app/admin/templates/new/page.tsx`
+  - `src/app/admin/templates/[id]/edit/page.tsx`
+  - `src/components/survey/TypeformSurvey.tsx`
+  - `src/app/api/chat/route.ts`
+  - `src/app/admin/projects/[id]/analysis/page.tsx`
+  - `src/components/pdf/ProjectInsightsPdf.tsx`
+  - `src/lib/responseExtraction.ts`
+  - `e2e/utils/admin.ts`
+  - `playwright.config.ts`
+  - `package.json`
+
+---
+
 ## 🔧 TECHNICAL IMPROVEMENTS
 
 ### Accessibility

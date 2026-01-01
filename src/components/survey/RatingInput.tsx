@@ -20,10 +20,10 @@ export function RatingInput({
 
   const handleSelect = (value: number) => {
     setSelectedValue(value);
-    // Auto-submit after brief delay for visual feedback
+    // Auto-submit after delay for visual feedback (500ms to see selection)
     setTimeout(() => {
       onSubmit(value);
-    }, 150);
+    }, 500);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, value: number) => {
@@ -71,16 +71,16 @@ export function RatingInput({
                 min-w-[48px] min-h-[48px]
                 w-12 h-12
                 font-sans font-bold text-lg
-                border-3 border-ink
+                border-3
                 transition-all duration-150
-                hover:bg-ink hover:text-paper
                 focus:outline-none focus:ring-4 focus:ring-accent-red focus:ring-offset-2
                 ${
-                  isSelected || isHovered
-                    ? "bg-ink text-paper scale-110"
-                    : "bg-paper text-ink"
+                  isSelected
+                    ? "bg-accent-red text-white border-accent-red scale-110 ring-4 ring-accent-red/30 ring-offset-2"
+                    : isHovered
+                      ? "bg-ink text-paper border-ink scale-105"
+                      : "bg-paper text-ink border-ink hover:bg-ink hover:text-paper"
                 }
-                ${isSelected ? "ring-4 ring-accent-red ring-offset-2" : ""}
               `}
             >
               {value}
