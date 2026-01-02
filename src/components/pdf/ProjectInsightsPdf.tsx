@@ -18,31 +18,13 @@ import type { ResponseByQuestion } from "@/lib/responseExtraction";
 // FONT REGISTRATION
 // ============================================================================
 
-// Use CDN-hosted fonts (browser-based @react-pdf/renderer can't use relative paths)
-const INTER_CDN = "https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin";
-const FRAUNCES_CDN = "https://cdn.jsdelivr.net/fontsource/fonts/fraunces@latest/latin";
+// NOTE: Using built-in PDF fonts for maximum compatibility
+// Custom fonts (WOFF2 from CDN) cause "DataView bounds" errors in browser-based @react-pdf/renderer
+// Built-in fonts: Helvetica, Times-Roman, Courier (all with Bold, Oblique, BoldOblique variants)
 
-// Register Fraunces (serif - for headlines)
-Font.register({
-  family: "Fraunces",
-  fonts: [
-    { src: `${FRAUNCES_CDN}-400-normal.woff2`, fontWeight: 400, fontStyle: "normal" },
-    { src: `${FRAUNCES_CDN}-400-italic.woff2`, fontWeight: 400, fontStyle: "italic" },
-    { src: `${FRAUNCES_CDN}-700-normal.woff2`, fontWeight: 700, fontStyle: "normal" },
-    { src: `${FRAUNCES_CDN}-700-italic.woff2`, fontWeight: 700, fontStyle: "italic" },
-  ],
-});
-
-// Register Inter (sans - for body)
-Font.register({
-  family: "Inter",
-  fonts: [
-    { src: `${INTER_CDN}-400-normal.woff2`, fontWeight: 400, fontStyle: "normal" },
-    { src: `${INTER_CDN}-400-italic.woff2`, fontWeight: 400, fontStyle: "italic" },
-    { src: `${INTER_CDN}-500-normal.woff2`, fontWeight: 500, fontStyle: "normal" },
-    { src: `${INTER_CDN}-700-normal.woff2`, fontWeight: 700, fontStyle: "normal" },
-  ],
-});
+// Map editorial font families to built-in PDF fonts
+const FONT_SERIF = "Times-Roman";      // Used for headlines (instead of Fraunces)
+const FONT_SANS = "Helvetica";         // Used for body text (instead of Inter)
 
 // Disable hyphenation for cleaner text
 Font.registerHyphenationCallback((word) => [word]);
@@ -687,7 +669,7 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
     paddingHorizontal: 40,
     fontSize: 10,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     lineHeight: 1.6,
     color: COLORS.ink,
     backgroundColor: COLORS.paper,
@@ -700,7 +682,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 8,
     color: COLORS.inkLighter,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
   },
 
   // ============================================================================
@@ -714,7 +696,7 @@ const styles = StyleSheet.create({
   },
   runningHeaderText: {
     fontSize: 8,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     fontWeight: 500,
     color: COLORS.inkLighter,
     textTransform: "uppercase",
@@ -754,7 +736,7 @@ const styles = StyleSheet.create({
   coverEyebrow: {
     fontSize: 10,
     fontWeight: 500,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     color: COLORS.inkSoft,
     textTransform: "uppercase",
     letterSpacing: 3,
@@ -763,7 +745,7 @@ const styles = StyleSheet.create({
   coverTitle: {
     fontSize: 42,
     fontWeight: 700,
-    fontFamily: "Fraunces",
+    fontFamily: FONT_SERIF,
     marginBottom: 8,
     color: COLORS.ink,
     letterSpacing: -1.5,
@@ -772,21 +754,21 @@ const styles = StyleSheet.create({
   coverSubject: {
     fontSize: 28,
     fontWeight: 400,
-    fontFamily: "Fraunces",
+    fontFamily: FONT_SERIF,
     marginBottom: 8,
     color: COLORS.ink,
     textAlign: "center",
   },
   coverRole: {
     fontSize: 14,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     color: COLORS.inkSoft,
     marginBottom: 24,
     textAlign: "center",
   },
   coverMeta: {
     fontSize: 11,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     marginBottom: 4,
     color: COLORS.inkSoft,
     textAlign: "center",
@@ -808,7 +790,7 @@ const styles = StyleSheet.create({
   },
   coverageText: {
     fontSize: 12,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     color: COLORS.ink,
     textAlign: "center",
   },
@@ -819,7 +801,7 @@ const styles = StyleSheet.create({
   partTitle: {
     fontSize: 20,
     fontWeight: 700,
-    fontFamily: "Fraunces",
+    fontFamily: FONT_SERIF,
     marginBottom: 16,
     color: COLORS.ink,
     borderBottomWidth: 3,
@@ -832,7 +814,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: COLORS.inkSoft,
     fontStyle: "italic",
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
   },
 
   // ============================================================================
@@ -844,7 +826,7 @@ const styles = StyleSheet.create({
   questionTitle: {
     fontSize: 13,
     fontWeight: 700,
-    fontFamily: "Fraunces",
+    fontFamily: FONT_SERIF,
     marginBottom: 8,
     color: COLORS.ink,
   },
@@ -867,7 +849,7 @@ const styles = StyleSheet.create({
   responseHeader: {
     fontSize: 9,
     fontWeight: 500,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     marginBottom: 4,
     color: COLORS.inkSoft,
     textTransform: "uppercase",
@@ -877,7 +859,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 1.6,
     color: COLORS.ink,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
   },
 
   // ============================================================================
@@ -889,7 +871,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: 700,
-    fontFamily: "Fraunces",
+    fontFamily: FONT_SERIF,
     marginBottom: 12,
     color: COLORS.ink,
     borderBottomWidth: 2,
@@ -903,7 +885,7 @@ const styles = StyleSheet.create({
   subsectionTitle: {
     fontSize: 11,
     fontWeight: 700,
-    fontFamily: "Fraunces",
+    fontFamily: FONT_SERIF,
     marginBottom: 6,
     color: COLORS.ink,
   },
@@ -911,7 +893,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 10,
     lineHeight: 1.6,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     color: COLORS.ink,
   },
 
@@ -927,7 +909,7 @@ const styles = StyleSheet.create({
   segmentTitle: {
     fontSize: 13,
     fontWeight: 700,
-    fontFamily: "Fraunces",
+    fontFamily: FONT_SERIF,
     marginBottom: 8,
     color: COLORS.ink,
   },
@@ -944,7 +926,7 @@ const styles = StyleSheet.create({
   transcriptHeader: {
     fontSize: 13,
     fontWeight: 700,
-    fontFamily: "Fraunces",
+    fontFamily: FONT_SERIF,
     marginBottom: 10,
     color: COLORS.ink,
   },
@@ -954,7 +936,7 @@ const styles = StyleSheet.create({
   messageRole: {
     fontSize: 9,
     fontWeight: 500,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     marginBottom: 2,
     color: COLORS.inkSoft,
     textTransform: "uppercase",
@@ -962,7 +944,7 @@ const styles = StyleSheet.create({
   },
   messageContent: {
     fontSize: 10,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     lineHeight: 1.6,
     paddingLeft: 8,
     color: COLORS.ink,
@@ -982,13 +964,13 @@ const styles = StyleSheet.create({
   bullet: {
     width: 12,
     fontSize: 10,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     color: COLORS.ink,
   },
   listText: {
     flex: 1,
     fontSize: 10,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     lineHeight: 1.6,
     color: COLORS.ink,
   },
@@ -998,13 +980,13 @@ const styles = StyleSheet.create({
   // ============================================================================
   strengthPoint: {
     fontWeight: 600,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     marginBottom: 3,
     color: COLORS.ink,
   },
   quote: {
     fontStyle: "italic",
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     fontSize: 9,
     color: COLORS.inkSoft,
     marginTop: 2,
@@ -1015,7 +997,7 @@ const styles = StyleSheet.create({
   },
   frequency: {
     fontSize: 8,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     color: COLORS.inkLighter,
     marginTop: 2,
   },
@@ -1028,14 +1010,14 @@ const styles = StyleSheet.create({
   },
   improvementPoint: {
     fontWeight: 600,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     marginBottom: 2,
     color: COLORS.ink,
   },
   priorityBadge: {
     fontSize: 8,
     fontWeight: 700,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     textTransform: "uppercase",
     color: COLORS.inkSoft,
     marginTop: 2,
@@ -1049,7 +1031,7 @@ const styles = StyleSheet.create({
   actionLabel: {
     fontSize: 9,
     fontWeight: 500,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     color: COLORS.inkSoft,
     marginBottom: 2,
     textTransform: "uppercase",
@@ -1057,7 +1039,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 10,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     color: COLORS.ink,
     marginBottom: 3,
   },
@@ -1093,13 +1075,13 @@ const styles = StyleSheet.create({
   ratingNumber: {
     fontSize: 8,
     fontWeight: 700,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     color: COLORS.inkSoft,
   },
   ratingNumberHighlighted: {
     fontSize: 8,
     fontWeight: 700,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     color: "#ffffff",
   },
   ratingLabels: {
@@ -1109,7 +1091,7 @@ const styles = StyleSheet.create({
   },
   ratingLabel: {
     fontSize: 7,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     color: COLORS.inkLighter,
   },
   ratingStatsBox: {
@@ -1122,7 +1104,7 @@ const styles = StyleSheet.create({
   ratingStatsTitle: {
     fontSize: 9,
     fontWeight: 500,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     color: COLORS.inkSoft,
     textTransform: "uppercase",
     letterSpacing: 1,
@@ -1136,30 +1118,30 @@ const styles = StyleSheet.create({
   ratingAverageValue: {
     fontSize: 20,
     fontWeight: 700,
-    fontFamily: "Fraunces",
+    fontFamily: FONT_SERIF,
     color: COLORS.ink,
     marginLeft: 10,
   },
   ratingAverageLabel: {
     fontSize: 9,
-    fontFamily: "Inter",
+    fontFamily: FONT_SANS,
     color: COLORS.inkSoft,
   },
 
   // ============================================================================
   // LEGACY STYLES (kept for backwards compatibility)
   // ============================================================================
-  title: { fontSize: 20, fontWeight: 700, fontFamily: "Fraunces", marginBottom: 4, color: COLORS.ink },
-  subtitle: { fontSize: 14, fontFamily: "Inter", marginBottom: 12, color: COLORS.inkSoft },
+  title: { fontSize: 20, fontWeight: 700, fontFamily: FONT_SERIF, marginBottom: 4, color: COLORS.ink },
+  subtitle: { fontSize: 14, fontFamily: FONT_SANS, marginBottom: 12, color: COLORS.inkSoft },
   meta: { marginBottom: 16 },
   metaRow: { flexDirection: "row", marginBottom: 2 },
-  metaLabel: { width: 70, fontFamily: "Inter", color: COLORS.inkSoft },
-  metaValue: { flex: 1, fontFamily: "Inter", color: COLORS.ink },
+  metaLabel: { width: 70, fontFamily: FONT_SANS, color: COLORS.inkSoft },
+  metaValue: { flex: 1, fontFamily: FONT_SANS, color: COLORS.ink },
   card: {
     borderWidth: 1,
     borderColor: COLORS.divider,
     padding: 12,
     marginBottom: 12,
   },
-  cardTitle: { fontSize: 12, fontWeight: 700, fontFamily: "Fraunces", marginBottom: 4, color: COLORS.ink },
+  cardTitle: { fontSize: 12, fontWeight: 700, fontFamily: FONT_SERIF, marginBottom: 4, color: COLORS.ink },
 });
