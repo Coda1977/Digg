@@ -18,12 +18,16 @@ import type { ResponseByQuestion } from "@/lib/responseExtraction";
 // FONT REGISTRATION
 // ============================================================================
 
+// Use CDN-hosted fonts (browser-based @react-pdf/renderer can't use relative paths)
+const INTER_CDN = "https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin";
+const FRAUNCES_CDN = "https://cdn.jsdelivr.net/fontsource/fonts/fraunces@latest/latin";
+
 // Register Fraunces (serif - for headlines)
 Font.register({
   family: "Fraunces",
   fonts: [
-    { src: "/fonts/Fraunces-Regular.woff", fontWeight: 400 },
-    { src: "/fonts/Fraunces-Bold.woff", fontWeight: 700 },
+    { src: `${FRAUNCES_CDN}-400-normal.woff2`, fontWeight: 400 },
+    { src: `${FRAUNCES_CDN}-700-normal.woff2`, fontWeight: 700 },
   ],
 });
 
@@ -31,9 +35,9 @@ Font.register({
 Font.register({
   family: "Inter",
   fonts: [
-    { src: "/fonts/Inter-Regular.ttf", fontWeight: 400 },
-    { src: "/fonts/Inter-Medium.ttf", fontWeight: 500 },
-    { src: "/fonts/Inter-Bold.ttf", fontWeight: 700 },
+    { src: `${INTER_CDN}-400-normal.woff2`, fontWeight: 400 },
+    { src: `${INTER_CDN}-500-normal.woff2`, fontWeight: 500 },
+    { src: `${INTER_CDN}-700-normal.woff2`, fontWeight: 700 },
   ],
 });
 
