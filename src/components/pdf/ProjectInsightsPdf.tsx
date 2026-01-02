@@ -26,8 +26,10 @@ const FRAUNCES_CDN = "https://cdn.jsdelivr.net/fontsource/fonts/fraunces@latest/
 Font.register({
   family: "Fraunces",
   fonts: [
-    { src: `${FRAUNCES_CDN}-400-normal.woff2`, fontWeight: 400 },
-    { src: `${FRAUNCES_CDN}-700-normal.woff2`, fontWeight: 700 },
+    { src: `${FRAUNCES_CDN}-400-normal.woff2`, fontWeight: 400, fontStyle: "normal" },
+    { src: `${FRAUNCES_CDN}-400-italic.woff2`, fontWeight: 400, fontStyle: "italic" },
+    { src: `${FRAUNCES_CDN}-700-normal.woff2`, fontWeight: 700, fontStyle: "normal" },
+    { src: `${FRAUNCES_CDN}-700-italic.woff2`, fontWeight: 700, fontStyle: "italic" },
   ],
 });
 
@@ -35,9 +37,10 @@ Font.register({
 Font.register({
   family: "Inter",
   fonts: [
-    { src: `${INTER_CDN}-400-normal.woff2`, fontWeight: 400 },
-    { src: `${INTER_CDN}-500-normal.woff2`, fontWeight: 500 },
-    { src: `${INTER_CDN}-700-normal.woff2`, fontWeight: 700 },
+    { src: `${INTER_CDN}-400-normal.woff2`, fontWeight: 400, fontStyle: "normal" },
+    { src: `${INTER_CDN}-400-italic.woff2`, fontWeight: 400, fontStyle: "italic" },
+    { src: `${INTER_CDN}-500-normal.woff2`, fontWeight: 500, fontStyle: "normal" },
+    { src: `${INTER_CDN}-700-normal.woff2`, fontWeight: 700, fontStyle: "normal" },
   ],
 });
 
