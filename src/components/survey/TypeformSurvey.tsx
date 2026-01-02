@@ -80,6 +80,7 @@ export function TypeformSurvey({
   const [draft, setDraft] = useState("");
   const { isListening, isLoading: voiceLoading, toggleListening, stopListening } =
     useVoiceInput({
+      surveyId: uniqueId,
       draft,
       language: currentLanguage === "he" ? "he" : "en-US",
       setDraft,

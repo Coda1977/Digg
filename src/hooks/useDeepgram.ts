@@ -29,12 +29,13 @@ function floatTo16BitPCM(input: Float32Array): Int16Array {
 }
 
 interface UseDeepgramOptions {
+  surveyId: string;
   language?: string;
   onTranscript?: (text: string, isFinal: boolean) => void;
   onError?: (error: string) => void;
 }
 
-export function useDeepgram({ language = "en-US", onTranscript, onError }: UseDeepgramOptions = {}) {
+export function useDeepgram({ surveyId, language = "en-US", onTranscript, onError }: UseDeepgramOptions) {
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -80,7 +81,7 @@ export function useDeepgram({ language = "en-US", onTranscript, onError }: UseDe
   const fetchApiKey = useCallback(async () => {
     console.log("[Deepgram] Fetching API key...");
     try {
-      const response = await fetch("/api/deepgram");
+      const response = await fetch(`/api/deepgram?surveyId=${encodeURIComponent(surveyId)}`);
       console.log("[Deepgram] API response status:", response.status);
       if (!response.ok) {
         const text = await response.text();
@@ -97,7 +98,7 @@ export function useDeepgram({ language = "en-US", onTranscript, onError }: UseDe
       onError?.(message);
       throw err;
     }
-  }, [onError]);
+  }, [surveyId, onError]);
 
   // Start listening
   const startListening = useCallback(async () => {

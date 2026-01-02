@@ -58,6 +58,7 @@ export function ChatInterface({
   );
   const { isListening, isLoading: voiceLoading, toggleListening, stopListening } =
     useVoiceInput({
+      surveyId: uniqueId,
       draft,
       language: currentLanguage === "he" ? "he" : "en-US",
       setDraft,

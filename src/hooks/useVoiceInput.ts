@@ -14,6 +14,7 @@ function appendTranscript(acc: string, chunk: string) {
 }
 
 type UseVoiceInputOptions = {
+  surveyId: string;
   draft: string;
   language: string;
   setDraft: (value: string) => void;
@@ -21,6 +22,7 @@ type UseVoiceInputOptions = {
 };
 
 export function useVoiceInput({
+  surveyId,
   draft,
   language,
   setDraft,
@@ -50,6 +52,7 @@ export function useVoiceInput({
   );
 
   const { isListening, isLoading, startListening, stopListening } = useDeepgram({
+    surveyId,
     language,
     onTranscript: handleTranscript,
     onError: (error) => setError(error),
