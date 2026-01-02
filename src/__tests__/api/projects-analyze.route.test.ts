@@ -1,7 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach, afterAll } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 import { POST as analyzePost } from "@/app/api/projects/analyze/route";
-import { _internal } from "@/lib/ratelimit";
+import * as ratelimit from "@/lib/ratelimit";
+
+// Mock the rate limiter module
+vi.mock("@/lib/ratelimit", async () => {
+  const actual = await vi.importActual<typeof ratelimit>("@/lib/ratelimit");
+  return {
+    ...actual,
+    checkRateLimit: vi.fn(),
+  };
+});
 
 const VALID_ANALYZE_BODY = {
   subjectName: "Jamie Doe",
@@ -37,7 +46,13 @@ describe("POST /api/projects/analyze", () => {
   const originalAnthropicKey = process.env.ANTHROPIC_API_KEY;
 
   beforeEach(() => {
-    _internal.rateLimiter.clear();
+    vi.clearAllMocks();
+    // Default: allow requests
+    vi.mocked(ratelimit.checkRateLimit).mockResolvedValue({
+      success: true,
+      remaining: 4,
+      resetMs: 3600000,
+    });
     delete process.env.ANTHROPIC_API_KEY;
   });
 
@@ -47,10 +62,6 @@ describe("POST /api/projects/analyze", () => {
     } else {
       process.env.ANTHROPIC_API_KEY = originalAnthropicKey;
     }
-  });
-
-  afterAll(() => {
-    _internal.rateLimiter.destroy();
   });
 
   it("returns 400 for invalid JSON", async () => {
@@ -68,12 +79,14 @@ describe("POST /api/projects/analyze", () => {
   });
 
   it("rate limits after 5 requests per hour", async () => {
-    const ip = "203.0.113.42";
-    for (let i = 0; i < 5; i += 1) {
-      await analyzePost(makeInvalidJsonRequest(ip));
-    }
+    // Mock rate limit exceeded
+    vi.mocked(ratelimit.checkRateLimit).mockResolvedValue({
+      success: false,
+      remaining: 0,
+      resetMs: 1800000,
+    });
 
-    const response = await analyzePost(makeInvalidJsonRequest(ip));
+    const response = await analyzePost(makeInvalidJsonRequest("203.0.113.42"));
     expect(response.status).toBe(429);
     const payload = await response.json();
     expect(payload.error).toMatch(/Too many requests/i);

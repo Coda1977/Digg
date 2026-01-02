@@ -19,6 +19,7 @@ import type * as lib_templateValidation from "../lib/templateValidation.js";
 import type * as messages from "../messages.js";
 import type * as migrations_cleanOldFields from "../migrations/cleanOldFields.js";
 import type * as projects from "../projects.js";
+import type * as rateLimits from "../rateLimits.js";
 import type * as repairs from "../repairs.js";
 import type * as seed from "../seed.js";
 import type * as surveys from "../surveys.js";
@@ -42,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   messages: typeof messages;
   "migrations/cleanOldFields": typeof migrations_cleanOldFields;
   projects: typeof projects;
+  rateLimits: typeof rateLimits;
   repairs: typeof repairs;
   seed: typeof seed;
   surveys: typeof surveys;

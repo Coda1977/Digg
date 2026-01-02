@@ -1,7 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach, afterAll } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 import { POST as chatPost } from "@/app/api/chat/route";
-import { _internal } from "@/lib/ratelimit";
+import * as ratelimit from "@/lib/ratelimit";
+
+// Mock the rate limiter module
+vi.mock("@/lib/ratelimit", async () => {
+  const actual = await vi.importActual<typeof ratelimit>("@/lib/ratelimit");
+  return {
+    ...actual,
+    checkRateLimit: vi.fn(),
+  };
+});
 
 const VALID_CHAT_BODY = {
   uniqueId: "survey_123",
@@ -29,7 +38,13 @@ describe("POST /api/chat", () => {
   const originalAnthropicKey = process.env.ANTHROPIC_API_KEY;
 
   beforeEach(() => {
-    _internal.rateLimiter.clear();
+    vi.clearAllMocks();
+    // Default: allow requests
+    vi.mocked(ratelimit.checkRateLimit).mockResolvedValue({
+      success: true,
+      remaining: 59,
+      resetMs: 60000,
+    });
     delete process.env.NEXT_PUBLIC_CONVEX_URL;
     delete process.env.ANTHROPIC_API_KEY;
   });
@@ -46,10 +61,6 @@ describe("POST /api/chat", () => {
     } else {
       process.env.ANTHROPIC_API_KEY = originalAnthropicKey;
     }
-  });
-
-  afterAll(() => {
-    _internal.rateLimiter.destroy();
   });
 
   it("returns 400 for invalid JSON", async () => {
@@ -79,9 +90,12 @@ describe("POST /api/chat", () => {
   });
 
   it("rate limits after 60 requests per survey", async () => {
-    for (let i = 0; i < 60; i += 1) {
-      await chatPost(makeJsonRequest(VALID_CHAT_BODY));
-    }
+    // Mock rate limit exceeded
+    vi.mocked(ratelimit.checkRateLimit).mockResolvedValue({
+      success: false,
+      remaining: 0,
+      resetMs: 30000,
+    });
 
     const response = await chatPost(makeJsonRequest(VALID_CHAT_BODY));
     expect(response.status).toBe(429);

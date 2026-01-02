@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   const { uniqueId, messages, prompt } = validatedData;
 
   // Rate limiting: 60 requests per minute per survey
-  const rateLimit = checkRateLimit(uniqueId, "chat");
+  const rateLimit = await checkRateLimit(uniqueId, "chat");
   if (!rateLimit.success) {
     return createRateLimitResponse(Math.ceil(rateLimit.resetMs / 1000));
   }

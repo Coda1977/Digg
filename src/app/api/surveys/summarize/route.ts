@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   // Rate limiting: 10 requests per hour
   const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "global";
-  const rateLimit = checkRateLimit(`summarize:${ip}`, "summarize");
+  const rateLimit = await checkRateLimit(`summarize:${ip}`, "summarize");
   if (!rateLimit.success) {
     return createRateLimitResponse(Math.ceil(rateLimit.resetMs / 1000));
   }

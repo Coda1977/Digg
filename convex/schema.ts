@@ -179,4 +179,11 @@ export default defineSchema({
   })
     .index("by_survey", ["surveyId"])
     .index("by_survey_order", ["surveyId", "order"]),
+
+  // Rate limiting records (persisted across serverless cold starts)
+  rateLimits: defineTable({
+    identifier: v.string(), // e.g., "chat:survey123" or "analyze:192.168.1.1"
+    timestamps: v.array(v.number()), // Request timestamps within the window
+    updatedAt: v.number(),
+  }).index("by_identifier", ["identifier"]),
 });

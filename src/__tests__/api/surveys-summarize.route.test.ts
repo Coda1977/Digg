@@ -1,7 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach, afterAll } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 import { POST as summarizePost } from "@/app/api/surveys/summarize/route";
-import { _internal } from "@/lib/ratelimit";
+import * as ratelimit from "@/lib/ratelimit";
+
+// Mock the rate limiter module
+vi.mock("@/lib/ratelimit", async () => {
+  const actual = await vi.importActual<typeof ratelimit>("@/lib/ratelimit");
+  return {
+    ...actual,
+    checkRateLimit: vi.fn(),
+  };
+});
 
 const VALID_SUMMARY_BODY = {
   subjectName: "Jamie Doe",
@@ -39,7 +48,13 @@ describe("POST /api/surveys/summarize", () => {
   const originalAnthropicKey = process.env.ANTHROPIC_API_KEY;
 
   beforeEach(() => {
-    _internal.rateLimiter.clear();
+    vi.clearAllMocks();
+    // Default: allow requests
+    vi.mocked(ratelimit.checkRateLimit).mockResolvedValue({
+      success: true,
+      remaining: 9,
+      resetMs: 3600000,
+    });
     delete process.env.ANTHROPIC_API_KEY;
   });
 
@@ -49,10 +64,6 @@ describe("POST /api/surveys/summarize", () => {
     } else {
       process.env.ANTHROPIC_API_KEY = originalAnthropicKey;
     }
-  });
-
-  afterAll(() => {
-    _internal.rateLimiter.destroy();
   });
 
   it("returns 400 for invalid JSON", async () => {
@@ -70,12 +81,14 @@ describe("POST /api/surveys/summarize", () => {
   });
 
   it("rate limits after 10 requests per hour", async () => {
-    const ip = "203.0.113.55";
-    for (let i = 0; i < 10; i += 1) {
-      await summarizePost(makeInvalidJsonRequest(ip));
-    }
+    // Mock rate limit exceeded
+    vi.mocked(ratelimit.checkRateLimit).mockResolvedValue({
+      success: false,
+      remaining: 0,
+      resetMs: 1800000,
+    });
 
-    const response = await summarizePost(makeInvalidJsonRequest(ip));
+    const response = await summarizePost(makeInvalidJsonRequest("203.0.113.55"));
     expect(response.status).toBe(429);
     const payload = await response.json();
     expect(payload.error).toMatch(/Too many requests/i);
