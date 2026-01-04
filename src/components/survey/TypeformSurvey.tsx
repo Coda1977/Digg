@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
@@ -78,7 +78,7 @@ export function TypeformSurvey({
 
   // Voice input setup
   const [draft, setDraft] = useState("");
-  const { isListening, isLoading: voiceLoading, toggleListening, stopListening } =
+  const { isListening, isLoading: voiceLoading, toggleListening, stopVoice } =
     useVoiceInput({
       surveyId: uniqueId,
       draft,
@@ -86,6 +86,11 @@ export function TypeformSurvey({
       setDraft,
       setError,
     });
+
+  // Clear draft when question changes (root fix for stale text)
+  useEffect(() => {
+    setDraft("");
+  }, [typeformState.currentQuestionId]);
 
   // Determine textarea direction
   const textareaDirection = useMemo(
@@ -127,7 +132,7 @@ export function TypeformSurvey({
   }, [currentQuestion, hasRatingBeenSubmitted]);
 
   const handleSend = async (userText: string) => {
-    stopListening();
+    stopVoice();
     setDraft("");
     await sendMessage(userText);
   };
@@ -140,7 +145,7 @@ export function TypeformSurvey({
   const handleFinish = async () => {
     setError(null);
     setGenerating(true);
-    stopListening();
+    stopVoice();
     try {
       await completeSurvey({ surveyId });
       if (uiMessages && uiMessages.length > 0) {

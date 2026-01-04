@@ -30,9 +30,13 @@ export function useVoiceInput({
 }: UseVoiceInputOptions) {
   const voiceBaseRef = useRef<string>("");
   const voiceTranscriptRef = useRef<string>("");
+  const isActiveRef = useRef<boolean>(false);
 
   const handleTranscript = useCallback(
     (transcript: string, isFinal: boolean) => {
+      // Ignore late transcripts after voice has been stopped
+      if (!isActiveRef.current) return;
+
       if (isFinal) {
         voiceTranscriptRef.current = appendTranscript(
           voiceTranscriptRef.current,
@@ -60,6 +64,7 @@ export function useVoiceInput({
 
   const startVoice = useCallback(() => {
     setError(null);
+    isActiveRef.current = true;
     voiceBaseRef.current = draft.trimEnd();
     voiceTranscriptRef.current = "";
     startListening().catch((err) => {
@@ -67,19 +72,27 @@ export function useVoiceInput({
     });
   }, [draft, setError, startListening]);
 
+  // Stop voice and clear all refs to prevent late transcripts from setting stale data
+  const stopVoice = useCallback(() => {
+    isActiveRef.current = false;
+    voiceBaseRef.current = "";
+    voiceTranscriptRef.current = "";
+    stopListening();
+  }, [stopListening]);
+
   const toggleListening = useCallback(() => {
     if (isListening) {
-      stopListening();
+      stopVoice();
       return;
     }
 
     startVoice();
-  }, [isListening, startVoice, stopListening]);
+  }, [isListening, startVoice, stopVoice]);
 
   return {
     isListening,
     isLoading,
     toggleListening,
-    stopListening,
+    stopVoice,
   };
 }

@@ -56,7 +56,7 @@ export function ChatInterface({
     () => (uiMessages ? detectLanguageFromMessages(uiMessages) : "en"),
     [uiMessages]
   );
-  const { isListening, isLoading: voiceLoading, toggleListening, stopListening } =
+  const { isListening, isLoading: voiceLoading, toggleListening, stopVoice } =
     useVoiceInput({
       surveyId: uniqueId,
       draft,
@@ -74,13 +74,13 @@ export function ChatInterface({
     [currentLanguage, draft]
   );
   async function handleSend(userText: string) {
-    stopListening();
+    stopVoice();
     await sendMessage(userText);
   }
   async function handleFinish() {
     setError(null);
     setGenerating(true);
-    stopListening();
+    stopVoice();
     try {
       await completeSurvey({ surveyId });
       if (uiMessages && uiMessages.length > 0) {
