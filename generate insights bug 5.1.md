@@ -1,45 +1,51 @@
 # Generate Insights Bug - Investigation Log 5.1
 
-## Status: Fix #4 Deployed - AWAITING TEST
+## Status: REVERTED TO ORIGINAL - AWAITING TEST
 
-## Root Cause (Identified)
+## What We Learned
 
-`z.record()` and `v.record()` create dynamic-key objects that don't work with `generateObject`. LLMs struggle to generate dynamic keys via tool calling because they don't know what keys to produce.
+**We over-engineered the fix.** The original approach with `generateText` + JSON parsing worked. We broke it by switching to `generateObject`.
 
-## Fix #4: Change breakdown from record to array
+## Original Bug
+```
+Expected ',' or '}' after property value in JSON at position 760
+```
+Caused by unescaped quotes in AI-generated JSON.
 
-Changed `breakdown` from a record/dictionary to an explicit array of `{role, count}` objects.
+## What We Did Wrong
 
-### Files Modified
+| Fix | Commit | What it did | Result |
+|-----|--------|-------------|--------|
+| #1 | 4b905c4 | Enhanced JSON parsing | ✅ CORRECT (kept this) |
+| #2 | 99af66d | Switched to generateObject | ❌ Broke everything |
+| #3 | 1322895 | Removed JSON instructions | ❌ Made it worse |
+| #4 | b9275b2 | Changed z.record() to array | ❌ Unnecessary |
 
-1. **src/lib/schemas.ts** - Changed `z.record()` to `z.array(z.object({role, count}))`
-2. **src/app/api/projects/analyze/route.ts** - Format breakdown as array in prompt
-3. **convex/projects.ts** - Changed `v.record()` to array + updated TypeScript type
-4. **src/components/pdf/ProjectInsightsPdf.tsx** - Updated TypeScript type
-5. **convex/schema.ts** - Database schema (missed in first commit)
-6. **convex/migrations/cleanOldFields.ts** - Migration types for consistency
+## The Fix: REVERT
 
-### Commits
-- `b9275b2` - fix: change coverage.breakdown from record to array for generateObject compatibility
-- `5d6e211` - fix: update convex schema.ts and migration for breakdown array type
+Reverted all files to commit 557282e (original working state), keeping only the enhanced `parseAiJsonObject`.
 
-## Previous Failed Fixes
+### Commit
+`540f2ef` - revert: restore original generateText approach for insight generation
 
-| Fix | Commit | What it did | Why it failed |
-|-----|--------|-------------|---------------|
-| #1 | 4b905c4 | Enhanced JSON parsing in aiJson.ts | Jumped to #2 before testing properly |
-| #2 | 99af66d | Switch to generateObject | Kept conflicting prompt + z.record() doesn't work |
-| #3 | 1322895 | Remove JSON schema from system prompt | z.record() still broken |
+### Files Reverted (8)
+1. src/app/api/projects/analyze/route.ts
+2. src/app/api/surveys/summarize/route.ts
+3. src/lib/reportPrompts.ts
+4. src/lib/schemas.ts
+5. convex/schema.ts
+6. convex/projects.ts
+7. src/components/pdf/ProjectInsightsPdf.tsx
+8. convex/migrations/cleanOldFields.ts
 
-## Error History
+### File Kept
+- `src/lib/aiJson.ts` - Enhanced JSON parsing with:
+  - `sanitizeJsonString()` - handles control characters
+  - `fixUnescapedQuotes()` - escapes quotes inside strings
+  - Multiple fallback strategies
 
-1. **Original**: `Expected ',' or '}' after property value in JSON at position 760`
-2. **After Fix #1**: `Expected property name or '}' in JSON at position 1`
-3. **After Fix #2 & #3**: `No object generated: response did not match schema`
-4. **After Fix #4**: PENDING TEST
+## Why This Should Work
 
-## Why Fix #4 Should Work
-
-1. Arrays are explicit - Claude knows exactly what shape to produce via tool calling
-2. Data matches schema - The prompt provides breakdown in array format
-3. End-to-end consistency - Zod schema, Convex validator, and TypeScript types all match
+1. **It worked before** - The original approach was reliable
+2. **Enhanced JSON parsing** - Now handles the edge cases that caused the original bug
+3. **Simpler is better** - Less code, fewer failure modes
