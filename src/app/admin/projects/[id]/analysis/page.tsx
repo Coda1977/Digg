@@ -298,10 +298,15 @@ export default function ProjectAnalysisPage() {
               interviews: group,
             });
 
+            // Extract only the fields that saveAnalysis expects for segments
+            // (coverage is NOT included in segment schema)
             return {
               relationshipType,
               relationshipLabel: label,
-              ...segmentAnalysis,
+              summary: segmentAnalysis.summary,
+              strengths: segmentAnalysis.strengths,
+              improvements: segmentAnalysis.improvements,
+              narrative: segmentAnalysis.narrative,
               basedOnSurveyCount: group.length,
             };
           })

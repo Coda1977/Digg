@@ -50,6 +50,47 @@ Reverted all files to commit 557282e (original working state), keeping only the 
 2. **Enhanced JSON parsing** - Now handles the edge cases that caused the original bug
 3. **Simpler is better** - Less code, fewer failure modes
 
-## Test Result
+## Test Result After Revert
 
-**PENDING** - Awaiting user test of generate insights feature.
+**FAILED** - New error after revert:
+```
+[CONVEX M(projects:saveAnalysis)] [Request ID: 8a365fa879886875] Server Error Called by client
+```
+
+This was a DIFFERENT error - failing at Convex saveAnalysis, not AI generation.
+
+## Root Cause Found
+
+**The frontend was passing `coverage` field to segmentedAnalysis, but Convex didn't expect it.**
+
+In `analysis/page.tsx` (lines 285-313):
+```typescript
+// BUG: spreading ...segmentAnalysis includes coverage field
+return {
+  relationshipType,
+  relationshipLabel: label,
+  ...segmentAnalysis,  // <-- includes coverage!
+  basedOnSurveyCount: group.length,
+};
+```
+
+But the Convex `saveAnalysis` mutation doesn't accept `coverage` in segment objects:
+- `analysisSchema` (overall) includes `coverage`
+- `segmentedAnalysis` schema does NOT include `coverage`
+
+## Fix Applied
+
+Changed the frontend to explicitly pick only the fields that `saveAnalysis` expects:
+```typescript
+return {
+  relationshipType,
+  relationshipLabel: label,
+  summary: segmentAnalysis.summary,
+  strengths: segmentAnalysis.strengths,
+  improvements: segmentAnalysis.improvements,
+  narrative: segmentAnalysis.narrative,
+  basedOnSurveyCount: group.length,
+};
+```
+
+## Status: FIX APPLIED - PUSHING TO REMOTE
