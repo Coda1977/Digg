@@ -49,3 +49,7 @@ Reverted all files to commit 557282e (original working state), keeping only the 
 1. **It worked before** - The original approach was reliable
 2. **Enhanced JSON parsing** - Now handles the edge cases that caused the original bug
 3. **Simpler is better** - Less code, fewer failure modes
+
+## Test Result
+
+**PENDING** - Awaiting user test of generate insights feature.
