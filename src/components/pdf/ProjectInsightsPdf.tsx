@@ -355,7 +355,7 @@ export function ProjectInsightsPdf(props: {
           </Text>
 
           {responsesByQuestion.map((question, qIdx) => (
-            <View key={question.questionId} style={styles.questionBlock} wrap={false}>
+            <View key={question.questionId} style={styles.questionBlock}>
               <Text style={styles.questionTitle}>
                 Q{qIdx + 1}: {question.questionText}
               </Text>
@@ -504,7 +504,7 @@ export function ProjectInsightsPdf(props: {
             {segmentedAnalysis && segmentedAnalysis.length > 0 && (
               <Section title="Segmented Analysis">
                 {segmentedAnalysis.map((segment, idx) => (
-                  <View key={idx} style={styles.segmentBlock} wrap={false}>
+                  <View key={idx} style={styles.segmentBlock}>
                     <Text style={styles.segmentTitle}>
                       {segment.relationshipLabel} Perspective
                     </Text>
