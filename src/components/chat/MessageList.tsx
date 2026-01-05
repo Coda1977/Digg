@@ -5,6 +5,7 @@ import { useAutoScroll } from "@/hooks/useAutoScroll";
 import { getTextDirection } from "@/lib/language";
 
 import { useChatContext } from "./ChatProvider";
+import { TypingIndicator } from "./TypingIndicator";
 
 export function MessageList() {
   const { uiMessages, isGenerating, currentLanguage } = useChatContext();
@@ -40,17 +41,10 @@ export function MessageList() {
           {isGenerating && uiMessages && (
             <MessageBubble
               variant="assistant"
-              role="AI Interviewer"
+              role={currentLanguage === "he" ? "מראיין AI" : "AI Interviewer"}
               direction={currentLanguage === "he" ? "rtl" : "ltr"}
             >
-              <div className="flex items-center gap-3 text-body text-ink-soft">
-                <span className="inline-flex items-center gap-1" aria-hidden="true">
-                  <span className="h-1.5 w-1.5 rounded-full bg-ink-soft animate-bounce [animation-delay:-0.32s]" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-ink-soft animate-bounce [animation-delay:-0.16s]" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-ink-soft animate-bounce" />
-                </span>
-                <span>{currentLanguage === "he" ? "חושב..." : "Thinking..."}</span>
-              </div>
+              <TypingIndicator language={currentLanguage} />
             </MessageBubble>
           )}
         </div>

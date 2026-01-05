@@ -251,6 +251,27 @@
   .animate-modalIn {
     animation: modalIn 0.3s ease-out;
   }
+
+  /* Typing Indicator Animations */
+  @keyframes typing-bounce {
+    0%, 60%, 100% {
+      transform: translateY(0);
+      opacity: 0.4;
+    }
+    30% {
+      transform: translateY(-8px);
+      opacity: 1;
+    }
+  }
+
+  @keyframes typing-pulse {
+    0%, 100% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
 }
 
 /* Typeform-specific overrides (exceptions to global rules) */
