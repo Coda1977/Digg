@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { generateText } from "ai";
+import { generateObject } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { checkRateLimit, createRateLimitResponse } from "@/lib/ratelimit";
-import { parseAiJsonObject } from "@/lib/aiJson";
 import { analyzeRequestSchema, analysisSchema, validateSchema } from "@/lib/schemas";
 import { PROJECT_ANALYSIS_PROMPT } from "@/lib/reportPrompts";
 
@@ -85,10 +84,13 @@ IMPORTANT: Include coverage in your response:
 `;
 
   try {
-    const result = await generateText({ model, system, prompt });
-    const parsed = parseAiJsonObject(result.text);
-    const analysis = validateSchema(analysisSchema, parsed);
-    return NextResponse.json(analysis);
+    const result = await generateObject({
+      model,
+      system,
+      prompt,
+      schema: analysisSchema,
+    });
+    return NextResponse.json(result.object);
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Project analysis failed" },
