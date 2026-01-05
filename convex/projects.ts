@@ -1,4 +1,4 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdmin } from "./lib/authorization";
 
@@ -340,5 +340,24 @@ export const saveAnalysis = mutation({
     }
 
     await ctx.db.patch(args.projectId, updateData);
+  },
+});
+
+// Internal mutation to clear analysis data (for schema migrations)
+export const clearAllAnalysis = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const projects = await ctx.db.query("projects").collect();
+    let cleared = 0;
+    for (const project of projects) {
+      if (project.analysis || project.segmentedAnalysis) {
+        await ctx.db.patch(project._id, {
+          analysis: undefined,
+          segmentedAnalysis: undefined,
+        });
+        cleared++;
+      }
+    }
+    return { cleared, total: projects.length };
   },
 });
