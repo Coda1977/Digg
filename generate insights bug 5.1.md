@@ -93,4 +93,8 @@ return {
 };
 ```
 
-## Status: FIX APPLIED - PUSHING TO REMOTE
+## Status: FIX PUSHED TO REMOTE
+
+Commit: `e668ae6` - fix: exclude coverage field from segmentedAnalysis when saving
+
+**Awaiting user test.**
