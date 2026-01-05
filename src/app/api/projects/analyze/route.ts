@@ -58,6 +58,11 @@ export async function POST(req: Request) {
     .map(([rel, count]) => `${count} ${rel}`)
     .join(", ");
 
+  // Convert to array format for generateObject schema compatibility
+  const breakdownArray = Object.entries(coverageBreakdown).map(
+    ([role, count]) => ({ role, count })
+  );
+
   const headerParts = [
     `Subject: ${subjectName}${roleText}`,
     projectName ? `Project: ${projectName}` : null,
@@ -80,7 +85,7 @@ ${interviewText}
 
 IMPORTANT: Include coverage in your response:
 - totalInterviews: ${interviews.length}
-- breakdown: ${JSON.stringify(coverageBreakdown)}
+- breakdown: ${JSON.stringify(breakdownArray)}
 `;
 
   try {

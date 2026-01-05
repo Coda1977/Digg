@@ -94,7 +94,12 @@ export const analysisSchema = z.object({
   narrative: z.string().optional(),
   coverage: z.object({
     totalInterviews: z.number(),
-    breakdown: z.record(z.string(), z.number()),
+    breakdown: z.array(
+      z.object({
+        role: z.string(),
+        count: z.number(),
+      })
+    ),
   }),
 });
 
