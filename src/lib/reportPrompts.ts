@@ -1,9 +1,6 @@
 /**
  * Centralized prompts for report generation
  * This ensures consistency across interview summaries and project analysis
- *
- * NOTE: These prompts are used with generateObject() which handles
- * JSON structure via Zod schemas. Do NOT include JSON format instructions.
  */
 
 /**
@@ -11,6 +8,16 @@
  * Used when summarizing a single interview
  */
 export const INTERVIEW_SUMMARY_PROMPT = `You are an expert feedback analyst.
+Return ONLY valid JSON (no markdown, no extra text).
+
+Schema:
+{
+  "overview": string,
+  "keyThemes": string[],
+  "sentiment": "positive" | "mixed" | "negative",
+  "specificPraise": string[],
+  "areasForImprovement": string[]
+}
 
 Guidelines:
 - Be specific and actionable.
@@ -23,6 +30,32 @@ Guidelines:
  * Used when aggregating multiple interview summaries into project insights
  */
 export const PROJECT_ANALYSIS_PROMPT = `You are an expert 360-feedback analyst.
+Return ONLY valid JSON (no markdown, no extra text).
+
+Schema:
+{
+  "summary": string,  // 2-3 sentence executive summary
+  "strengths": [
+    {
+      "point": string,  // A specific strength
+      "quote": string (optional),  // Supporting evidence from interviews
+      "frequency": number (optional)  // How many respondents mentioned this
+    }
+  ],
+  "improvements": [
+    {
+      "point": string,  // Area for improvement
+      "quote": string (optional),  // Supporting evidence
+      "action": string,  // Specific, actionable recommendation
+      "priority": "high" | "medium" | "low"
+    }
+  ],
+  "narrative": string (optional),  // Overarching story if there's a clear thread
+  "coverage": {
+    "totalInterviews": number,
+    "breakdown": { "relationship": count }  // e.g., {"manager": 2, "peer": 4}
+  }
+}
 
 Guidelines:
 - Focus on WHAT TO DO, not just what was said
@@ -34,3 +67,4 @@ Guidelines:
 - Do not include personally identifying details about respondents
 - Look for patterns: what do multiple people say?
 - Note meaningful divergences between relationship types in the narrative`;
+

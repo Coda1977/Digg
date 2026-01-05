@@ -67,7 +67,7 @@ export type ProjectInsightsForPdf = {
   narrative?: string;
   coverage?: {  // Optional for backwards compatibility
     totalInterviews: number;
-    breakdown: Array<{ role: string; count: number }>;
+    breakdown: Record<string, number>;
   };
   generatedAt: number;
   // OLD SCHEMA FIELDS - for backwards compatibility
@@ -446,23 +446,23 @@ export function ProjectInsightsPdf(props: {
               {analysis.strengths && analysis.strengths.length > 0 && (
                 <Subsection title="Strengths">
                   {analysis.strengths.map((strength, idx) => (
-                    <View key={idx} style={styles.listItem} wrap={false}>
-                      <Text style={styles.bullet}>•</Text>
-                      <View style={styles.listText}>
-                        <Text style={styles.strengthPoint}>{strength.point}</Text>
-                        {strength.quote && (
-                          <Text style={styles.quote}>
-                            &quot;{strength.quote}&quot;
-                          </Text>
-                        )}
-                        {strength.frequency && (
-                          <Text style={styles.frequency}>
-                            Mentioned by {strength.frequency} respondent
-                            {strength.frequency === 1 ? "" : "s"}
-                          </Text>
-                        )}
-                      </View>
+                  <View key={idx} style={styles.listItem} wrap={false}>
+                    <Text style={styles.bullet}>•</Text>
+                    <View style={styles.listText}>
+                      <Text style={styles.strengthPoint}>{strength.point}</Text>
+                      {strength.quote && (
+                        <Text style={styles.quote}>
+                          &quot;{strength.quote}&quot;
+                        </Text>
+                      )}
+                      {strength.frequency && (
+                        <Text style={styles.frequency}>
+                          Mentioned by {strength.frequency} respondent
+                          {strength.frequency === 1 ? "" : "s"}
+                        </Text>
+                      )}
                     </View>
+                  </View>
                   ))}
                 </Subsection>
               )}
@@ -470,26 +470,26 @@ export function ProjectInsightsPdf(props: {
               {analysis.improvements && analysis.improvements.length > 0 && (
                 <Subsection title="Areas for Improvement">
                   {analysis.improvements.map((improvement, idx) => (
-                    <View key={idx} style={styles.improvementItem} wrap={false}>
-                      <View style={styles.improvementHeader}>
-                        <Text style={styles.bullet}>•</Text>
-                        <View style={styles.listText}>
-                          <Text style={styles.improvementPoint}>{improvement.point}</Text>
-                          <Text style={styles.priorityBadge}>
-                            Priority: {improvement.priority.toUpperCase()}
-                          </Text>
-                        </View>
-                      </View>
-                      <View style={styles.improvementDetails}>
-                        <Text style={styles.actionLabel}>Action</Text>
-                        <Text style={styles.actionText}>{improvement.action}</Text>
-                        {improvement.quote && (
-                          <Text style={styles.quote}>
-                            &quot;{improvement.quote}&quot;
-                          </Text>
-                        )}
+                  <View key={idx} style={styles.improvementItem} wrap={false}>
+                    <View style={styles.improvementHeader}>
+                      <Text style={styles.bullet}>•</Text>
+                      <View style={styles.listText}>
+                        <Text style={styles.improvementPoint}>{improvement.point}</Text>
+                        <Text style={styles.priorityBadge}>
+                          Priority: {improvement.priority.toUpperCase()}
+                        </Text>
                       </View>
                     </View>
+                    <View style={styles.improvementDetails}>
+                      <Text style={styles.actionLabel}>Action</Text>
+                      <Text style={styles.actionText}>{improvement.action}</Text>
+                      {improvement.quote && (
+                        <Text style={styles.quote}>
+                          &quot;{improvement.quote}&quot;
+                        </Text>
+                      )}
+                    </View>
+                  </View>
                   ))}
                 </Subsection>
               )}

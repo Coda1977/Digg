@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { generateObject } from "ai";
+import { generateText } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { checkRateLimit, createRateLimitResponse } from "@/lib/ratelimit";
+import { parseAiJsonObject } from "@/lib/aiJson";
 import { analyzeRequestSchema, analysisSchema, validateSchema } from "@/lib/schemas";
 import { PROJECT_ANALYSIS_PROMPT } from "@/lib/reportPrompts";
 
@@ -58,11 +59,6 @@ export async function POST(req: Request) {
     .map(([rel, count]) => `${count} ${rel}`)
     .join(", ");
 
-  // Convert to array format for generateObject schema compatibility
-  const breakdownArray = Object.entries(coverageBreakdown).map(
-    ([role, count]) => ({ role, count })
-  );
-
   const headerParts = [
     `Subject: ${subjectName}${roleText}`,
     projectName ? `Project: ${projectName}` : null,
@@ -85,17 +81,14 @@ ${interviewText}
 
 IMPORTANT: Include coverage in your response:
 - totalInterviews: ${interviews.length}
-- breakdown: ${JSON.stringify(breakdownArray)}
+- breakdown: ${JSON.stringify(coverageBreakdown)}
 `;
 
   try {
-    const result = await generateObject({
-      model,
-      system,
-      prompt,
-      schema: analysisSchema,
-    });
-    return NextResponse.json(result.object);
+    const result = await generateText({ model, system, prompt });
+    const parsed = parseAiJsonObject(result.text);
+    const analysis = validateSchema(analysisSchema, parsed);
+    return NextResponse.json(analysis);
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Project analysis failed" },

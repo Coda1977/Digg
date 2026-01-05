@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { generateObject } from "ai";
+import { generateText } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { checkRateLimit, createRateLimitResponse } from "@/lib/ratelimit";
+import { parseAiJsonObject } from "@/lib/aiJson";
 import { summarizeRequestSchema, summarySchema, validateSchema } from "@/lib/schemas";
 import { INTERVIEW_SUMMARY_PROMPT } from "@/lib/reportPrompts";
 
@@ -63,13 +64,10 @@ ${transcript}
 `;
 
   try {
-    const result = await generateObject({
-      model,
-      system,
-      prompt,
-      schema: summarySchema,
-    });
-    return NextResponse.json(result.object);
+    const result = await generateText({ model, system, prompt });
+    const parsed = parseAiJsonObject(result.text);
+    const summary = validateSchema(summarySchema, parsed);
+    return NextResponse.json(summary);
   } catch (err) {
     return NextResponse.json(
       {

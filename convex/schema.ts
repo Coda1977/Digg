@@ -90,12 +90,7 @@ export default defineSchema({
         narrative: v.optional(v.string()),
         coverage: v.object({
           totalInterviews: v.number(),
-          breakdown: v.array(
-            v.object({
-              role: v.string(),
-              count: v.number(),
-            })
-          ),
+          breakdown: v.record(v.string(), v.number()),
         }),
         generatedAt: v.number(),
       })
