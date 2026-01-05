@@ -90,6 +90,45 @@ export const checkRateLimit = mutation({
 });
 
 /**
+ * List all rate limit records.
+ * Use for debugging purposes.
+ */
+export const listRateLimits = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const allRecords = await ctx.db.query("rateLimits").collect();
+    return allRecords.map((r) => ({
+      identifier: r.identifier,
+      count: r.timestamps.length,
+      updatedAt: r.updatedAt,
+    }));
+  },
+});
+
+/**
+ * Clear rate limit for a specific identifier pattern.
+ * Use for debugging/admin purposes.
+ */
+export const clearRateLimit = mutation({
+  args: {
+    pattern: v.string(), // e.g., "analyze:" to clear all analyze limits
+  },
+  handler: async (ctx, args) => {
+    const allRecords = await ctx.db.query("rateLimits").collect();
+
+    let deletedCount = 0;
+    for (const record of allRecords) {
+      if (args.pattern === "" || record.identifier.includes(args.pattern)) {
+        await ctx.db.delete(record._id);
+        deletedCount++;
+      }
+    }
+
+    return { deletedCount };
+  },
+});
+
+/**
  * Clean up old rate limit records.
  * Call this periodically (e.g., via cron) to prevent table bloat.
  */
