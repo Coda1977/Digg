@@ -21,7 +21,7 @@ type NormalizedAnalysis = {
   narrative?: string;
   coverage: {
     totalInterviews: number;
-    breakdown: Record<string, number>;
+    breakdown: Array<{ role: string; count: number }>;
   };
   generatedAt: number;
 };
@@ -47,11 +47,17 @@ function isValidNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
 
-function isRecordOfNumbers(value: unknown): value is Record<string, number> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
+function isBreakdownArray(value: unknown): value is Array<{ role: string; count: number }> {
+  if (!Array.isArray(value)) {
     return false;
   }
-  return Object.values(value).every((entry) => typeof entry === "number");
+  return value.every(
+    (item) =>
+      typeof item === "object" &&
+      item !== null &&
+      typeof (item as { role?: unknown }).role === "string" &&
+      typeof (item as { count?: unknown }).count === "number"
+  );
 }
 
 function isPriority(value: unknown): value is Priority {
@@ -114,7 +120,7 @@ function normalizeCoverage(
   const record = asRecord(value);
   if (!record) return null;
   if (!isValidNumber(record.totalInterviews)) return null;
-  if (!isRecordOfNumbers(record.breakdown)) return null;
+  if (!isBreakdownArray(record.breakdown)) return null;
   return {
     totalInterviews: record.totalInterviews,
     breakdown: record.breakdown,
