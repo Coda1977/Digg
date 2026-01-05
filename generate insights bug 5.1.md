@@ -16,9 +16,12 @@ Changed `breakdown` from a record/dictionary to an explicit array of `{role, cou
 2. **src/app/api/projects/analyze/route.ts** - Format breakdown as array in prompt
 3. **convex/projects.ts** - Changed `v.record()` to array + updated TypeScript type
 4. **src/components/pdf/ProjectInsightsPdf.tsx** - Updated TypeScript type
+5. **convex/schema.ts** - Database schema (missed in first commit)
+6. **convex/migrations/cleanOldFields.ts** - Migration types for consistency
 
-### Commit
-`b9275b2` - fix: change coverage.breakdown from record to array for generateObject compatibility
+### Commits
+- `b9275b2` - fix: change coverage.breakdown from record to array for generateObject compatibility
+- `5d6e211` - fix: update convex schema.ts and migration for breakdown array type
 
 ## Previous Failed Fixes
 
