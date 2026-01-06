@@ -179,20 +179,41 @@ function RatingBarChart({
   lowLabel?: string;
   highLabel?: string;
 }) {
+  // Validate maxRating to prevent division by zero or invalid calculations
+  if (!maxRating || maxRating <= 0 || !Number.isFinite(maxRating)) {
+    return null;
+  }
+
+  // Filter out invalid response values to prevent SVG rendering errors
+  const validResponses = responses.filter(
+    (r) =>
+      r.value !== undefined &&
+      Number.isFinite(r.value) &&
+      r.value >= 0 &&
+      r.value <= maxRating * 2 // Allow some margin but filter extreme outliers
+  );
+
+  // Don't render if no valid responses
+  if (validResponses.length === 0) {
+    return null;
+  }
+
   const barHeight = 14;
   const barGap = 4;
   const labelWidth = 70;
   const chartWidth = 180;
   const valueWidth = 25;
   const totalWidth = labelWidth + chartWidth + valueWidth + 10;
-  const chartHeight = responses.length * (barHeight + barGap) + 30;
+  const chartHeight = validResponses.length * (barHeight + barGap) + 30;
 
-  // Calculate average
-  const avg = responses.length > 0
-    ? responses.reduce((a, b) => a + b.value, 0) / responses.length
-    : 0;
-  const avgX = labelWidth + (avg / maxRating) * chartWidth;
-  const chartBottom = 20 + responses.length * (barHeight + barGap);
+  // Calculate average with validation
+  const sum = validResponses.reduce((a, b) => a + b.value, 0);
+  const avg = validResponses.length > 0 ? sum / validResponses.length : 0;
+
+  // Clamp avgX to valid range to prevent SVG rendering errors
+  const avgRatio = Math.max(0, Math.min(1, avg / maxRating));
+  const avgX = labelWidth + avgRatio * chartWidth;
+  const chartBottom = 20 + validResponses.length * (barHeight + barGap);
 
   return (
     <View style={{ marginVertical: 8 }}>
@@ -206,9 +227,11 @@ function RatingBarChart({
         </SvgText>
 
         {/* Bars */}
-        {responses.map((response, idx) => {
+        {validResponses.map((response, idx) => {
           const y = 20 + idx * (barHeight + barGap);
-          const barWidth = (response.value / maxRating) * chartWidth;
+          // Clamp barWidth to valid range
+          const barRatio = Math.max(0, Math.min(1, response.value / maxRating));
+          const barWidth = barRatio * chartWidth;
 
           return (
             <G key={String(idx)}>
@@ -248,7 +271,7 @@ function RatingBarChart({
         })}
 
         {/* Average line */}
-        {responses.length > 1 && (
+        {validResponses.length > 1 && (
           <G>
             <Line
               x1={avgX}
@@ -380,13 +403,24 @@ export function ProjectInsightsPdf(props: {
                 </View>
               )}
 
-              {question.responses.map((response, rIdx) => (
+              {question.responses.map((response, rIdx) => {
+                // Validate rating values to prevent rendering errors
+                const hasValidRating =
+                  response.ratingValue !== undefined &&
+                  Number.isFinite(response.ratingValue) &&
+                  response.ratingValue >= 1 &&
+                  question.ratingScale &&
+                  Number.isFinite(question.ratingScale.max) &&
+                  question.ratingScale.max > 0 &&
+                  question.ratingScale.max <= 100; // Reasonable upper bound
+
+                return (
                 <View key={`${response.surveyId}-${rIdx}`} style={styles.responseItem} wrap={false}>
                   <Text style={styles.responseHeader}>
                     {response.relationshipLabel} - {response.respondentName}:
                   </Text>
                   {/* Show rating with visual scale */}
-                  {response.ratingValue !== undefined && question.ratingScale ? (
+                  {hasValidRating && question.ratingScale ? (
                     <View style={{ marginTop: 2 }}>
                       <View style={{ flexDirection: "row", alignItems: "center" }}>
                         {Array.from({ length: question.ratingScale.max }, (_, i) => i + 1).map((num) => {
@@ -414,7 +448,8 @@ export function ProjectInsightsPdf(props: {
                     <Text style={styles.responseContent}>{response.content}</Text>
                   )}
                 </View>
-              ))}
+                );
+              })}
             </View>
           ))}
         </Page>
@@ -627,6 +662,15 @@ function RatingScalePdf(props: {
   isAverage?: boolean;
 }) {
   const { max, value, lowLabel, highLabel, isAverage = false } = props;
+
+  // Validate inputs to prevent rendering errors
+  if (!Number.isFinite(max) || max <= 0 || max > 100) {
+    return null;
+  }
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+
   const scaleValues = Array.from({ length: max }, (_, i) => i + 1);
   const highlightValue = isAverage ? Math.round(value) : value;
 
