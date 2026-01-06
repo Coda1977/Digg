@@ -151,14 +151,33 @@ export function extractResponsesByQuestion(
       (r) => r.relationshipId
     );
 
+    // Sanitize rating values in responses to prevent corrupt data from crashing UI/PDF
+    const maxScale = question.ratingScale?.max || 10;
+    const sanitizedResponses = sortedResponses.map(r => {
+      if (r.ratingValue === undefined) return r;
+
+      // Check for corrupt values
+      if (!Number.isFinite(r.ratingValue) || Math.abs(r.ratingValue) > 10000) {
+        // If corrupt, treat as undefined (don't show rating)
+        return { ...r, ratingValue: undefined };
+      }
+
+      // Clamp to reasonable range [1, max + buffer]
+      // We allow a small buffer for slight outliers but clamp huge ones
+      const clampedValue = Math.max(1, Math.min(maxScale * 2, r.ratingValue));
+
+      // If the value was clamped significantly (e.g. from 1000 to 10), use the clamped value
+      return { ...r, ratingValue: clampedValue };
+    });
+
     // Calculate rating stats if this is a rating question
     const ratingStats = question.questionType === "rating"
-      ? calculateRatingStats(sortedResponses, question.ratingScale?.max || 10)
+      ? calculateRatingStats(sanitizedResponses, maxScale)
       : undefined;
 
     return {
       ...question,
-      responses: sortedResponses,
+      responses: sanitizedResponses,
       ratingStats,
     };
   });
