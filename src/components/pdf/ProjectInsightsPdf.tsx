@@ -428,7 +428,7 @@ export function ProjectInsightsPdf(props: {
                   {hasValidRating && question.ratingScale ? (
                     <View style={{ marginTop: 2 }}>
                       <View style={{ flexDirection: "row", alignItems: "center" }}>
-                        {Array.from({ length: question.ratingScale.max }, (_, i) => i + 1).map((num) => {
+                        {Array.from({ length: safeNum(question.ratingScale.max, 10, 1, 100) }, (_, i) => i + 1).map((num) => {
                           const isHighlighted = num === response.ratingValue;
                           return (
                             <View

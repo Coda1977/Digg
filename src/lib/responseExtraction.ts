@@ -152,7 +152,9 @@ export function extractResponsesByQuestion(
     );
 
     // Sanitize rating values in responses to prevent corrupt data from crashing UI/PDF
-    const maxScale = question.ratingScale?.max || 10;
+    // First, sanitize the ratingScale.max itself (could be corrupt like -9.44e21)
+    const rawMax = question.ratingScale?.max ?? 10;
+    const maxScale = (Number.isFinite(rawMax) && rawMax > 0 && rawMax <= 100) ? rawMax : 10;
     const sanitizedResponses = sortedResponses.map(r => {
       if (r.ratingValue === undefined) return r;
 
