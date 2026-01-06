@@ -180,14 +180,17 @@ function RatingBarChart({
   highLabel?: string;
 }) {
   // Validate maxRating to prevent division by zero or invalid calculations
-  if (!maxRating || maxRating <= 0 || !Number.isFinite(maxRating)) {
+  // Also reject absurdly large values (corrupt data)
+  if (!maxRating || maxRating <= 0 || maxRating > 100 || !Number.isFinite(maxRating)) {
     return null;
   }
 
-  // Filter out completely invalid responses (undefined, NaN, Infinity)
-  // but keep outliers - we'll clamp them to valid range
+  // Filter out completely invalid responses (undefined, NaN, Infinity, or absurdly large)
+  // Keep reasonable outliers - we'll clamp them to valid range
   const validResponses = responses.filter(
-    (r) => r.value !== undefined && Number.isFinite(r.value)
+    (r) => r.value !== undefined &&
+           Number.isFinite(r.value) &&
+           Math.abs(r.value) < 1e10 // Filter out corrupt values like -9.44e21
   );
 
   // Don't render if no valid responses
@@ -404,9 +407,11 @@ export function ProjectInsightsPdf(props: {
 
               {question.responses.map((response, rIdx) => {
                 // Validate rating values to prevent rendering errors
+                // Filter out corrupt values like -9.44e21
                 const hasValidRating =
                   response.ratingValue !== undefined &&
                   Number.isFinite(response.ratingValue) &&
+                  Math.abs(response.ratingValue) < 1e10 && // Filter corrupt values
                   response.ratingValue >= 1 &&
                   question.ratingScale &&
                   Number.isFinite(question.ratingScale.max) &&
@@ -663,10 +668,11 @@ function RatingScalePdf(props: {
   const { max, value, lowLabel, highLabel, isAverage = false } = props;
 
   // Validate inputs to prevent rendering errors
+  // Filter out corrupt values like -9.44e21
   if (!Number.isFinite(max) || max <= 0 || max > 100) {
     return null;
   }
-  if (!Number.isFinite(value)) {
+  if (!Number.isFinite(value) || Math.abs(value) > 1e10) {
     return null;
   }
 
