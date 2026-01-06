@@ -166,6 +166,19 @@ function RunningHeader({
 }
 
 /**
+ * Sanitize number: if invalid or too large, return fallback. Clamp to min/max if provided.
+ */
+function safeNum(n: number | undefined, fallback: number, min?: number, max?: number): number {
+  if (n === undefined || !Number.isFinite(n) || Math.abs(n) > 1000000) {
+    return fallback;
+  }
+  let result = Math.round(n * 10) / 10; // Round to 1 decimal
+  if (min !== undefined) result = Math.max(min, result);
+  if (max !== undefined) result = Math.min(max, result);
+  return result;
+}
+
+/**
  * SVG-based horizontal bar chart for rating visualization
  */
 function RatingBarChart({
@@ -179,27 +192,17 @@ function RatingBarChart({
   lowLabel?: string;
   highLabel?: string;
 }) {
-  // Validate maxRating to prevent division by zero or invalid calculations
-  // Also reject absurdly large values (corrupt data)
-  if (!maxRating || maxRating <= 0 || maxRating > 100 || !Number.isFinite(maxRating)) {
-    return null;
-  }
+  // Sanitize maxRating - must be 1-100
+  const safeMax = safeNum(maxRating, 10, 1, 100);
 
-  // Filter out completely invalid responses (undefined, NaN, Infinity, or absurdly large)
-  // Keep reasonable outliers - we'll clamp them to valid range
-  const validResponses = responses.filter(
-    (r) => r.value !== undefined &&
-           Number.isFinite(r.value) &&
-           Math.abs(r.value) < 1e10 // Filter out corrupt values like -9.44e21
-  );
+  // Sanitize all response values to ensure valid numbers
+  const validResponses = responses
+    .map((r) => ({ ...r, value: safeNum(r.value, 0, 0, safeMax) }))
+    .filter((r) => r.value > 0); // Only keep responses with valid ratings
 
-  // Don't render if no valid responses
   if (validResponses.length === 0) {
     return null;
   }
-
-  // Clamp values to valid range for calculations (1 to maxRating)
-  const clampValue = (v: number) => Math.max(1, Math.min(maxRating, v));
 
   const barHeight = 14;
   const barGap = 4;
@@ -209,12 +212,12 @@ function RatingBarChart({
   const totalWidth = labelWidth + chartWidth + valueWidth + 10;
   const chartHeight = validResponses.length * (barHeight + barGap) + 30;
 
-  // Calculate average using clamped values
-  const sum = validResponses.reduce((a, b) => a + clampValue(b.value), 0);
-  const avg = validResponses.length > 0 ? sum / validResponses.length : 0;
+  // Calculate average (values are already sanitized)
+  const sum = validResponses.reduce((a, b) => a + b.value, 0);
+  const avg = safeNum(sum / validResponses.length, safeMax / 2, 1, safeMax);
 
-  // avgX is already within valid range since avg uses clamped values
-  const avgX = labelWidth + (avg / maxRating) * chartWidth;
+  // Calculate positions (all using sanitized values)
+  const avgX = labelWidth + (avg / safeMax) * chartWidth;
   const chartBottom = 20 + validResponses.length * (barHeight + barGap);
 
   return (
@@ -225,15 +228,13 @@ function RatingBarChart({
           {lowLabel || "1"}
         </SvgText>
         <SvgText x={labelWidth + chartWidth - 30} y={10} style={{ fontSize: 7, fill: COLORS.inkLighter }}>
-          {highLabel || String(maxRating)}
+          {highLabel || String(safeMax)}
         </SvgText>
 
         {/* Bars */}
         {validResponses.map((response, idx) => {
           const y = 20 + idx * (barHeight + barGap);
-          // Use clamped value for bar width calculation
-          const clampedValue = clampValue(response.value);
-          const barWidth = (clampedValue / maxRating) * chartWidth;
+          const barWidth = (response.value / safeMax) * chartWidth;
 
           return (
             <G key={String(idx)}>
@@ -260,13 +261,13 @@ function RatingBarChart({
                 fill={COLORS.accentRed}
               />
 
-              {/* Value label - show clamped value for consistency with bar */}
+              {/* Value label */}
               <SvgText
                 x={labelWidth + chartWidth + 8}
                 y={y + 10}
                 style={{ fontSize: 9, fontWeight: 700, fill: COLORS.ink }}
               >
-                {String(clampedValue)}
+                {String(response.value)}
               </SvgText>
             </G>
           );
