@@ -51,3 +51,7 @@ set-env.js
 # Local duplicates/noise
 *-Yonatan-Office*
 function_spec_*.json
+
+# Windows reserved names (can be created accidentally)
+nul
+NUL
