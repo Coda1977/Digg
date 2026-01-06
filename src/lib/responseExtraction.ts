@@ -61,22 +61,32 @@ type TemplateQuestion = {
 
 /**
  * Calculate rating statistics from responses
+ * Filters out invalid ratings and rounds the average to 1 decimal place
  */
-function calculateRatingStats(responses: Array<{ ratingValue?: number }>) {
+function calculateRatingStats(responses: Array<{ ratingValue?: number }>, maxRating: number = 10) {
   const ratings = responses
     .map(r => r.ratingValue)
-    .filter((v): v is number => v !== undefined);
+    .filter((v): v is number =>
+      v !== undefined &&
+      Number.isFinite(v) &&
+      v >= 1 &&
+      v <= maxRating
+    );
 
   if (ratings.length === 0) {
     return undefined;
   }
 
   const distribution = ratings.reduce((acc, rating) => {
-    acc[rating] = (acc[rating] || 0) + 1;
+    // Round to nearest integer for distribution
+    const roundedRating = Math.round(rating);
+    acc[roundedRating] = (acc[roundedRating] || 0) + 1;
     return acc;
   }, {} as Record<number, number>);
 
-  const average = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
+  // Calculate average and round to 1 decimal place
+  const sum = ratings.reduce((s, r) => s + r, 0);
+  const average = Math.round((sum / ratings.length) * 10) / 10;
 
   return { average, distribution };
 }
@@ -143,7 +153,7 @@ export function extractResponsesByQuestion(
 
     // Calculate rating stats if this is a rating question
     const ratingStats = question.questionType === "rating"
-      ? calculateRatingStats(sortedResponses)
+      ? calculateRatingStats(sortedResponses, question.ratingScale?.max || 10)
       : undefined;
 
     return {

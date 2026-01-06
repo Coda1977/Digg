@@ -57,3 +57,40 @@ export const getLatest = query({
     return messages.slice(-limit);
   },
 });
+
+// Debug query to find messages with rating values for a project
+export const debugRatings = query({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    // Get all surveys for this project
+    const surveys = await ctx.db
+      .query("surveys")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    const results = [];
+    for (const survey of surveys) {
+      const messages = await ctx.db
+        .query("messages")
+        .withIndex("by_survey_order", (q) => q.eq("surveyId", survey._id))
+        .collect();
+
+      const ratingsInSurvey = messages
+        .filter(m => m.ratingValue !== undefined)
+        .map(m => ({
+          surveyId: survey._id,
+          respondentName: survey.respondentName,
+          questionId: m.questionId,
+          content: m.content,
+          ratingValue: m.ratingValue,
+          ratingValueType: typeof m.ratingValue,
+          isFinite: Number.isFinite(m.ratingValue),
+          absValue: m.ratingValue !== undefined ? Math.abs(m.ratingValue) : undefined,
+        }));
+
+      results.push(...ratingsInSurvey);
+    }
+
+    return results;
+  },
+});
