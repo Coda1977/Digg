@@ -184,19 +184,19 @@ function RatingBarChart({
     return null;
   }
 
-  // Filter out invalid response values to prevent SVG rendering errors
+  // Filter out completely invalid responses (undefined, NaN, Infinity)
+  // but keep outliers - we'll clamp them to valid range
   const validResponses = responses.filter(
-    (r) =>
-      r.value !== undefined &&
-      Number.isFinite(r.value) &&
-      r.value >= 0 &&
-      r.value <= maxRating * 2 // Allow some margin but filter extreme outliers
+    (r) => r.value !== undefined && Number.isFinite(r.value)
   );
 
   // Don't render if no valid responses
   if (validResponses.length === 0) {
     return null;
   }
+
+  // Clamp values to valid range for calculations (1 to maxRating)
+  const clampValue = (v: number) => Math.max(1, Math.min(maxRating, v));
 
   const barHeight = 14;
   const barGap = 4;
@@ -206,13 +206,12 @@ function RatingBarChart({
   const totalWidth = labelWidth + chartWidth + valueWidth + 10;
   const chartHeight = validResponses.length * (barHeight + barGap) + 30;
 
-  // Calculate average with validation
-  const sum = validResponses.reduce((a, b) => a + b.value, 0);
+  // Calculate average using clamped values
+  const sum = validResponses.reduce((a, b) => a + clampValue(b.value), 0);
   const avg = validResponses.length > 0 ? sum / validResponses.length : 0;
 
-  // Clamp avgX to valid range to prevent SVG rendering errors
-  const avgRatio = Math.max(0, Math.min(1, avg / maxRating));
-  const avgX = labelWidth + avgRatio * chartWidth;
+  // avgX is already within valid range since avg uses clamped values
+  const avgX = labelWidth + (avg / maxRating) * chartWidth;
   const chartBottom = 20 + validResponses.length * (barHeight + barGap);
 
   return (
@@ -229,9 +228,9 @@ function RatingBarChart({
         {/* Bars */}
         {validResponses.map((response, idx) => {
           const y = 20 + idx * (barHeight + barGap);
-          // Clamp barWidth to valid range
-          const barRatio = Math.max(0, Math.min(1, response.value / maxRating));
-          const barWidth = barRatio * chartWidth;
+          // Use clamped value for bar width calculation
+          const clampedValue = clampValue(response.value);
+          const barWidth = (clampedValue / maxRating) * chartWidth;
 
           return (
             <G key={String(idx)}>
@@ -258,13 +257,13 @@ function RatingBarChart({
                 fill={COLORS.accentRed}
               />
 
-              {/* Value label */}
+              {/* Value label - show clamped value for consistency with bar */}
               <SvgText
                 x={labelWidth + chartWidth + 8}
                 y={y + 10}
                 style={{ fontSize: 9, fontWeight: 700, fill: COLORS.ink }}
               >
-                {String(response.value)}
+                {String(clampedValue)}
               </SvgText>
             </G>
           );
