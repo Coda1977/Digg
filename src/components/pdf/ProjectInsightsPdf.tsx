@@ -350,6 +350,7 @@ export function ProjectInsightsPdf(props: {
     responsesByQuestion,
     transcripts,
     coverageText,
+    surveys,
   } = props;
 
   // DEBUG: Log ALL numeric values in props to catch corrupt data
@@ -367,18 +368,17 @@ export function ProjectInsightsPdf(props: {
   if (typeof window !== "undefined") {
     console.log("[PDF_RENDER] Starting PDF generation");
 
-    // Find ALL numbers in all props
+    // Find ALL numbers in ALL props - scan the entire props object
     const allNumbers: Array<{path: string, value: number}> = [];
-    findAllNumbers(analysis, "analysis", allNumbers);
-    findAllNumbers(segmentedAnalysis, "segmentedAnalysis", allNumbers);
-    findAllNumbers(responsesByQuestion, "responsesByQuestion", allNumbers);
+    findAllNumbers(props, "props", allNumbers);
 
     // Log summary
-    console.log(`[PDF_DATA] Found ${allNumbers.length} numeric values in props`);
+    console.log(`[PDF_DATA] Found ${allNumbers.length} numeric values in ALL props`);
 
-    // Log any suspicious values (very large, very small negative, NaN, Infinity)
+    // Log any suspicious values - use 1e15 threshold to allow valid timestamps (~1e12)
+    // but catch corrupt values like -9.44e21
     const suspicious = allNumbers.filter(n =>
-      !Number.isFinite(n.value) || Math.abs(n.value) > 1e10
+      !Number.isFinite(n.value) || Math.abs(n.value) > 1e15
     );
 
     if (suspicious.length > 0) {
