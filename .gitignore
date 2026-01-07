@@ -55,3 +55,4 @@ function_spec_*.json
 # Windows reserved names (can be created accidentally)
 nul
 NUL
+.env.prod
