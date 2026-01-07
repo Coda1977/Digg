@@ -195,11 +195,14 @@ function normalizeRating(value: number | undefined, maxScale: number): number {
 /**
  * Sanitize a count/frequency value for display.
  * Returns undefined if invalid (won't render).
+ * Includes logging to help debug corrupt values.
  */
 function safeCount(value: number | undefined): number | undefined {
   if (value === undefined) return undefined;
-  if (!Number.isFinite(value)) return undefined;
-  if (value < 0 || value > 10000) return undefined;
+  if (!Number.isFinite(value) || value < 0 || value > 10000) {
+    console.error(`[PDF_CORRUPT_NUMBER] safeCount rejected: ${value}`);
+    return undefined;
+  }
   return Math.round(value);
 }
 
@@ -348,6 +351,42 @@ export function ProjectInsightsPdf(props: {
     transcripts,
     coverageText,
   } = props;
+
+  // DEBUG: Log all numeric values in props to catch corrupt data
+  if (typeof window !== "undefined") {
+    console.log("[PDF_RENDER] Starting PDF generation");
+    if (analysis) {
+      console.log("[PDF_DATA] analysis.coverage:", JSON.stringify(analysis.coverage));
+      analysis.strengths?.forEach((s, i) => {
+        if (s.frequency !== undefined) {
+          console.log(`[PDF_DATA] strength[${i}].frequency: ${s.frequency}`);
+          if (!Number.isFinite(s.frequency) || Math.abs(s.frequency) > 1000) {
+            console.error(`[PDF_CORRUPT_NUMBER] Found corrupt strength frequency: ${s.frequency}`);
+          }
+        }
+      });
+    }
+    if (responsesByQuestion) {
+      responsesByQuestion.forEach((q, qi) => {
+        q.responses.forEach((r, ri) => {
+          if (r.ratingValue !== undefined) {
+            if (!Number.isFinite(r.ratingValue) || Math.abs(r.ratingValue) > 100) {
+              console.error(`[PDF_CORRUPT_NUMBER] Found corrupt ratingValue at q[${qi}].responses[${ri}]: ${r.ratingValue}`);
+            }
+          }
+        });
+      });
+    }
+    if (segmentedAnalysis) {
+      segmentedAnalysis.forEach((seg, si) => {
+        seg.analysis.strengths?.forEach((s, ssi) => {
+          if (s.frequency !== undefined && (!Number.isFinite(s.frequency) || Math.abs(s.frequency) > 1000)) {
+            console.error(`[PDF_CORRUPT_NUMBER] Found corrupt segment strength frequency at seg[${si}].strength[${ssi}]: ${s.frequency}`);
+          }
+        });
+      });
+    }
+  }
 
   const roleText = subjectRole ? ` (${subjectRole})` : "";
   const generatedDate = analysis?.generatedAt

@@ -2,6 +2,35 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdmin } from "./lib/authorization";
 
+// ============================================================================
+// SANITIZATION HELPERS - Prevent corrupt numbers from being stored
+// ============================================================================
+
+/**
+ * Sanitize a frequency value (expected range: 1-100)
+ * Returns undefined if corrupt or out of range
+ */
+function sanitizeFrequency(val: number | undefined): number | undefined {
+  if (val === undefined) return undefined;
+  if (!Number.isFinite(val) || val < 1 || val > 100) {
+    console.warn(`[CONVEX] Rejected corrupt frequency: ${val}`);
+    return undefined;
+  }
+  return Math.round(val);
+}
+
+/**
+ * Sanitize a count value (expected range: 0-1000)
+ * Returns 0 if corrupt or out of range
+ */
+function sanitizeCount(val: number): number {
+  if (!Number.isFinite(val) || val < 0 || val > 1000) {
+    console.warn(`[CONVEX] Rejected corrupt count: ${val}`);
+    return 0;
+  }
+  return Math.round(val);
+}
+
 export const list = query({
   args: {},
   handler: async (ctx) => {
@@ -280,27 +309,31 @@ export const saveAnalysis = mutation({
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
+
+    // SANITIZE all numeric values before storing to prevent corrupt data
+    const sanitizedAnalysis = {
+      summary: args.analysis.summary,
+      strengths: args.analysis.strengths.map((s) => ({
+        point: s.point,
+        quote: s.quote,
+        frequency: sanitizeFrequency(s.frequency),
+      })),
+      improvements: args.analysis.improvements,
+      narrative: args.analysis.narrative,
+      coverage: {
+        totalInterviews: sanitizeCount(args.analysis.coverage.totalInterviews),
+        breakdown: Object.fromEntries(
+          Object.entries(args.analysis.coverage.breakdown).map(([k, v]) => [
+            k,
+            sanitizeCount(v),
+          ])
+        ),
+      },
+      generatedAt: Date.now(),
+    };
+
     const updateData: {
-      analysis: {
-        summary: string;
-        strengths: Array<{
-          point: string;
-          quote?: string;
-          frequency?: number;
-        }>;
-        improvements: Array<{
-          point: string;
-          quote?: string;
-          action: string;
-          priority: "high" | "medium" | "low";
-        }>;
-        narrative?: string;
-        coverage: {
-          totalInterviews: number;
-          breakdown: Record<string, number>;
-        };
-        generatedAt: number;
-      };
+      analysis: typeof sanitizedAnalysis;
       segmentedAnalysis?: Array<{
         relationshipType: string;
         relationshipLabel: string;
@@ -321,15 +354,23 @@ export const saveAnalysis = mutation({
         generatedAt: number;
       }>;
     } = {
-      analysis: {
-        ...args.analysis,
-        generatedAt: Date.now(),
-      },
+      analysis: sanitizedAnalysis,
     };
 
     if (args.segmentedAnalysis) {
+      // SANITIZE segmented analysis too
       updateData.segmentedAnalysis = args.segmentedAnalysis.map((segment) => ({
-        ...segment,
+        relationshipType: segment.relationshipType,
+        relationshipLabel: segment.relationshipLabel,
+        summary: segment.summary,
+        strengths: segment.strengths.map((s) => ({
+          point: s.point,
+          quote: s.quote,
+          frequency: sanitizeFrequency(s.frequency),
+        })),
+        improvements: segment.improvements,
+        narrative: segment.narrative,
+        basedOnSurveyCount: sanitizeCount(segment.basedOnSurveyCount),
         generatedAt: Date.now(),
       }));
     }

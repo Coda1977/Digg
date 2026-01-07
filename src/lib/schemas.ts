@@ -76,18 +76,31 @@ export type Summary = z.infer<typeof summarySchema>;
 /**
  * Custom preprocessor to sanitize numeric values from AI responses.
  * Transforms corrupt values (NaN, Infinity, huge numbers) to valid numbers or undefined.
+ * Includes logging to help debug where corrupt values originate.
  */
 function sanitizeFrequency(val: unknown): number | undefined {
   if (val === undefined || val === null) return undefined;
-  if (typeof val !== "number") return undefined;
-  if (!Number.isFinite(val) || val < 1 || val > 100) return undefined;
+  if (typeof val !== "number") {
+    console.warn(`[SANITIZE] frequency not a number: ${typeof val} = ${String(val)}`);
+    return undefined;
+  }
+  if (!Number.isFinite(val) || val < 1 || val > 100) {
+    console.error(`[CORRUPT_NUMBER] sanitizeFrequency rejected: ${val}`);
+    return undefined;
+  }
   return Math.round(val);
 }
 
 function sanitizeCount(val: unknown): number {
   if (val === undefined || val === null) return 0;
-  if (typeof val !== "number") return 0;
-  if (!Number.isFinite(val) || val < 0 || val > 1000) return 0;
+  if (typeof val !== "number") {
+    console.warn(`[SANITIZE] count not a number: ${typeof val} = ${String(val)}`);
+    return 0;
+  }
+  if (!Number.isFinite(val) || val < 0 || val > 1000) {
+    console.error(`[CORRUPT_NUMBER] sanitizeCount rejected: ${val}`);
+    return 0;
+  }
   return Math.round(val);
 }
 

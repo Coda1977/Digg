@@ -86,8 +86,28 @@ IMPORTANT: Include coverage in your response:
 
   try {
     const result = await generateText({ model, system, prompt });
+    console.log(`[AI_RAW] Raw AI response length: ${result.text.length}`);
+
     const parsed = parseAiJsonObject(result.text);
+    console.log(`[AI_PARSED] Parsed JSON keys:`, Object.keys(parsed as object));
+
+    // Log ALL numeric values in parsed JSON to catch corrupt numbers
+    function logAllNumbers(obj: unknown, path = ""): void {
+      if (typeof obj === "number") {
+        if (!Number.isFinite(obj) || Math.abs(obj) > 1e10) {
+          console.error(`[CORRUPT_NUMBER] Found at ${path}: ${obj}`);
+        }
+      } else if (Array.isArray(obj)) {
+        obj.forEach((item, i) => logAllNumbers(item, `${path}[${i}]`));
+      } else if (obj && typeof obj === "object") {
+        Object.entries(obj).forEach(([k, v]) => logAllNumbers(v, `${path}.${k}`));
+      }
+    }
+    logAllNumbers(parsed, "analysis");
+
     const analysis = validateSchema(analysisSchema, parsed);
+    console.log(`[VALIDATED] Schema validation passed`);
+
     return NextResponse.json(analysis);
   } catch (err) {
     return NextResponse.json(

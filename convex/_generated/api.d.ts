@@ -18,6 +18,7 @@ import type * as lib_email from "../lib/email.js";
 import type * as lib_templateValidation from "../lib/templateValidation.js";
 import type * as messages from "../messages.js";
 import type * as migrations_cleanOldFields from "../migrations/cleanOldFields.js";
+import type * as migrations_sanitizeAnalysisNumbers from "../migrations/sanitizeAnalysisNumbers.js";
 import type * as projects from "../projects.js";
 import type * as rateLimits from "../rateLimits.js";
 import type * as repairs from "../repairs.js";
@@ -42,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   "lib/templateValidation": typeof lib_templateValidation;
   messages: typeof messages;
   "migrations/cleanOldFields": typeof migrations_cleanOldFields;
+  "migrations/sanitizeAnalysisNumbers": typeof migrations_sanitizeAnalysisNumbers;
   projects: typeof projects;
   rateLimits: typeof rateLimits;
   repairs: typeof repairs;
