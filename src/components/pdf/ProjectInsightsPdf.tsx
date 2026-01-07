@@ -352,36 +352,63 @@ export function ProjectInsightsPdf(props: {
     coverageText,
   } = props;
 
-  // DEBUG: Log all numeric values in props to catch corrupt data
+  // DEBUG: Log ALL numeric values in props to catch corrupt data
+  // This helper recursively finds all numbers in an object
+  function findAllNumbers(obj: unknown, path: string, results: Array<{path: string, value: number}>) {
+    if (typeof obj === "number") {
+      results.push({ path, value: obj });
+    } else if (Array.isArray(obj)) {
+      obj.forEach((item, i) => findAllNumbers(item, `${path}[${i}]`, results));
+    } else if (obj && typeof obj === "object") {
+      Object.entries(obj).forEach(([k, v]) => findAllNumbers(v, `${path}.${k}`, results));
+    }
+  }
+
   if (typeof window !== "undefined") {
     console.log("[PDF_RENDER] Starting PDF generation");
+
+    // Find ALL numbers in all props
+    const allNumbers: Array<{path: string, value: number}> = [];
+    findAllNumbers(analysis, "analysis", allNumbers);
+    findAllNumbers(segmentedAnalysis, "segmentedAnalysis", allNumbers);
+    findAllNumbers(responsesByQuestion, "responsesByQuestion", allNumbers);
+
+    // Log summary
+    console.log(`[PDF_DATA] Found ${allNumbers.length} numeric values in props`);
+
+    // Log any suspicious values (very large, very small negative, NaN, Infinity)
+    const suspicious = allNumbers.filter(n =>
+      !Number.isFinite(n.value) || Math.abs(n.value) > 1e10
+    );
+
+    if (suspicious.length > 0) {
+      console.error(`[PDF_CORRUPT] Found ${suspicious.length} suspicious numbers:`);
+      suspicious.forEach(n => {
+        console.error(`  ${n.path}: ${n.value}`);
+      });
+    } else {
+      console.log("[PDF_DATA] All numeric values look valid");
+    }
+
+    // Also log specific fields for quick reference
     if (analysis) {
       console.log("[PDF_DATA] analysis.coverage:", JSON.stringify(analysis.coverage));
       analysis.strengths?.forEach((s, i) => {
         if (s.frequency !== undefined) {
           console.log(`[PDF_DATA] strength[${i}].frequency: ${s.frequency}`);
-          if (!Number.isFinite(s.frequency) || Math.abs(s.frequency) > 1000) {
-            console.error(`[PDF_CORRUPT_NUMBER] Found corrupt strength frequency: ${s.frequency}`);
-          }
         }
       });
     }
+
+    // Log responsesByQuestion ratingScale.max values
     if (responsesByQuestion) {
       responsesByQuestion.forEach((q, qi) => {
+        if (q.ratingScale?.max !== undefined) {
+          console.log(`[PDF_DATA] q[${qi}].ratingScale.max: ${q.ratingScale.max}`);
+        }
         q.responses.forEach((r, ri) => {
           if (r.ratingValue !== undefined) {
-            if (!Number.isFinite(r.ratingValue) || Math.abs(r.ratingValue) > 100) {
-              console.error(`[PDF_CORRUPT_NUMBER] Found corrupt ratingValue at q[${qi}].responses[${ri}]: ${r.ratingValue}`);
-            }
-          }
-        });
-      });
-    }
-    if (segmentedAnalysis) {
-      segmentedAnalysis.forEach((seg, si) => {
-        seg.analysis.strengths?.forEach((s, ssi) => {
-          if (s.frequency !== undefined && (!Number.isFinite(s.frequency) || Math.abs(s.frequency) > 1000)) {
-            console.error(`[PDF_CORRUPT_NUMBER] Found corrupt segment strength frequency at seg[${si}].strength[${ssi}]: ${s.frequency}`);
+            console.log(`[PDF_DATA] q[${qi}].responses[${ri}].ratingValue: ${r.ratingValue}`);
           }
         });
       });

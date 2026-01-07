@@ -159,6 +159,34 @@ export const dryRun = internalMutation({
     const projects = await ctx.db.query("projects").collect();
     const issues: string[] = [];
 
+    // ALSO CHECK: Messages with corrupt ratingValues
+    const messages = await ctx.db.query("messages").collect();
+    for (const msg of messages) {
+      if (msg.ratingValue !== undefined) {
+        if (!Number.isFinite(msg.ratingValue) || msg.ratingValue < 0 || msg.ratingValue > 100) {
+          issues.push(
+            `Message ${msg._id}: Invalid ratingValue: ${msg.ratingValue}`
+          );
+        }
+      }
+    }
+
+    // ALSO CHECK: Templates with corrupt ratingScale values
+    const templates = await ctx.db.query("templates").collect();
+    for (const template of templates) {
+      if (template.questions) {
+        for (const q of template.questions) {
+          if (q.ratingScale?.max !== undefined) {
+            if (!Number.isFinite(q.ratingScale.max) || q.ratingScale.max < 1 || q.ratingScale.max > 100) {
+              issues.push(
+                `Template ${template._id} question ${q.id}: Invalid ratingScale.max: ${q.ratingScale.max}`
+              );
+            }
+          }
+        }
+      }
+    }
+
     for (const project of projects) {
       if (!project.analysis) continue;
 
