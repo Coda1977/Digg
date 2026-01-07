@@ -193,6 +193,17 @@ function normalizeRating(value: number | undefined, maxScale: number): number {
 }
 
 /**
+ * Sanitize a count/frequency value for display.
+ * Returns undefined if invalid (won't render).
+ */
+function safeCount(value: number | undefined): number | undefined {
+  if (value === undefined) return undefined;
+  if (!Number.isFinite(value)) return undefined;
+  if (value < 0 || value > 10000) return undefined;
+  return Math.round(value);
+}
+
+/**
  * SVG-based horizontal bar chart for rating visualization
  */
 function RatingBarChart({
@@ -479,10 +490,10 @@ export function ProjectInsightsPdf(props: {
         ) : (
           <>
             <Section title="Overall Analysis">
-              {analysis.coverage && (
+              {analysis.coverage && safeCount(analysis.coverage.totalInterviews) && (
                 <Text style={styles.paragraph}>
-                  Based on {analysis.coverage.totalInterviews} completed interview
-                  {analysis.coverage.totalInterviews === 1 ? "" : "s"}
+                  Based on {safeCount(analysis.coverage.totalInterviews)} completed interview
+                  {safeCount(analysis.coverage.totalInterviews) === 1 ? "" : "s"}
                 </Text>
               )}
               {analysis.summary && (
@@ -503,10 +514,10 @@ export function ProjectInsightsPdf(props: {
                           &quot;{strength.quote}&quot;
                         </Text>
                       )}
-                      {strength.frequency && (
+                      {safeCount(strength.frequency) && (
                         <Text style={styles.frequency}>
-                          Mentioned by {strength.frequency} respondent
-                          {strength.frequency === 1 ? "" : "s"}
+                          Mentioned by {safeCount(strength.frequency)} respondent
+                          {safeCount(strength.frequency) === 1 ? "" : "s"}
                         </Text>
                       )}
                     </View>

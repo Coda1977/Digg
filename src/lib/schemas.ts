@@ -73,14 +73,33 @@ export const summarySchema = z.object({
 
 export type Summary = z.infer<typeof summarySchema>;
 
-// NEW: Simplified project analysis schema
+/**
+ * Custom preprocessor to sanitize numeric values from AI responses.
+ * Transforms corrupt values (NaN, Infinity, huge numbers) to valid numbers or undefined.
+ */
+function sanitizeFrequency(val: unknown): number | undefined {
+  if (val === undefined || val === null) return undefined;
+  if (typeof val !== "number") return undefined;
+  if (!Number.isFinite(val) || val < 1 || val > 100) return undefined;
+  return Math.round(val);
+}
+
+function sanitizeCount(val: unknown): number {
+  if (val === undefined || val === null) return 0;
+  if (typeof val !== "number") return 0;
+  if (!Number.isFinite(val) || val < 0 || val > 1000) return 0;
+  return Math.round(val);
+}
+
+// NEW: Simplified project analysis schema with sanitization
 export const analysisSchema = z.object({
   summary: z.string(),
   strengths: z.array(
     z.object({
       point: z.string(),
       quote: z.string().optional(),
-      frequency: z.number().optional(),
+      // Frequency: preprocess to sanitize corrupt values before validation
+      frequency: z.preprocess(sanitizeFrequency, z.number().int().min(1).max(100).optional()),
     })
   ),
   improvements: z.array(
@@ -93,8 +112,10 @@ export const analysisSchema = z.object({
   ),
   narrative: z.string().optional(),
   coverage: z.object({
-    totalInterviews: z.number(),
-    breakdown: z.record(z.string(), z.number()),
+    // Total interviews: preprocess to sanitize
+    totalInterviews: z.preprocess(sanitizeCount, z.number().int().min(0).max(1000)),
+    // Breakdown values: preprocess each value
+    breakdown: z.record(z.string(), z.preprocess(sanitizeCount, z.number().int().min(0).max(1000))),
   }),
 });
 
