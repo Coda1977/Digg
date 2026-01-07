@@ -14,6 +14,31 @@ type RatingScaleDisplayProps = {
 // Use explicit hex color to ensure Tailwind JIT picks it up
 const ACCENT_RED = "#DC2626";
 
+// Allowed rating scales - same as in responseExtraction.ts
+const ALLOWED_SCALES = [3, 4, 5, 7, 10] as const;
+const DEFAULT_SCALE = 10;
+
+/**
+ * Normalize scale max to an allowed value.
+ * Defensive guard in case raw data is passed directly.
+ */
+function normalizeScale(max: number): number {
+  if (!Number.isFinite(max) || max <= 0 || max > 100) return DEFAULT_SCALE;
+  const rounded = Math.round(max);
+  if ((ALLOWED_SCALES as readonly number[]).includes(rounded)) return rounded;
+  // Find closest allowed scale
+  let closest = DEFAULT_SCALE;
+  let minDiff = Infinity;
+  for (const scale of ALLOWED_SCALES) {
+    const diff = Math.abs(scale - rounded);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closest = scale;
+    }
+  }
+  return closest;
+}
+
 export function RatingScaleDisplay({
   max,
   value,
@@ -21,10 +46,15 @@ export function RatingScaleDisplay({
   highLabel,
   isAverage = false,
 }: RatingScaleDisplayProps) {
-  const scaleValues = Array.from({ length: max }, (_, i) => i + 1);
+  // Normalize max to prevent Array.from crash with corrupt values
+  const safeMax = normalizeScale(max);
+  const scaleValues = Array.from({ length: safeMax }, (_, i) => i + 1);
+
+  // Normalize value - if corrupt, don't highlight anything
+  const safeValue = Number.isFinite(value) && value >= 1 && value <= safeMax ? value : 0;
 
   // For average, we highlight the closest integer but show the decimal
-  const highlightValue = isAverage ? Math.round(value) : value;
+  const highlightValue = isAverage ? Math.round(safeValue) : safeValue;
 
   return (
     <div className="space-y-2">
@@ -49,9 +79,9 @@ export function RatingScaleDisplay({
         })}
 
         {/* Show actual value next to scale */}
-        {isAverage && (
+        {isAverage && safeValue > 0 && (
           <span className="ml-2 font-serif text-lg font-bold text-ink">
-            {value.toFixed(1)}
+            {safeValue.toFixed(1)}
           </span>
         )}
       </div>

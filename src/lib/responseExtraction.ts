@@ -5,6 +5,48 @@
 
 import { sortByRelationship } from "./relationshipOrder";
 
+// ============================================================================
+// DATA NORMALIZATION CONSTANTS
+// ============================================================================
+// All rating scales must be one of these values
+const ALLOWED_SCALES = [3, 4, 5, 7, 10] as const;
+const DEFAULT_SCALE = 10;
+
+/**
+ * Normalize a rating scale max to an allowed value.
+ * If corrupt or invalid, returns DEFAULT_SCALE.
+ */
+function normalizeScale(max: number | undefined): number {
+  if (max === undefined) return DEFAULT_SCALE;
+  if (!Number.isFinite(max) || max <= 0 || max > 100) return DEFAULT_SCALE;
+  // Find closest allowed scale
+  const rounded = Math.round(max);
+  if ((ALLOWED_SCALES as readonly number[]).includes(rounded)) return rounded;
+  // If not exact match, find closest
+  let closest = DEFAULT_SCALE;
+  let minDiff = Infinity;
+  for (const scale of ALLOWED_SCALES) {
+    const diff = Math.abs(scale - rounded);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closest = scale;
+    }
+  }
+  return closest;
+}
+
+/**
+ * Normalize a rating value to be valid within 1..maxScale.
+ * Returns undefined if the value is corrupt or out of range.
+ */
+function normalizeRatingValue(value: number | undefined, maxScale: number): number | undefined {
+  if (value === undefined) return undefined;
+  if (!Number.isFinite(value)) return undefined;
+  if (value < 1 || value > maxScale) return undefined;
+  // Round to 1 decimal place
+  return Math.round(value * 10) / 10;
+}
+
 type Message = {
   role: "user" | "assistant";
   content: string;
@@ -144,42 +186,43 @@ export function extractResponsesByQuestion(
     });
   });
 
-  // Convert map to array, sort responses, and calculate rating stats
+  // Convert map to array, sort responses, normalize all data, and calculate rating stats
   const result = Array.from(questionMap.values()).map((question) => {
     const sortedResponses = sortByRelationship(
       question.responses,
       (r) => r.relationshipId
     );
 
-    // Sanitize rating values in responses to prevent corrupt data from crashing UI/PDF
-    // First, sanitize the ratingScale.max itself (could be corrupt like -9.44e21)
-    const rawMax = question.ratingScale?.max ?? 10;
-    const maxScale = (Number.isFinite(rawMax) && rawMax > 0 && rawMax <= 100) ? rawMax : 10;
-    const sanitizedResponses = sortedResponses.map(r => {
-      if (r.ratingValue === undefined) return r;
+    // NORMALIZE the rating scale to an allowed value [3, 4, 5, 7, 10]
+    const normalizedMax = normalizeScale(question.ratingScale?.max);
 
-      // Check for corrupt values
-      if (!Number.isFinite(r.ratingValue) || Math.abs(r.ratingValue) > 10000) {
-        // If corrupt, treat as undefined (don't show rating)
-        return { ...r, ratingValue: undefined };
-      }
-
-      // Clamp to reasonable range [1, max + buffer]
-      // We allow a small buffer for slight outliers but clamp huge ones
-      const clampedValue = Math.max(1, Math.min(maxScale * 2, r.ratingValue));
-
-      // If the value was clamped significantly (e.g. from 1000 to 10), use the clamped value
-      return { ...r, ratingValue: clampedValue };
-    });
-
-    // Calculate rating stats if this is a rating question
-    const ratingStats = question.questionType === "rating"
-      ? calculateRatingStats(sanitizedResponses, maxScale)
+    // Build the normalized ratingScale object (or undefined if no scale)
+    const normalizedRatingScale = question.ratingScale
+      ? {
+          max: normalizedMax,
+          lowLabel: question.ratingScale.lowLabel,
+          highLabel: question.ratingScale.highLabel,
+        }
       : undefined;
 
+    // NORMALIZE all rating values to be within 1..normalizedMax
+    const normalizedResponses = sortedResponses.map(r => ({
+      ...r,
+      ratingValue: normalizeRatingValue(r.ratingValue, normalizedMax),
+    }));
+
+    // Calculate rating stats using normalized values
+    const ratingStats = question.questionType === "rating"
+      ? calculateRatingStats(normalizedResponses, normalizedMax)
+      : undefined;
+
+    // WRITE BACK the normalized ratingScale (not the raw one!)
     return {
-      ...question,
-      responses: sanitizedResponses,
+      questionId: question.questionId,
+      questionText: question.questionText,
+      questionType: question.questionType,
+      ratingScale: normalizedRatingScale,
+      responses: normalizedResponses,
       ratingStats,
     };
   });

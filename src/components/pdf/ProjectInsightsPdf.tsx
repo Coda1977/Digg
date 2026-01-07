@@ -165,17 +165,31 @@ function RunningHeader({
   );
 }
 
+// Allowed rating scales - same as in responseExtraction.ts
+const ALLOWED_SCALES = [3, 4, 5, 7, 10] as const;
+const DEFAULT_SCALE = 10;
+
 /**
- * Sanitize number: if invalid or too large, return fallback. Clamp to min/max if provided.
+ * Normalize scale max to an allowed value.
+ * Defensive guard - data should already be normalized upstream.
  */
-function safeNum(n: number | undefined, fallback: number, min?: number, max?: number): number {
-  if (n === undefined || !Number.isFinite(n) || Math.abs(n) > 1000000) {
-    return fallback;
-  }
-  let result = Math.round(n * 10) / 10; // Round to 1 decimal
-  if (min !== undefined) result = Math.max(min, result);
-  if (max !== undefined) result = Math.min(max, result);
-  return result;
+function normalizeScale(max: number | undefined): number {
+  if (max === undefined) return DEFAULT_SCALE;
+  if (!Number.isFinite(max) || max <= 0 || max > 100) return DEFAULT_SCALE;
+  const rounded = Math.round(max);
+  if ((ALLOWED_SCALES as readonly number[]).includes(rounded)) return rounded;
+  return DEFAULT_SCALE;
+}
+
+/**
+ * Normalize a rating value to be valid within 1..maxScale.
+ * Returns 0 if invalid (won't highlight anything).
+ */
+function normalizeRating(value: number | undefined, maxScale: number): number {
+  if (value === undefined) return 0;
+  if (!Number.isFinite(value)) return 0;
+  if (value < 1 || value > maxScale) return 0;
+  return Math.round(value * 10) / 10;
 }
 
 /**
@@ -192,12 +206,12 @@ function RatingBarChart({
   lowLabel?: string;
   highLabel?: string;
 }) {
-  // Sanitize maxRating - must be 1-100
-  const safeMax = safeNum(maxRating, 10, 1, 100);
+  // Normalize maxRating to allowed scale
+  const safeMax = normalizeScale(maxRating);
 
-  // Sanitize all response values to ensure valid numbers
+  // Normalize all response values and filter invalid ones
   const validResponses = responses
-    .map((r) => ({ ...r, value: safeNum(r.value, 0, 0, safeMax) }))
+    .map((r) => ({ ...r, value: normalizeRating(r.value, safeMax) }))
     .filter((r) => r.value > 0); // Only keep responses with valid ratings
 
   if (validResponses.length === 0) {
@@ -212,9 +226,10 @@ function RatingBarChart({
   const totalWidth = labelWidth + chartWidth + valueWidth + 10;
   const chartHeight = validResponses.length * (barHeight + barGap) + 30;
 
-  // Calculate average (values are already sanitized)
+  // Calculate average (values are already normalized)
   const sum = validResponses.reduce((a, b) => a + b.value, 0);
-  const avg = safeNum(sum / validResponses.length, safeMax / 2, 1, safeMax);
+  const rawAvg = sum / validResponses.length;
+  const avg = normalizeRating(rawAvg, safeMax) || (safeMax / 2);
 
   // Calculate positions (all using sanitized values)
   const avgX = labelWidth + (avg / safeMax) * chartWidth;
@@ -407,17 +422,10 @@ export function ProjectInsightsPdf(props: {
               )}
 
               {question.responses.map((response, rIdx) => {
-                // Validate rating values to prevent rendering errors
-                // Filter out corrupt values like -9.44e21
-                const hasValidRating =
-                  response.ratingValue !== undefined &&
-                  Number.isFinite(response.ratingValue) &&
-                  Math.abs(response.ratingValue) < 1e10 && // Filter corrupt values
-                  response.ratingValue >= 1 &&
-                  question.ratingScale &&
-                  Number.isFinite(question.ratingScale.max) &&
-                  question.ratingScale.max > 0 &&
-                  question.ratingScale.max <= 100; // Reasonable upper bound
+                // Data is normalized upstream, but add defensive guard
+                const safeMax = normalizeScale(question.ratingScale?.max);
+                const safeRating = normalizeRating(response.ratingValue, safeMax);
+                const hasValidRating = safeRating > 0 && question.ratingScale;
 
                 return (
                 <View key={`${response.surveyId}-${rIdx}`} style={styles.responseItem} wrap={false}>
@@ -428,8 +436,8 @@ export function ProjectInsightsPdf(props: {
                   {hasValidRating && question.ratingScale ? (
                     <View style={{ marginTop: 2 }}>
                       <View style={{ flexDirection: "row", alignItems: "center" }}>
-                        {Array.from({ length: safeNum(question.ratingScale.max, 10, 1, 100) }, (_, i) => i + 1).map((num) => {
-                          const isHighlighted = num === response.ratingValue;
+                        {Array.from({ length: safeMax }, (_, i) => i + 1).map((num) => {
+                          const isHighlighted = num === safeRating;
                           return (
                             <View
                               key={String(num)}

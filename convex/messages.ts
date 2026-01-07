@@ -11,6 +11,22 @@ export const getBySurvey = query({
   },
 });
 
+// Allowed rating scale maximums - all ratings must be within 1..max
+const ALLOWED_SCALES = [3, 4, 5, 7, 10] as const;
+const MAX_ALLOWED_SCALE = 10;
+
+/**
+ * Sanitize rating value at storage time to prevent corrupt data.
+ * Returns undefined if invalid, clamped value if valid.
+ */
+function sanitizeRatingValue(value: number | undefined): number | undefined {
+  if (value === undefined) return undefined;
+  if (!Number.isFinite(value)) return undefined;
+  if (value < 1 || value > MAX_ALLOWED_SCALE) return undefined;
+  // Round to 1 decimal place and clamp
+  return Math.round(Math.max(1, Math.min(MAX_ALLOWED_SCALE, value)) * 10) / 10;
+}
+
 export const save = mutation({
   args: {
     surveyId: v.id("surveys"),
@@ -29,6 +45,9 @@ export const save = mutation({
 
     const nextOrder = (lastMessage?.order ?? -1) + 1;
 
+    // Sanitize rating value at storage time
+    const sanitizedRating = sanitizeRatingValue(args.ratingValue);
+
     const messageId = await ctx.db.insert("messages", {
       surveyId: args.surveyId,
       role: args.role,
@@ -37,7 +56,7 @@ export const save = mutation({
       createdAt: Date.now(),
       questionId: args.questionId,
       questionText: args.questionText,
-      ratingValue: args.ratingValue,
+      ratingValue: sanitizedRating,
     });
 
     return messageId;
