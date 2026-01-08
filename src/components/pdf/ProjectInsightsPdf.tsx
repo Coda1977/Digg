@@ -34,11 +34,14 @@ Font.register({
 });
 
 // Register Noto Sans Hebrew (Hebrew + basic Latin) - from public/fonts
+// Note: NotoSansHebrew doesn't have italic variants, so we map italic to regular
 Font.register({
   family: "NotoHebrew",
   fonts: [
     { src: "/fonts/NotoSansHebrew-Regular.ttf", fontWeight: "normal" },
+    { src: "/fonts/NotoSansHebrew-Regular.ttf", fontWeight: "normal", fontStyle: "italic" },
     { src: "/fonts/NotoSansHebrew-Bold.ttf", fontWeight: "bold" },
+    { src: "/fonts/NotoSansHebrew-Bold.ttf", fontWeight: "bold", fontStyle: "italic" },
   ],
 });
 

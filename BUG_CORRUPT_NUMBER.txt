@@ -53,11 +53,23 @@ The document has:
 - ~319 text elements total
 - Multiple pages of content
 
-### Next Steps
-1. Test with shorter document (fewer transcripts) to confirm length theory
-2. Test with English-only content to rule out Hebrew font issues
-3. Check react-pdf version and known issues
-4. Consider wrapping react-pdf render in try-catch with fallback
+### Fix Applied (Jan 8, 2026)
+
+**Solution: Added Hebrew font support**
+
+Root cause confirmed: Built-in PDF fonts (Helvetica, Times-Roman) don't support Hebrew.
+When react-pdf calculates glyph metrics for unsupported characters, values overflow.
+
+Fix:
+1. Downloaded Noto Sans Hebrew font (Regular + Bold) to `/public/fonts/`
+2. Registered with `Font.register()` in ProjectInsightsPdf.tsx
+3. Changed FONT_SANS and FONT_SERIF to use "NotoHebrew"
+4. NotoHebrew supports both Hebrew AND Latin characters
+
+References:
+- [Issue #1851](https://github.com/diegomura/react-pdf/issues/1851) - Empty string -Infinity
+- [Issue #3010](https://github.com/diegomura/react-pdf/issues/3010) - Hebrew rendering
+- [pdfkit RTL Issue #219](https://github.com/foliojs/pdfkit/issues/219) - RTL support
 
 ---
 
