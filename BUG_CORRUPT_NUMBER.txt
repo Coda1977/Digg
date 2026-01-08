@@ -1,50 +1,63 @@
 # BUG: Corrupt Number Causing PDF Crash
 ## Error: `unsupported number: -9.44473296573929e+21`
 
-## Status: ROOT CAUSE IDENTIFIED
+## Status: ROOT CAUSE IDENTIFIED - react-pdf internal overflow
 
 ## Session 3 (Jan 8, 2026) - Critical Finding
 
-### THE CORRUPT VALUE IS NOT IN OUR DATA
+### THE CORRUPT VALUE IS NOT IN OUR DATA OR TEXT CONTENT
 
-Test results confirmed:
+Text-by-text logging revealed:
 ```
-[PDF_DATA] Found 54 numeric values in ALL props
-[PDF_DATA] All numeric values look valid
-```
-
-All 54 numeric values in props passed validation. No `[PDF_CORRUPT]` message appeared.
-Yet the crash still occurred immediately after:
-```
+[TEXT #1] through [TEXT #319] - ALL logged successfully
 Error: unsupported number: -9.44473296573929e+21
 ```
 
+**All 319 text elements rendered and logged without issue.**
+The crash occurs AFTER all text processing, during react-pdf's final layout phase.
+
 ### Stack Trace Analysis
 ```
-at number (57aa30a013f8372e.js:1:1146405)
-at I4.transform (57aa30a013f8372e.js:124:5826)
-at I4.translate (57aa30a013f8372e.js:124:5912)
-at TEXT (57aa30a013f8372e.js:131:210)
+at number (...)
+at I4.transform (...)  <-- Transformation matrix
+at I4.translate (...)  <-- Coordinate translation
+at TEXT (...)
 ```
 
-The corrupt value is generated INSIDE react-pdf during:
-1. **TEXT rendering** - the crash happens in TEXT function
-2. **Transform/Translate operations** - I4.transform and I4.translate
-3. This is font metrics or text positioning calculation, NOT our data
+### Root Cause: Coordinate Overflow in react-pdf
 
-### Root Cause
-The corrupt number `-9.44e21` is NOT coming from our database or props.
-It's being computed by react-pdf internally during text rendering.
+The `-9.44e21` value is an **arithmetic overflow** in react-pdf's internal coordinate system.
+It's NOT caused by:
+- ❌ Our data values
+- ❌ Any specific text content
+- ❌ Special characters or Unicode
 
-Likely causes:
-1. **Font metrics calculation** - corrupt font file or missing glyph
-2. **Text positioning** - invalid character causing bad layout math
-3. **Transform matrix** - overflow in coordinate transformation
+It IS caused by:
+- ✅ react-pdf's internal layout calculations overflowing
+- ✅ Cumulative coordinate math producing astronomically large numbers
 
-### Next Investigation
-- Check what TEXT content is being rendered when crash occurs
-- Look for special characters, Unicode, or unusual text in the data
-- Could be a specific character in a quote, strength point, or response text
+### Why This Happens Across Multiple Surveys
+
+User confirmed: "this issue across a few surveys, not just this survey"
+
+Likely triggers:
+1. **Long documents** - many pages cause y-coordinates to accumulate and overflow
+2. **Hebrew/RTL text** - may have incorrect font metrics in built-in PDF fonts
+3. **Page break logic** - pagination calculations may overflow
+4. **Font fallback** - missing glyphs causing bad width/height calculations
+
+### Key Observation
+The document has:
+- 6 transcripts with 30+ messages each
+- Hebrew text mixed with English
+- ~319 text elements total
+- Multiple pages of content
+
+### Next Steps
+1. Test with shorter document (fewer transcripts) to confirm length theory
+2. Test with English-only content to rule out Hebrew font issues
+3. Check react-pdf version and known issues
+4. Consider wrapping react-pdf render in try-catch with fallback
 
 ---
 

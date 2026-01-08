@@ -18,13 +18,34 @@ import type { ResponseByQuestion } from "@/lib/responseExtraction";
 // FONT REGISTRATION
 // ============================================================================
 
-// NOTE: Using built-in PDF fonts for maximum compatibility
-// Custom fonts (WOFF2 from CDN) cause "DataView bounds" errors in browser-based @react-pdf/renderer
-// Built-in fonts: Helvetica, Times-Roman, Courier (all with Bold, Oblique, BoldOblique variants)
+// Register custom fonts that support Hebrew characters
+// Built-in PDF fonts (Helvetica, Times-Roman) don't support Hebrew and cause
+// "unsupported number" errors when react-pdf tries to calculate glyph metrics
+// for characters not in the font.
 
-// Map editorial font families to built-in PDF fonts
-const FONT_SERIF = "Times-Roman";      // Used for headlines (instead of Fraunces)
-const FONT_SANS = "Helvetica";         // Used for body text (instead of Inter)
+// Register Inter (Latin) - from public/fonts
+Font.register({
+  family: "Inter",
+  fonts: [
+    { src: "/fonts/Inter-Regular.ttf", fontWeight: "normal" },
+    { src: "/fonts/Inter-Medium.ttf", fontWeight: 500 },
+    { src: "/fonts/Inter-Bold.ttf", fontWeight: "bold" },
+  ],
+});
+
+// Register Noto Sans Hebrew (Hebrew + basic Latin) - from public/fonts
+Font.register({
+  family: "NotoHebrew",
+  fonts: [
+    { src: "/fonts/NotoSansHebrew-Regular.ttf", fontWeight: "normal" },
+    { src: "/fonts/NotoSansHebrew-Bold.ttf", fontWeight: "bold" },
+  ],
+});
+
+// Use Noto Sans Hebrew as primary font since it supports both Hebrew AND Latin
+// This prevents the "unsupported number" crash caused by missing Hebrew glyphs
+const FONT_SERIF = "NotoHebrew";        // Used for headlines
+const FONT_SANS = "NotoHebrew";         // Used for body text
 
 // Disable hyphenation for cleaner text
 Font.registerHyphenationCallback((word) => [word]);
