@@ -1,0 +1,74 @@
+# BUG: Corrupt Number Causing PDF Crash
+## Error: `unsupported number: -9.44473296573929e+21`
+
+## Status: ROOT CAUSE IDENTIFIED
+
+## Session 3 (Jan 8, 2026) - Critical Finding
+
+### THE CORRUPT VALUE IS NOT IN OUR DATA
+
+Test results confirmed:
+```
+[PDF_DATA] Found 54 numeric values in ALL props
+[PDF_DATA] All numeric values look valid
+```
+
+All 54 numeric values in props passed validation. No `[PDF_CORRUPT]` message appeared.
+Yet the crash still occurred immediately after:
+```
+Error: unsupported number: -9.44473296573929e+21
+```
+
+### Stack Trace Analysis
+```
+at number (57aa30a013f8372e.js:1:1146405)
+at I4.transform (57aa30a013f8372e.js:124:5826)
+at I4.translate (57aa30a013f8372e.js:124:5912)
+at TEXT (57aa30a013f8372e.js:131:210)
+```
+
+The corrupt value is generated INSIDE react-pdf during:
+1. **TEXT rendering** - the crash happens in TEXT function
+2. **Transform/Translate operations** - I4.transform and I4.translate
+3. This is font metrics or text positioning calculation, NOT our data
+
+### Root Cause
+The corrupt number `-9.44e21` is NOT coming from our database or props.
+It's being computed by react-pdf internally during text rendering.
+
+Likely causes:
+1. **Font metrics calculation** - corrupt font file or missing glyph
+2. **Text positioning** - invalid character causing bad layout math
+3. **Transform matrix** - overflow in coordinate transformation
+
+### Next Investigation
+- Check what TEXT content is being rendered when crash occurs
+- Look for special characters, Unicode, or unusual text in the data
+- Could be a specific character in a quote, strength point, or response text
+
+---
+
+## Session 2 Findings (Jan 7, 2026)
+- Scanned 42 numeric values in analysis, segmentedAnalysis, responsesByQuestion
+- Only "suspicious" value: `analysis.generatedAt: 1767775422733` (valid timestamp - false positive)
+- All checked data values were valid
+
+## Database Checks Performed
+All clean - no corrupt values found:
+- projects.analysis.strengths[].frequency
+- projects.analysis.coverage values
+- projects.segmentedAnalysis values
+- messages[].ratingValue
+- templates[].questions[].ratingScale.max
+
+## Fix Layers Implemented (defense in depth)
+1. API Layer: logAllNumbers() in analyze route
+2. Schema Layer: sanitizeFrequency/sanitizeCount in Zod preprocess
+3. Convex Layer: sanitization in saveAnalysis mutation
+4. PDF Layer: safeCount() and normalizeRating() guards
+5. Migration: dryRun checks all tables (all clean!)
+
+## Next Steps
+1. Expand PDF logging to include `surveys` and `transcripts` props
+2. Check if corrupt value is a font metric issue in react-pdf
+3. Try removing sections of PDF to isolate which part causes crash

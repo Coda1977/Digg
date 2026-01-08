@@ -206,6 +206,20 @@ function safeCount(value: number | undefined): number | undefined {
   return Math.round(value);
 }
 
+// DEBUG: Counter for tracking which text element crashes
+let textLogCounter = 0;
+
+/**
+ * Log text content before rendering to identify which text causes crash.
+ * Returns the text unchanged.
+ */
+function logText(label: string, text: string | undefined | null): string {
+  textLogCounter++;
+  const preview = text ? text.substring(0, 50) : "(empty)";
+  console.log(`[TEXT #${textLogCounter}] ${label}: ${preview}${text && text.length > 50 ? "..." : ""}`);
+  return text || "";
+}
+
 /**
  * SVG-based horizontal bar chart for rating visualization
  */
@@ -364,6 +378,9 @@ export function ProjectInsightsPdf(props: {
       Object.entries(obj).forEach(([k, v]) => findAllNumbers(v, `${path}.${k}`, results));
     }
   }
+
+  // Reset text counter for each render
+  textLogCounter = 0;
 
   if (typeof window !== "undefined") {
     console.log("[PDF_RENDER] Starting PDF generation");
@@ -535,7 +552,7 @@ export function ProjectInsightsPdf(props: {
                       )}
                     </View>
                   ) : (
-                    <Text style={styles.responseContent}>{response.content}</Text>
+                    <Text style={styles.responseContent}>{logText(`q[${qIdx}].response[${rIdx}]`, response.content)}</Text>
                   )}
                 </View>
                 );
@@ -564,7 +581,7 @@ export function ProjectInsightsPdf(props: {
               )}
               {analysis.summary && (
                 <Subsection title="Summary">
-                  <Text style={styles.paragraph}>{analysis.summary}</Text>
+                  <Text style={styles.paragraph}>{logText("analysis.summary", analysis.summary)}</Text>
                 </Subsection>
               )}
 
@@ -574,10 +591,10 @@ export function ProjectInsightsPdf(props: {
                   <View key={idx} style={styles.listItem} wrap={false}>
                     <Text style={styles.bullet}>•</Text>
                     <View style={styles.listText}>
-                      <Text style={styles.strengthPoint}>{strength.point}</Text>
+                      <Text style={styles.strengthPoint}>{logText(`strength[${idx}].point`, strength.point)}</Text>
                       {strength.quote && (
                         <Text style={styles.quote}>
-                          &quot;{strength.quote}&quot;
+                          &quot;{logText(`strength[${idx}].quote`, strength.quote)}&quot;
                         </Text>
                       )}
                       {safeCount(strength.frequency) && (
@@ -599,7 +616,7 @@ export function ProjectInsightsPdf(props: {
                     <View style={styles.improvementHeader}>
                       <Text style={styles.bullet}>•</Text>
                       <View style={styles.listText}>
-                        <Text style={styles.improvementPoint}>{improvement.point}</Text>
+                        <Text style={styles.improvementPoint}>{logText(`improvement[${idx}].point`, improvement.point)}</Text>
                         <Text style={styles.priorityBadge}>
                           Priority: {improvement.priority.toUpperCase()}
                         </Text>
@@ -607,10 +624,10 @@ export function ProjectInsightsPdf(props: {
                     </View>
                     <View style={styles.improvementDetails}>
                       <Text style={styles.actionLabel}>Action</Text>
-                      <Text style={styles.actionText}>{improvement.action}</Text>
+                      <Text style={styles.actionText}>{logText(`improvement[${idx}].action`, improvement.action)}</Text>
                       {improvement.quote && (
                         <Text style={styles.quote}>
-                          &quot;{improvement.quote}&quot;
+                          &quot;{logText(`improvement[${idx}].quote`, improvement.quote)}&quot;
                         </Text>
                       )}
                     </View>
@@ -621,7 +638,7 @@ export function ProjectInsightsPdf(props: {
 
               {analysis.narrative && (
                 <Subsection title="Narrative">
-                  <Text style={styles.paragraph}>{analysis.narrative}</Text>
+                  <Text style={styles.paragraph}>{logText("analysis.narrative", analysis.narrative)}</Text>
                 </Subsection>
               )}
             </Section>
@@ -634,7 +651,7 @@ export function ProjectInsightsPdf(props: {
                       {segment.relationshipLabel} Perspective
                     </Text>
                     {segment.analysis.summary && (
-                      <Text style={styles.paragraph}>{segment.analysis.summary}</Text>
+                      <Text style={styles.paragraph}>{logText(`segment[${idx}].summary`, segment.analysis.summary)}</Text>
                     )}
 
                     {segment.analysis.strengths && segment.analysis.strengths.length > 0 && (
@@ -643,10 +660,10 @@ export function ProjectInsightsPdf(props: {
                           <View key={sIdx} style={styles.listItem} wrap={false}>
                             <Text style={styles.bullet}>•</Text>
                             <View style={styles.listText}>
-                              <Text style={styles.strengthPoint}>{strength.point}</Text>
+                              <Text style={styles.strengthPoint}>{logText(`segment[${idx}].strength[${sIdx}].point`, strength.point)}</Text>
                               {strength.quote && (
                                 <Text style={styles.quote}>
-                                  &quot;{strength.quote}&quot;
+                                  &quot;{logText(`segment[${idx}].strength[${sIdx}].quote`, strength.quote)}&quot;
                                 </Text>
                               )}
                             </View>
@@ -662,11 +679,11 @@ export function ProjectInsightsPdf(props: {
                             <View style={styles.improvementHeader}>
                               <Text style={styles.bullet}>•</Text>
                               <View style={styles.listText}>
-                                <Text style={styles.improvementPoint}>{improvement.point}</Text>
+                                <Text style={styles.improvementPoint}>{logText(`segment[${idx}].improvement[${iIdx}].point`, improvement.point)}</Text>
                               </View>
                             </View>
                             <View style={styles.improvementDetails}>
-                              <Text style={styles.actionText}>{improvement.action}</Text>
+                              <Text style={styles.actionText}>{logText(`segment[${idx}].improvement[${iIdx}].action`, improvement.action)}</Text>
                             </View>
                           </View>
                         ))}
@@ -674,7 +691,7 @@ export function ProjectInsightsPdf(props: {
                     )}
 
                     {segment.analysis.narrative && (
-                      <Text style={styles.paragraph}>{segment.analysis.narrative}</Text>
+                      <Text style={styles.paragraph}>{logText(`segment[${idx}].narrative`, segment.analysis.narrative)}</Text>
                     )}
                   </View>
                 ))}
@@ -703,7 +720,7 @@ export function ProjectInsightsPdf(props: {
                   <Text style={styles.messageRole}>
                     {msg.role === "assistant" ? "Interviewer" : "Respondent"}:
                   </Text>
-                  <Text style={styles.messageContent}>{msg.content}</Text>
+                  <Text style={styles.messageContent}>{logText(`transcript[${idx}].msg[${msgIdx}]`, msg.content)}</Text>
                 </View>
               ))}
             </View>
