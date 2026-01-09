@@ -14,6 +14,9 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-dialog'],
   },
+
+  // Server-side packages for PDF generation with Puppeteer
+  serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
 };
 
 module.exports = nextConfig;

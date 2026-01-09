@@ -4,9 +4,9 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useConvex, useMutation, useQuery } from "convex/react";
-import { PDFDownloadLink } from "@react-pdf/renderer";
 
 import { api } from "../../../../../../convex/_generated/api";
+import { usePdfDownload } from "@/hooks/usePdfDownload";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 
 import {
@@ -17,11 +17,9 @@ import {
   EditorialButton,
   EditorialBreadcrumbs,
   StatusBadge,
-  buttonVariants,
 } from "@/components/editorial";
 import { summarySchema, analysisSchema, type Summary, type Analysis } from "@/lib/schemas";
 import { postJson } from "@/lib/http";
-import { ProjectInsightsPdf } from "@/components/pdf/ProjectInsightsPdf";
 import { sortByRelationship } from "@/lib/relationshipOrder";
 import {
   extractResponsesByQuestion,
@@ -80,6 +78,9 @@ export default function ProjectAnalysisPage() {
   const [summariesError, setSummariesError] = useState<string | null>(null);
   const [rawFeedbackExpanded, setRawFeedbackExpanded] = useState(false);
   const [showAllTranscripts, setShowAllTranscripts] = useState(false);
+
+  // PDF download hook (server-side generation with Puppeteer)
+  const { downloadPdf, isGenerating: pdfGenerating, error: pdfError, clearError: clearPdfError } = usePdfDownload();
 
   // For pagination - show first 10 transcripts by default
   const TRANSCRIPTS_PER_PAGE = 10;
@@ -639,37 +640,15 @@ export default function ProjectAnalysisPage() {
                 )}
 
                 <div className="flex flex-col sm:flex-row gap-3">
-                  {canDownloadPdf ? (
-                    <PDFDownloadLink
-                      document={
-                        <ProjectInsightsPdf
-                          projectName={project.name}
-                          subjectName={project.subjectName}
-                          subjectRole={project.subjectRole ?? undefined}
-                          templateName={project.template?.name ?? undefined}
-                          analysis={analysis ?? undefined}
-                          segmentedAnalysis={segmentedAnalysisForPdf}
-                          responsesByQuestion={responsesByQuestion}
-                          transcripts={transcripts}
-                          coverageText={coverageText}
-                          surveys={surveysForPdf}
-                        />
-                      }
-                      fileName={pdfFileName}
-                      className={buttonVariants({ variant: "outline" })}
-                    >
-                      {({ loading }) => (loading ? "Preparing PDF..." : "Download PDF")}
-                    </PDFDownloadLink>
-                  ) : (
-                    <EditorialButton
-                      type="button"
-                      variant="outline"
-                      disabled
-                      title="Generate insights first to download PDF"
-                    >
-                      Download PDF
-                    </EditorialButton>
-                  )}
+                  <EditorialButton
+                    type="button"
+                    variant="outline"
+                    onClick={() => void downloadPdf(projectId, pdfFileName)}
+                    disabled={!canDownloadPdf || pdfGenerating}
+                    title={!canDownloadPdf ? "Generate insights first to download PDF" : undefined}
+                  >
+                    {pdfGenerating ? "Generating PDF..." : "Download PDF"}
+                  </EditorialButton>
 
                   <EditorialButton
                     type="button"
@@ -689,6 +668,11 @@ export default function ProjectAnalysisPage() {
                 {insightsError && (
                   <p className="text-body text-accent-red" role="alert">
                     {insightsError}
+                  </p>
+                )}
+                {pdfError && (
+                  <p className="text-body text-accent-red" role="alert">
+                    PDF Error: {pdfError}
                   </p>
                 )}
               </div>
