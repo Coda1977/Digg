@@ -5,6 +5,23 @@
  */
 
 // ============================================================================
+// BASE URL FOR FONTS (required for serverless PDF generation)
+// ============================================================================
+
+// In serverless, relative URLs don't work - we need absolute URLs for fonts
+function getBaseUrl(): string {
+  // Use VERCEL_URL in production, fallback to localhost for dev
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  // Production fallback
+  if (process.env.NODE_ENV === "production") {
+    return "https://digg-teal.vercel.app";
+  }
+  return "http://localhost:3000";
+}
+
+// ============================================================================
 // COLOR PALETTE (Editorial Design System)
 // ============================================================================
 
@@ -34,35 +51,39 @@ export const PDF_FONTS = {
 // BASE CSS STYLES
 // ============================================================================
 
-export const PDF_BASE_STYLES = `
-  /* Font declarations */
+// Generate base styles with absolute font URLs
+export function getPdfBaseStyles(): string {
+  const baseUrl = getBaseUrl();
+
+  return `
+  /* Font declarations - using absolute URLs for serverless */
   @font-face {
     font-family: 'Noto Sans Hebrew';
-    src: url('/fonts/NotoSansHebrew-Regular.ttf') format('truetype');
+    src: url('${baseUrl}/fonts/NotoSansHebrew-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
   }
   @font-face {
     font-family: 'Noto Sans Hebrew';
-    src: url('/fonts/NotoSansHebrew-Bold.ttf') format('truetype');
+    src: url('${baseUrl}/fonts/NotoSansHebrew-Bold.ttf') format('truetype');
     font-weight: 700;
     font-style: normal;
   }
   @font-face {
     font-family: 'Inter';
-    src: url('/fonts/Inter-Regular.ttf') format('truetype');
+    src: url('${baseUrl}/fonts/Inter-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
   }
   @font-face {
     font-family: 'Inter';
-    src: url('/fonts/Inter-Medium.ttf') format('truetype');
+    src: url('${baseUrl}/fonts/Inter-Medium.ttf') format('truetype');
     font-weight: 500;
     font-style: normal;
   }
   @font-face {
     font-family: 'Inter';
-    src: url('/fonts/Inter-Bold.ttf') format('truetype');
+    src: url('${baseUrl}/fonts/Inter-Bold.ttf') format('truetype');
     font-weight: 700;
     font-style: normal;
   }
@@ -240,6 +261,10 @@ export const PDF_BASE_STYLES = `
     position: absolute;
   }
 `;
+}
+
+// Legacy export for backwards compatibility
+export const PDF_BASE_STYLES = getPdfBaseStyles();
 
 // ============================================================================
 // STYLE OBJECTS (matching original PDF component)
