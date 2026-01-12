@@ -1,15 +1,13 @@
 /**
  * PDF Generation API Route
  *
- * Generates PDFs server-side using Puppeteer.
- * This replaces the client-side @react-pdf/renderer approach.
+ * Generates PDFs server-side using Puppeteer with @sparticuz/chromium.
  */
 
 import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
-import { checkRateLimit, createRateLimitResponse } from "@/lib/ratelimit";
 import { generatePdfFromHtml } from "@/lib/pdf/puppeteerClient";
 import { renderPdfHtml } from "@/lib/pdf/htmlRenderer";
 import { extractResponsesByQuestion } from "@/lib/responseExtraction";
@@ -32,17 +30,6 @@ function getConvexClient(): ConvexHttpClient {
 }
 
 export async function POST(req: Request) {
-  // Rate limiting: temporarily disabled for testing
-  // TODO: Re-enable after testing
-  // const ip =
-  //   req.headers.get("x-forwarded-for") ||
-  //   req.headers.get("x-real-ip") ||
-  //   "global";
-  // const rateLimit = await checkRateLimit(`pdf:${ip}`, "analyze");
-  // if (!rateLimit.success) {
-  //   return createRateLimitResponse(Math.ceil(rateLimit.resetMs / 1000));
-  // }
-
   // Parse request body
   const json = await req.json().catch(() => null);
   if (!json) {
@@ -60,8 +47,7 @@ export async function POST(req: Request) {
   try {
     const convex = getConvexClient();
 
-    // Fetch project data (using dev version without auth for testing)
-    // TODO: Switch back to api.projects.getById after testing
+    // Fetch project data
     const project = await convex.query(api.projects.devGetById, {
       id: projectId as Id<"projects">,
     });
@@ -70,8 +56,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    // Fetch surveys with messages (using dev version without auth for testing)
-    // TODO: Switch back to api.surveys.getByProjectWithMessages after testing
+    // Fetch surveys with messages
     const surveysWithMessages = await convex.query(
       api.surveys.devGetByProjectWithMessages,
       { projectId: projectId as Id<"projects"> }

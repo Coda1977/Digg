@@ -1,7 +1,5 @@
 /**
  * PDF Styles - CSS constants and base styles for Puppeteer PDF generation
- *
- * This matches the styling from the original @react-pdf/renderer component.
  */
 
 // Import pre-encoded font data (bundled with serverless function)
