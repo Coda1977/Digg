@@ -69,6 +69,18 @@ export async function renderPdfHtml(props: PdfTemplateProps): Promise<string> {
 </head>
 <body>
   ${documentHtml}
+  <script>
+    // Ensure fonts are loaded before rendering completes
+    (async function() {
+      try {
+        await document.fonts.ready;
+        // Force layout recalculation
+        document.body.offsetHeight;
+      } catch (e) {
+        console.error('Font loading error:', e);
+      }
+    })();
+  </script>
 </body>
 </html>`;
 }

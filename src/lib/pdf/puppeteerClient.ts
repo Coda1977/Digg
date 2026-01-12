@@ -130,11 +130,47 @@ export async function generatePdfFromHtml(
       waitUntil: ["domcontentloaded", "networkidle0"],
     });
 
-    // Wait for fonts to be loaded
-    await page.evaluateHandle("document.fonts.ready");
+    // Wait for fonts to be loaded using multiple strategies
+    await page.evaluate(async () => {
+      // Strategy 1: Wait for CSS @font-face fonts to be ready
+      await document.fonts.ready;
 
-    // Small delay to ensure fonts are applied
-    await new Promise((resolve) => setTimeout(resolve, 100));
+      // Strategy 2: Force font loading by creating test elements
+      const testFonts = [
+        { family: 'Inter', text: 'Test ABC 123' },
+        { family: 'Noto Sans Hebrew', text: 'א ב ג ד ה ו ז' }  // Hebrew aleph-zayin
+      ];
+
+      for (const { family, text } of testFonts) {
+        // Create a test element that uses this font
+        const testEl = document.createElement('span');
+        testEl.style.fontFamily = `"${family}", sans-serif`;
+        testEl.style.position = 'absolute';
+        testEl.style.left = '-9999px';
+        testEl.style.visibility = 'hidden';
+        testEl.textContent = text;
+        document.body.appendChild(testEl);
+
+        // Force layout calculation
+        testEl.offsetWidth;
+
+        // Check if font is loaded
+        const loaded = document.fonts.check(`12px "${family}"`);
+        console.log(`[PDF] Font "${family}" loaded via CSS: ${loaded}`);
+
+        // Clean up
+        testEl.remove();
+      }
+
+      // Wait again after test elements
+      await document.fonts.ready;
+
+      // Final layout recalculation
+      document.body.offsetHeight;
+    });
+
+    // Additional delay to ensure fonts are fully applied to all elements
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Generate PDF
     const pdfBuffer = await page.pdf({

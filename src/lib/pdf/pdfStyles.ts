@@ -47,35 +47,44 @@ export const PDF_FONTS = {
 export function getPdfBaseStyles(): string {
   return `
   /* Font declarations - embedded as base64 for serverless */
+  /* Hebrew font - loads for Hebrew character range */
   @font-face {
     font-family: 'Noto Sans Hebrew';
-    src: url('${NotoSansHebrew_Regular}') format('truetype');
+    src: url('${NotoSansHebrew_Regular}');
     font-weight: 400;
     font-style: normal;
+    font-display: block;
+    unicode-range: U+0590-05FF, U+FB1D-FB4F;
   }
   @font-face {
     font-family: 'Noto Sans Hebrew';
-    src: url('${NotoSansHebrew_Bold}') format('truetype');
+    src: url('${NotoSansHebrew_Bold}');
     font-weight: 700;
     font-style: normal;
+    font-display: block;
+    unicode-range: U+0590-05FF, U+FB1D-FB4F;
   }
+  /* Latin font - loads for Latin and common characters */
   @font-face {
     font-family: 'Inter';
-    src: url('${Inter_Regular}') format('truetype');
+    src: url('${Inter_Regular}');
     font-weight: 400;
     font-style: normal;
+    font-display: block;
   }
   @font-face {
     font-family: 'Inter';
-    src: url('${Inter_Medium}') format('truetype');
+    src: url('${Inter_Medium}');
     font-weight: 500;
     font-style: normal;
+    font-display: block;
   }
   @font-face {
     font-family: 'Inter';
-    src: url('${Inter_Bold}') format('truetype');
+    src: url('${Inter_Bold}');
     font-weight: 700;
     font-style: normal;
+    font-display: block;
   }
 
   /* Reset and base styles */
