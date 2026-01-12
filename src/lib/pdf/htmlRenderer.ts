@@ -144,7 +144,7 @@ const documentStyle: React.CSSProperties = {
   minHeight: "100vh",
   backgroundColor: PDF_COLORS.paper,
   color: PDF_COLORS.ink,
-  fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
+  fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
   fontSize: 10,
   lineHeight: 1.6,
 };
@@ -185,7 +185,7 @@ const additionalStyles = `
 
   /* SVG text styling */
   svg text {
-    font-family: 'Inter', 'Noto Sans Hebrew', sans-serif;
+    font-family: 'Noto Sans Hebrew', 'Inter', sans-serif;
   }
 
   /* Ensure proper line wrapping */

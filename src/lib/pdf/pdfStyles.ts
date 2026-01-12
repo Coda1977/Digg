@@ -35,8 +35,8 @@ export const PDF_COLORS = {
 // ============================================================================
 
 export const PDF_FONTS = {
-  serif: "'Inter', 'Noto Sans Hebrew', sans-serif",
-  sans: "'Inter', 'Noto Sans Hebrew', sans-serif",
+  serif: "'Noto Sans Hebrew', 'Inter', sans-serif",
+  sans: "'Noto Sans Hebrew', 'Inter', sans-serif",
 };
 
 // ============================================================================
@@ -50,7 +50,7 @@ export function getPdfBaseStyles(): string {
   /* Hebrew font - loads for Hebrew character range */
   @font-face {
     font-family: 'Noto Sans Hebrew';
-    src: url('${NotoSansHebrew_Regular}');
+    src: url('${NotoSansHebrew_Regular}') format('truetype');
     font-weight: 400;
     font-style: normal;
     font-display: block;
@@ -58,7 +58,7 @@ export function getPdfBaseStyles(): string {
   }
   @font-face {
     font-family: 'Noto Sans Hebrew';
-    src: url('${NotoSansHebrew_Bold}');
+    src: url('${NotoSansHebrew_Bold}') format('truetype');
     font-weight: 700;
     font-style: normal;
     font-display: block;
@@ -67,21 +67,21 @@ export function getPdfBaseStyles(): string {
   /* Latin font - loads for Latin and common characters */
   @font-face {
     font-family: 'Inter';
-    src: url('${Inter_Regular}');
+    src: url('${Inter_Regular}') format('truetype');
     font-weight: 400;
     font-style: normal;
     font-display: block;
   }
   @font-face {
     font-family: 'Inter';
-    src: url('${Inter_Medium}');
+    src: url('${Inter_Medium}') format('truetype');
     font-weight: 500;
     font-style: normal;
     font-display: block;
   }
   @font-face {
     font-family: 'Inter';
-    src: url('${Inter_Bold}');
+    src: url('${Inter_Bold}') format('truetype');
     font-weight: 700;
     font-style: normal;
     font-display: block;

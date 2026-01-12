@@ -68,7 +68,7 @@ export function RatingBarChart({
           style={{
             fontSize: 7,
             fill: PDF_COLORS.inkLighter,
-            fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
+            fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
           }}
         >
           {lowLabel || "1"}
@@ -79,7 +79,7 @@ export function RatingBarChart({
           style={{
             fontSize: 7,
             fill: PDF_COLORS.inkLighter,
-            fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
+            fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
           }}
         >
           {highLabel || String(safeMax)}
@@ -99,7 +99,7 @@ export function RatingBarChart({
                 style={{
                   fontSize: 8,
                   fill: PDF_COLORS.inkSoft,
-                  fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
+                  fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
                 }}
               >
                 {response.relationshipLabel.substring(0, 10)}
@@ -131,7 +131,7 @@ export function RatingBarChart({
                   fontSize: 9,
                   fontWeight: 700,
                   fill: PDF_COLORS.ink,
-                  fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
+                  fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
                 }}
               >
                 {String(response.value)}
@@ -159,7 +159,7 @@ export function RatingBarChart({
                 fontSize: 8,
                 fontWeight: 700,
                 fill: PDF_COLORS.ink,
-                fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
+                fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
               }}
             >
               Avg: {avg.toFixed(1)}

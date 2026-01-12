@@ -83,13 +83,13 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 8,
     fontWeight: 700,
     color: PDF_COLORS.inkSoft,
-    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
+    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
   },
   ratingNumberHighlighted: {
     fontSize: 8,
     fontWeight: 700,
     color: PDF_COLORS.white,
-    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
+    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
   },
   ratingLabels: {
     display: "flex",
@@ -101,6 +101,6 @@ const styles: Record<string, React.CSSProperties> = {
   ratingLabel: {
     fontSize: 7,
     color: PDF_COLORS.inkLighter,
-    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
+    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
   },
 };

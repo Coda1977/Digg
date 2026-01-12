@@ -92,7 +92,7 @@ const styles: Record<string, React.CSSProperties> = {
     textTransform: "uppercase",
     letterSpacing: 3,
     marginBottom: 16,
-    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
+    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
   },
   coverSubject: {
     fontSize: 28,
@@ -100,21 +100,21 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 8,
     color: PDF_COLORS.ink,
     textAlign: "center",
-    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
+    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
   },
   coverRole: {
     fontSize: 14,
     color: PDF_COLORS.inkSoft,
     marginBottom: 24,
     textAlign: "center",
-    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
+    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
   },
   coverMeta: {
     fontSize: 11,
     color: PDF_COLORS.inkSoft,
     marginBottom: 4,
     textAlign: "center",
-    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
+    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
   },
   coverDivider: {
     width: 60,
@@ -137,6 +137,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 12,
     color: PDF_COLORS.ink,
     textAlign: "center",
-    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
+    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
   },
 };

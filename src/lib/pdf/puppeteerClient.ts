@@ -80,12 +80,10 @@ async function loadFonts(): Promise<void> {
  * Configured for Vercel serverless environment
  */
 async function createBrowser(): Promise<ReturnType<typeof puppeteer.launch>> {
-  // Load custom fonts before launching browser (only in production)
+  // NOTE: We no longer use file-based font loading (chromiumWithFonts.font())
+  // because fonts are embedded as base64 in CSS. The file-based approach
+  // was causing issues on Vercel where public folder isn't accessible.
   const isDev = process.env.NODE_ENV === "development";
-
-  if (!isDev) {
-    await loadFonts();
-  }
 
   // Use local Chrome in development, remote chromium-min in production
   // The remote URL downloads and extracts chromium on first run
@@ -196,7 +194,7 @@ export async function generatePdfFromHtml(
             text-transform: uppercase;
             letter-spacing: 1px;
             padding: 0 40px;
-            font-family: 'Inter', 'Noto Sans Hebrew', sans-serif;
+            font-family: 'Noto Sans Hebrew', 'Inter', sans-serif;
           ">
             <span class="pageNumber"></span> | ${options.subjectName} &mdash; ${options.projectName}
           </div>
@@ -209,7 +207,7 @@ export async function generatePdfFromHtml(
           text-align: center;
           font-size: 8px;
           color: #A1A1AA;
-          font-family: 'Inter', 'Noto Sans Hebrew', sans-serif;
+          font-family: 'Noto Sans Hebrew', 'Inter', sans-serif;
           padding-bottom: 10px;
         ">
           <span class="pageNumber"></span>
