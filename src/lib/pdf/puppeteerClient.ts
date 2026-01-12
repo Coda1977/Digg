@@ -74,19 +74,26 @@ async function loadFonts(): Promise<void> {
  * Configured for Vercel serverless environment
  */
 async function createBrowser(): Promise<ReturnType<typeof puppeteer.launch>> {
-  // Load custom fonts before launching browser
-  await loadFonts();
+  // Load custom fonts before launching browser (only in production)
+  const isDev = process.env.NODE_ENV === "development";
 
-  const executablePath = await chromium.executablePath();
+  if (!isDev) {
+    await loadFonts();
+  }
+
+  // Use local Chrome in development, @sparticuz/chromium in production
+  const executablePath = isDev
+    ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+    : await chromium.executablePath();
 
   const browser = await puppeteer.launch({
-    args: chromium.args,
+    args: isDev ? ["--no-sandbox", "--disable-setuid-sandbox"] : chromium.args,
     defaultViewport: {
       width: 794,  // A4 width at 96 DPI
       height: 1123, // A4 height at 96 DPI
     },
     executablePath,
-    headless: "shell", // Use headless shell mode for better performance
+    headless: true,
   });
 
   return browser;

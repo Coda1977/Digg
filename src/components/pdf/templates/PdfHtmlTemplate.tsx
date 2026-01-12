@@ -15,7 +15,7 @@ import type {
   ProjectInsightsForPdf,
   SegmentedAnalysisForPdf,
   TranscriptForPdf,
-} from "../ProjectInsightsPdf";
+} from "@/lib/pdf/types";
 import type { ResponseByQuestion } from "@/lib/responseExtraction";
 
 export interface PdfTemplateProps {

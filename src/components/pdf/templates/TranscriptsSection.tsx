@@ -5,7 +5,7 @@
  */
 
 import { PDF_COLORS } from "@/lib/pdf/pdfStyles";
-import type { TranscriptForPdf } from "../ProjectInsightsPdf";
+import type { TranscriptForPdf } from "@/lib/pdf/types";
 
 interface TranscriptsSectionProps {
   transcripts: TranscriptForPdf[];
@@ -58,7 +58,7 @@ function TranscriptBlock({ transcript, index, isFirst }: TranscriptBlockProps) {
       {transcript.messages.map((message, msgIdx) => (
         <div key={msgIdx} style={styles.messageBlock}>
           <div style={styles.messageRole}>
-            {message.role === "user" ? "Interviewer" : "Respondent"}:
+            {message.role === "user" ? "Respondent" : "Interviewer"}:
           </div>
           <div style={styles.messageContent}>{message.content}</div>
         </div>

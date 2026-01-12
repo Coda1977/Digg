@@ -53,18 +53,95 @@ The document has:
 - ~319 text elements total
 - Multiple pages of content
 
-### Fix Applied (Jan 8, 2026)
+### Fix Attempt #1: Hebrew Font Support (FAILED)
 
-**Solution: Added Hebrew font support**
+**Hypothesis:** Built-in PDF fonts don't support Hebrew, causing glyph metric overflow.
 
-Root cause confirmed: Built-in PDF fonts (Helvetica, Times-Roman) don't support Hebrew.
-When react-pdf calculates glyph metrics for unsupported characters, values overflow.
-
-Fix:
+**What we did:**
 1. Downloaded Noto Sans Hebrew font (Regular + Bold) to `/public/fonts/`
-2. Registered with `Font.register()` in ProjectInsightsPdf.tsx
+2. Registered with `Font.register()` including italic fallbacks
 3. Changed FONT_SANS and FONT_SERIF to use "NotoHebrew"
-4. NotoHebrew supports both Hebrew AND Latin characters
+
+**Result:** SAME ERROR - `-9.44473296573929e+21` still occurs!
+
+**Conclusion:** Hebrew font support is NOT the root cause.
+The overflow is happening somewhere else in react-pdf's layout engine.
+
+### Current Status: Root Cause Still Unknown
+
+The `-9.44e21` value is generated AFTER all 319 text elements render successfully.
+It happens in the final PDF layout/composition phase, not during text rendering.
+
+**What we've ruled out:**
+- ❌ Our data values (all 54 numbers validated)
+- ❌ Specific text content (all 319 texts logged before crash)
+- ❌ Hebrew font support (added Noto Sans Hebrew, still crashes)
+
+**Remaining possibilities:**
+1. **Page break calculation overflow** - too many pages causing coordinate overflow
+2. **Layout engine bug** in react-pdf with complex documents
+3. **Specific CSS style combination** causing bad math
+4. **Document structure** - nested Views/Pages causing accumulation
+
+---
+
+## Recommended Next Steps (8 Options)
+
+### Investigation Options
+
+**1. Binary Search (isolate the trigger)**
+- Comment out PDF sections one by one (Transcripts, Analysis, Responses)
+- Find which section causes the crash
+- Pros: Pinpoints exact cause
+- Cons: Time-consuming
+
+**2. Check Specific Styles**
+- The crash is in `transform/translate` - could be a CSS style combination
+- Test removing styles like `wrap={false}`, `break`, absolute positioning
+- Pros: Might find a simple fix
+- Cons: Many styles to test
+
+### Mitigation Options
+
+**3. Limit Document Size**
+- Cap transcripts to X per PDF, or split into multiple PDFs
+- Pros: Quick workaround
+- Cons: Doesn't fix root cause, limits functionality
+
+**4. Try-Catch with Fallback**
+- Catch the error, show user a message or offer alternative (e.g., "Download as text")
+- Pros: Graceful degradation
+- Cons: User doesn't get PDF
+
+**5. Server-Side Generation**
+- Generate PDF on server (Node.js) instead of browser
+- Different environment might not have the bug
+- Pros: Might just work
+- Cons: Architecture change, more server load
+
+### Library Options
+
+**6. Upgrade/Downgrade react-pdf**
+- Current: v4.3.1
+- Try older stable version or check if newer version fixes it
+- Pros: Might fix it
+- Cons: Could introduce other issues
+
+**7. Switch PDF Library**
+- Alternatives: `jspdf`, `pdf-lib`, `puppeteer` (server-side)
+- Pros: Fresh start, different rendering engine
+- Cons: Significant rewrite
+
+**8. Report Bug to react-pdf**
+- File issue with reproduction case
+- Pros: Community might have solution
+- Cons: Slow, no guaranteed fix
+
+### Recommendation
+Start with **#1 (Binary Search)** - fastest to identify the trigger.
+If that fails, **#5 (Server-Side)** is the most reliable workaround.
+
+---
 
 References:
 - [Issue #1851](https://github.com/diegomura/react-pdf/issues/1851) - Empty string -Infinity

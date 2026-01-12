@@ -11,7 +11,7 @@ import type {
   SegmentedAnalysisForPdf,
   Strength,
   Improvement,
-} from "../ProjectInsightsPdf";
+} from "@/lib/pdf/types";
 
 interface AnalysisSectionProps {
   analysis?: ProjectInsightsForPdf;
@@ -114,7 +114,7 @@ function StrengthItem({ strength }: StrengthItemProps) {
       <span style={styles.bullet}>•</span>
       <div style={styles.listContent}>
         <div style={styles.strengthPoint}>{strength.point}</div>
-        {strength.quote && <div style={styles.quote}>"{strength.quote}"</div>}
+        {strength.quote && <div style={styles.quote}>&ldquo;{strength.quote}&rdquo;</div>}
         {frequency !== undefined && (
           <div style={styles.frequency}>
             Mentioned by {frequency} respondent{frequency !== 1 ? "s" : ""}
@@ -156,7 +156,7 @@ function ImprovementItem({ improvement }: ImprovementItemProps) {
         <div style={styles.actionLabel}>Action</div>
         <div style={styles.actionText}>{improvement.action}</div>
         {improvement.quote && (
-          <div style={styles.quote}>"{improvement.quote}"</div>
+          <div style={styles.quote}>&ldquo;{improvement.quote}&rdquo;</div>
         )}
       </div>
     </div>

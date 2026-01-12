@@ -60,7 +60,7 @@ export function CoverPage({
 
 const styles: Record<string, React.CSSProperties> = {
   coverPage: {
-    minHeight: "100vh",
+    height: "100vh",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",

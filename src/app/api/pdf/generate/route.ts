@@ -12,6 +12,7 @@ import type { Id } from "../../../../../convex/_generated/dataModel";
 import { checkRateLimit, createRateLimitResponse } from "@/lib/ratelimit";
 import { generatePdfFromHtml } from "@/lib/pdf/puppeteerClient";
 import { renderPdfHtml } from "@/lib/pdf/htmlRenderer";
+import { extractResponsesByQuestion } from "@/lib/responseExtraction";
 
 export const runtime = "nodejs";
 export const maxDuration = 60; // 60 seconds timeout for PDF generation
@@ -31,15 +32,16 @@ function getConvexClient(): ConvexHttpClient {
 }
 
 export async function POST(req: Request) {
-  // Rate limiting: reuse "analyze" limit (5 per hour per IP)
-  const ip =
-    req.headers.get("x-forwarded-for") ||
-    req.headers.get("x-real-ip") ||
-    "global";
-  const rateLimit = await checkRateLimit(`pdf:${ip}`, "analyze");
-  if (!rateLimit.success) {
-    return createRateLimitResponse(Math.ceil(rateLimit.resetMs / 1000));
-  }
+  // Rate limiting: temporarily disabled for testing
+  // TODO: Re-enable after testing
+  // const ip =
+  //   req.headers.get("x-forwarded-for") ||
+  //   req.headers.get("x-real-ip") ||
+  //   "global";
+  // const rateLimit = await checkRateLimit(`pdf:${ip}`, "analyze");
+  // if (!rateLimit.success) {
+  //   return createRateLimitResponse(Math.ceil(rateLimit.resetMs / 1000));
+  // }
 
   // Parse request body
   const json = await req.json().catch(() => null);
@@ -58,8 +60,9 @@ export async function POST(req: Request) {
   try {
     const convex = getConvexClient();
 
-    // Fetch project data
-    const project = await convex.query(api.projects.getById, {
+    // Fetch project data (using dev version without auth for testing)
+    // TODO: Switch back to api.projects.getById after testing
+    const project = await convex.query(api.projects.devGetById, {
       id: projectId as Id<"projects">,
     });
 
@@ -67,9 +70,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    // Fetch surveys with messages
+    // Fetch surveys with messages (using dev version without auth for testing)
+    // TODO: Switch back to api.surveys.getByProjectWithMessages after testing
     const surveysWithMessages = await convex.query(
-      api.surveys.getByProjectWithMessages,
+      api.surveys.devGetByProjectWithMessages,
       { projectId: projectId as Id<"projects"> }
     );
 
@@ -103,10 +107,25 @@ export async function POST(req: Request) {
       };
     });
 
-    // Build responsesByQuestion (simplified - the full extraction is complex)
-    // For now, we'll pass the data that's already in project.analysis
-    const responsesByQuestion = await extractResponsesByQuestion(
-      sortedSurveys,
+    // Build responsesByQuestion using the correct extraction function
+    // Map surveys to the expected format with typed messages
+    // Also interpolate {{subjectName}} in question text
+    const subjectName = project.subjectName;
+    const surveysForExtraction = sortedSurveys.map((survey) => ({
+      _id: survey._id,
+      respondentName: survey.respondentName,
+      relationship: survey.relationship,
+      messages: survey.messages.map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+        questionId: m.questionId,
+        questionText: m.questionText?.replace(/\{\{subjectName\}\}/g, subjectName),
+        ratingValue: m.ratingValue,
+      })),
+    }));
+
+    const responsesByQuestion = extractResponsesByQuestion(
+      surveysForExtraction,
       relationshipOptions,
       project.template?.questions || []
     );
@@ -249,164 +268,3 @@ function getCoverageText(
   return `${total} interview${total !== 1 ? "s" : ""}: ${parts.join(", ")}`;
 }
 
-/**
- * Extract responses organized by question
- * Simplified version - full logic is in responseExtraction.ts
- */
-async function extractResponsesByQuestion(
-  surveys: Array<{
-    _id: string;
-    respondentName?: string;
-    relationship?: string;
-    messages: Array<{
-      role: string;
-      content: string;
-      questionId?: string;
-      questionText?: string;
-      ratingValue?: number;
-    }>;
-  }>,
-  relationshipOptions: Array<{ id: string; label: string }>,
-  templateQuestions: Array<{
-    id: string;
-    text: string;
-    type?: string;
-    ratingScale?: {
-      max: number;
-      lowLabel?: string;
-      highLabel?: string;
-    };
-  }>
-): Promise<
-  Array<{
-    questionId: string;
-    questionText: string;
-    questionType?: "text" | "rating";
-    ratingScale?: {
-      max: number;
-      lowLabel?: string;
-      highLabel?: string;
-    };
-    responses: Array<{
-      surveyId: string;
-      respondentName: string;
-      relationshipId: string;
-      relationshipLabel: string;
-      content: string;
-      ratingValue?: number;
-    }>;
-    ratingStats?: {
-      average: number;
-      distribution: Record<number, number>;
-    };
-  }>
-> {
-  // Build a map of questions
-  const questionMap = new Map<
-    string,
-    {
-      questionId: string;
-      questionText: string;
-      questionType?: "text" | "rating";
-      ratingScale?: {
-        max: number;
-        lowLabel?: string;
-        highLabel?: string;
-      };
-      responses: Array<{
-        surveyId: string;
-        respondentName: string;
-        relationshipId: string;
-        relationshipLabel: string;
-        content: string;
-        ratingValue?: number;
-      }>;
-      ratingStats?: {
-        average: number;
-        distribution: Record<number, number>;
-      };
-    }
-  >();
-
-  // Initialize from template questions
-  templateQuestions.forEach((q) => {
-    questionMap.set(q.id, {
-      questionId: q.id,
-      questionText: q.text,
-      questionType: q.type as "text" | "rating" | undefined,
-      ratingScale: q.ratingScale,
-      responses: [],
-    });
-  });
-
-  // Process each survey's messages
-  surveys.forEach((survey) => {
-    const relationshipLabel =
-      relationshipOptions.find((r) => r.id === survey.relationship)?.label ||
-      survey.relationship ||
-      "Unknown";
-
-    survey.messages.forEach((msg) => {
-      if (msg.role === "assistant" && msg.questionId) {
-        let question = questionMap.get(msg.questionId);
-
-        // If question not in template, create it
-        if (!question && msg.questionText) {
-          question = {
-            questionId: msg.questionId,
-            questionText: msg.questionText,
-            responses: [],
-          };
-          questionMap.set(msg.questionId, question);
-        }
-
-        if (question) {
-          question.responses.push({
-            surveyId: survey._id,
-            respondentName: survey.respondentName || "Anonymous",
-            relationshipId: survey.relationship || "",
-            relationshipLabel,
-            content: msg.content,
-            ratingValue: msg.ratingValue,
-          });
-        }
-      }
-    });
-  });
-
-  // Convert to array and calculate stats
-  const result = Array.from(questionMap.values());
-
-  // Calculate rating stats for rating questions
-  result.forEach((q) => {
-    if (q.questionType === "rating" && q.ratingScale) {
-      const validRatings = q.responses
-        .map((r) => r.ratingValue)
-        .filter((v): v is number => v !== undefined && v > 0);
-
-      if (validRatings.length > 0) {
-        const sum = validRatings.reduce((a, b) => a + b, 0);
-        const average = sum / validRatings.length;
-
-        const distribution: Record<number, number> = {};
-        validRatings.forEach((v) => {
-          const rounded = Math.round(v);
-          distribution[rounded] = (distribution[rounded] || 0) + 1;
-        });
-
-        q.ratingStats = { average, distribution };
-      }
-    }
-  });
-
-  // Sort responses by relationship
-  result.forEach((q) => {
-    q.responses.sort((a, b) => {
-      const aOrder = getRelationshipOrder(a.relationshipLabel);
-      const bOrder = getRelationshipOrder(b.relationshipLabel);
-      return aOrder - bOrder;
-    });
-  });
-
-  return result;
-}

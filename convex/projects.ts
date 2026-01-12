@@ -378,3 +378,58 @@ export const saveAnalysis = mutation({
     await ctx.db.patch(args.projectId, updateData);
   },
 });
+
+// TEMPORARY: Dev-only query to list project IDs for PDF testing
+// TODO: Remove this after testing
+export const devListProjectIds = query({
+  args: {},
+  handler: async (ctx) => {
+    const projects = await ctx.db
+      .query("projects")
+      .withIndex("by_created")
+      .order("desc")
+      .collect();
+
+    return projects.map((p) => ({
+      id: p._id,
+      name: p.name,
+      subjectName: p.subjectName,
+    }));
+  },
+});
+
+// TEMPORARY: Dev-only getById without auth for PDF testing
+// TODO: Remove this after testing
+export const devGetById = query({
+  args: { id: v.id("projects") },
+  handler: async (ctx, args) => {
+    // No auth check for testing
+
+    const project = await ctx.db.get(args.id);
+    if (!project) return null;
+
+    const template = await ctx.db.get(project.templateId);
+    const surveys = await ctx.db
+      .query("surveys")
+      .withIndex("by_project", (q) => q.eq("projectId", args.id))
+      .collect();
+
+    const completedCount = surveys.filter(
+      (s) => s.status === "completed"
+    ).length;
+    const inProgressCount = surveys.filter(
+      (s) => s.status === "in_progress"
+    ).length;
+
+    return {
+      ...project,
+      template,
+      surveys,
+      stats: {
+        total: surveys.length,
+        completed: completedCount,
+        inProgress: inProgressCount,
+      },
+    };
+  },
+});

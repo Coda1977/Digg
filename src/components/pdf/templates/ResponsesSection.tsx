@@ -4,8 +4,7 @@
  * Renders all responses organized by interview questions.
  */
 
-import { PDF_COLORS, normalizeScale, normalizeRating } from "@/lib/pdf/pdfStyles";
-import { RatingBarChart } from "./components/RatingBarChart";
+import { PDF_COLORS } from "@/lib/pdf/pdfStyles";
 import { RatingScale } from "./components/RatingScale";
 import type { ResponseByQuestion } from "@/lib/responseExtraction";
 
@@ -47,6 +46,24 @@ function QuestionBlock({ question, index }: QuestionBlockProps) {
   const isRatingQuestion = question.questionType === "rating";
   const hasRatingStats = isRatingQuestion && question.ratingStats && question.ratingScale;
 
+  // Calculate min/max range from responses with valid ratings
+  const ratingValues = question.responses
+    .map((r) => r.ratingValue)
+    .filter((v): v is number => v !== undefined && v > 0);
+  const minRating = ratingValues.length > 0 ? Math.min(...ratingValues) : 0;
+  const maxRating = ratingValues.length > 0 ? Math.max(...ratingValues) : 0;
+  const hasRange = minRating > 0 && maxRating > 0 && minRating !== maxRating;
+
+  // For rating questions, get text follow-up responses (anonymous)
+  const textFollowUps = isRatingQuestion
+    ? question.responses
+        .map((r) => r.content.trim())
+        .filter((content) => {
+          const isNumericOnly = /^\d+(\.\d+)?$/.test(content);
+          return !isNumericOnly && content.length > 10;
+        })
+    : [];
+
   return (
     <div style={styles.questionBlock}>
       {/* Question title */}
@@ -55,34 +72,44 @@ function QuestionBlock({ question, index }: QuestionBlockProps) {
       </h3>
       <div style={styles.divider} />
 
-      {/* Rating stats box with bar chart */}
+      {/* Rating question: Average + Range + Ideas for Improvement */}
       {hasRatingStats && (
-        <div style={styles.ratingStatsBox}>
-          <div style={styles.ratingStatsTitle}>Rating Distribution</div>
-          <RatingBarChart
-            responses={question.responses
-              .filter((r) => r.ratingValue !== undefined)
-              .map((r) => ({
-                respondentName: r.respondentName,
-                relationshipLabel: r.relationshipLabel,
-                value: r.ratingValue!,
-              }))}
-            maxRating={question.ratingScale!.max}
-            lowLabel={question.ratingScale!.lowLabel}
-            highLabel={question.ratingScale!.highLabel}
-          />
-        </div>
+        <>
+          <div style={styles.ratingStatsBox}>
+            <div style={styles.ratingStatsTitle}>
+              Average Rating: {question.ratingStats!.average.toFixed(1)} out of {question.ratingScale!.max}
+              {hasRange && ` (Range: ${minRating}-${maxRating})`}
+            </div>
+            <RatingScale
+              max={question.ratingScale!.max}
+              value={question.ratingStats!.average}
+              lowLabel={question.ratingScale!.lowLabel}
+              highLabel={question.ratingScale!.highLabel}
+            />
+          </div>
+
+          {/* Ideas for Improvement - anonymous bullet list */}
+          {textFollowUps.length > 0 && (
+            <div style={styles.ideasBox}>
+              <div style={styles.ideasTitle}>Ideas for Improvement</div>
+              {textFollowUps.map((text, idx) => (
+                <div key={idx} style={styles.ideaBullet}>
+                  • &ldquo;{text}&rdquo;
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
-      {/* Individual responses */}
-      {question.responses.map((response, rIndex) => (
-        <ResponseItem
-          key={`${response.surveyId}-${rIndex}`}
-          response={response}
-          isRating={isRatingQuestion}
-          ratingScale={question.ratingScale}
-        />
-      ))}
+      {/* Text questions: Individual responses with names */}
+      {!isRatingQuestion &&
+        question.responses.map((response, rIndex) => (
+          <ResponseItem
+            key={`${response.surveyId}-${rIndex}`}
+            response={response}
+          />
+        ))}
     </div>
   );
 }
@@ -92,46 +119,23 @@ interface ResponseItemProps {
     respondentName: string;
     relationshipLabel: string;
     content: string;
-    ratingValue?: number;
-  };
-  isRating: boolean;
-  ratingScale?: {
-    max: number;
-    lowLabel?: string;
-    highLabel?: string;
   };
 }
 
-function ResponseItem({ response, isRating, ratingScale }: ResponseItemProps) {
-  const hasValidRating =
-    isRating &&
-    ratingScale &&
-    response.ratingValue !== undefined &&
-    normalizeRating(response.ratingValue, normalizeScale(ratingScale.max)) > 0;
-
+function ResponseItem({ response }: ResponseItemProps) {
   return (
     <div style={styles.responseItem}>
       <div style={styles.responseHeader}>
         {response.relationshipLabel} - {response.respondentName}:
       </div>
-
-      {hasValidRating ? (
-        <RatingScale
-          max={ratingScale!.max}
-          value={response.ratingValue!}
-          lowLabel={ratingScale!.lowLabel}
-          highLabel={ratingScale!.highLabel}
-        />
-      ) : (
-        <div style={styles.responseContent}>{response.content}</div>
-      )}
+      <div style={styles.responseContent}>{response.content}</div>
     </div>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
   section: {
-    pageBreakBefore: "always",
+    // No page break - cover page already takes full page
   },
   partTitle: {
     fontSize: 20,
@@ -179,6 +183,27 @@ const styles: Record<string, React.CSSProperties> = {
     textTransform: "uppercase",
     letterSpacing: 1,
     marginBottom: 8,
+    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+  },
+  ideasBox: {
+    backgroundColor: "#f8f8f6",
+    padding: 12,
+    marginBottom: 12,
+    border: `1px solid ${PDF_COLORS.divider}`,
+  },
+  ideasTitle: {
+    fontSize: 10,
+    fontWeight: 600,
+    color: PDF_COLORS.ink,
+    marginBottom: 8,
+    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+  },
+  ideaBullet: {
+    fontSize: 10,
+    lineHeight: 1.5,
+    color: PDF_COLORS.ink,
+    marginBottom: 6,
+    paddingLeft: 4,
     fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
   },
   responseItem: {
