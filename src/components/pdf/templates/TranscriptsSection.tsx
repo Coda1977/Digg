@@ -79,7 +79,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderBottom: `3px solid ${PDF_COLORS.ink}`,
     paddingBottom: 8,
     letterSpacing: -0.5,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   transcriptBlock: {
     marginBottom: 20,
@@ -91,7 +91,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     marginBottom: 10,
     color: PDF_COLORS.ink,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   divider: {
     height: 1,
@@ -109,14 +109,14 @@ const styles: Record<string, React.CSSProperties> = {
     color: PDF_COLORS.inkSoft,
     textTransform: "uppercase",
     letterSpacing: 0.5,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   messageContent: {
     fontSize: 10,
     lineHeight: 1.6,
     paddingLeft: 8,
     color: PDF_COLORS.ink,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
     whiteSpace: "pre-wrap",
   },
 };

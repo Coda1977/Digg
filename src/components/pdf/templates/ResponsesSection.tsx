@@ -145,14 +145,14 @@ const styles: Record<string, React.CSSProperties> = {
     borderBottom: `3px solid ${PDF_COLORS.ink}`,
     paddingBottom: 8,
     letterSpacing: -0.5,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   partDescription: {
     fontSize: 10,
     marginBottom: 20,
     color: PDF_COLORS.inkSoft,
     fontStyle: "italic",
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   questionBlock: {
     marginBottom: 24,
@@ -163,7 +163,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     marginBottom: 8,
     color: PDF_COLORS.ink,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   divider: {
     height: 1,
@@ -183,7 +183,7 @@ const styles: Record<string, React.CSSProperties> = {
     textTransform: "uppercase",
     letterSpacing: 1,
     marginBottom: 8,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   ideasBox: {
     backgroundColor: "#f8f8f6",
@@ -196,7 +196,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     color: PDF_COLORS.ink,
     marginBottom: 8,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   ideaBullet: {
     fontSize: 10,
@@ -204,7 +204,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: PDF_COLORS.ink,
     marginBottom: 6,
     paddingLeft: 4,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   responseItem: {
     marginBottom: 12,
@@ -219,13 +219,13 @@ const styles: Record<string, React.CSSProperties> = {
     color: PDF_COLORS.inkSoft,
     textTransform: "uppercase",
     letterSpacing: 0.5,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   responseContent: {
     fontSize: 10,
     lineHeight: 1.6,
     color: PDF_COLORS.ink,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
     whiteSpace: "pre-wrap",
   },
 };

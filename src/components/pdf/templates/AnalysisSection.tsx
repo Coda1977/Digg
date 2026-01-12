@@ -215,7 +215,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderBottom: `3px solid ${PDF_COLORS.ink}`,
     paddingBottom: 8,
     letterSpacing: -0.5,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   overallSection: {
     marginBottom: 20,
@@ -227,7 +227,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: PDF_COLORS.ink,
     borderBottom: `2px solid ${PDF_COLORS.ink}`,
     paddingBottom: 6,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   subsection: {
     marginTop: 12,
@@ -238,14 +238,14 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     marginBottom: 6,
     color: PDF_COLORS.ink,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   paragraph: {
     marginBottom: 10,
     fontSize: 10,
     lineHeight: 1.6,
     color: PDF_COLORS.ink,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
     whiteSpace: "pre-wrap",
   },
   listItem: {
@@ -258,7 +258,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 12,
     fontSize: 10,
     color: PDF_COLORS.ink,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   listContent: {
     flex: 1,
@@ -268,7 +268,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 3,
     color: PDF_COLORS.ink,
     fontSize: 10,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   quote: {
     fontStyle: "italic",
@@ -278,13 +278,13 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 2,
     paddingLeft: 8,
     borderLeft: `2px solid ${PDF_COLORS.divider}`,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   frequency: {
     fontSize: 8,
     color: PDF_COLORS.inkLighter,
     marginTop: 2,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   improvementItem: {
     marginBottom: 12,
@@ -295,14 +295,14 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 2,
     color: PDF_COLORS.ink,
     fontSize: 10,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   priorityBadge: {
     fontSize: 8,
     fontWeight: 700,
     textTransform: "uppercase",
     marginTop: 2,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   improvementDetails: {
     marginLeft: 12,
@@ -317,13 +317,13 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 2,
     textTransform: "uppercase",
     letterSpacing: 0.5,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   actionText: {
     fontSize: 10,
     color: PDF_COLORS.ink,
     marginBottom: 3,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   segmentedSection: {
     marginTop: 24,
@@ -339,7 +339,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     marginBottom: 8,
     color: PDF_COLORS.ink,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
   miniSubsection: {
     marginTop: 8,
@@ -350,6 +350,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     marginBottom: 4,
     color: PDF_COLORS.inkSoft,
-    fontFamily: "'Noto Sans Hebrew', 'Inter', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans Hebrew', sans-serif",
   },
 };

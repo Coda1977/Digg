@@ -160,7 +160,7 @@ export async function generatePdfFromHtml(
             text-transform: uppercase;
             letter-spacing: 1px;
             padding: 0 40px;
-            font-family: 'Noto Sans Hebrew', 'Inter', sans-serif;
+            font-family: 'Inter', 'Noto Sans Hebrew', sans-serif;
           ">
             <span class="pageNumber"></span> | ${options.subjectName} &mdash; ${options.projectName}
           </div>
@@ -173,7 +173,7 @@ export async function generatePdfFromHtml(
           text-align: center;
           font-size: 8px;
           color: #A1A1AA;
-          font-family: 'Noto Sans Hebrew', 'Inter', sans-serif;
+          font-family: 'Inter', 'Noto Sans Hebrew', sans-serif;
           padding-bottom: 10px;
         ">
           <span class="pageNumber"></span>

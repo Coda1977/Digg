@@ -35,8 +35,8 @@ export const PDF_COLORS = {
 // ============================================================================
 
 export const PDF_FONTS = {
-  serif: "'Noto Sans Hebrew', 'Inter', sans-serif",
-  sans: "'Noto Sans Hebrew', 'Inter', sans-serif",
+  serif: "'Inter', 'Noto Sans Hebrew', sans-serif",
+  sans: "'Inter', 'Noto Sans Hebrew', sans-serif",
 };
 
 // ============================================================================
