@@ -12,9 +12,10 @@ import path from "path";
 import fs from "fs";
 
 // Remote URL for chromium binary (required for Vercel deployment)
-// This URL points to a pre-packaged chromium binary compatible with AWS Lambda/Vercel
+// This URL points to the official Sparticuz chromium binary for AWS Lambda/Vercel
+// Using x64 architecture to match Vercel's serverless environment
 const CHROMIUM_REMOTE_URL =
-  "https://github.com/AJ-A/chromium-pack/releases/download/chromium-pack-v133.0.0-pack.28/chromium-pack.tar";
+  "https://github.com/Sparticuz/chromium/releases/download/v140.0.0/chromium-v140.0.0-pack.x64.tar";
 
 // @sparticuz/chromium-min has a font() method that isn't in the TypeScript types
 const chromiumWithFonts = chromium as typeof chromium & {
