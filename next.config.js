@@ -16,7 +16,7 @@ const nextConfig = {
   },
 
   // Server-side packages for PDF generation with Puppeteer
-  serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
+  serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium-min'],
 };
 
 module.exports = nextConfig;

@@ -1,17 +1,22 @@
 /**
  * Puppeteer Client for PDF Generation
  *
- * Uses @sparticuz/chromium for Vercel serverless compatibility.
+ * Uses @sparticuz/chromium-min for Vercel serverless compatibility.
+ * The chromium binary is downloaded from a remote URL on first run.
  * Loads custom fonts (Noto Sans Hebrew, Inter) for Hebrew/Latin text support.
  */
 
 import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
+import chromium from "@sparticuz/chromium-min";
 import path from "path";
 import fs from "fs";
 
-// @sparticuz/chromium has a font() method that isn't in the TypeScript types
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// Remote URL for chromium binary (required for Vercel deployment)
+// This URL points to a pre-packaged chromium binary compatible with AWS Lambda/Vercel
+const CHROMIUM_REMOTE_URL =
+  "https://github.com/AJ-A/chromium-pack/releases/download/chromium-pack-v133.0.0-pack.28/chromium-pack.tar";
+
+// @sparticuz/chromium-min has a font() method that isn't in the TypeScript types
 const chromiumWithFonts = chromium as typeof chromium & {
   font: (fontPath: string) => Promise<void>;
 };
@@ -81,10 +86,11 @@ async function createBrowser(): Promise<ReturnType<typeof puppeteer.launch>> {
     await loadFonts();
   }
 
-  // Use local Chrome in development, @sparticuz/chromium in production
+  // Use local Chrome in development, remote chromium-min in production
+  // The remote URL downloads and extracts chromium on first run
   const executablePath = isDev
     ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-    : await chromium.executablePath();
+    : await chromium.executablePath(CHROMIUM_REMOTE_URL);
 
   const browser = await puppeteer.launch({
     args: isDev ? ["--no-sandbox", "--disable-setuid-sandbox"] : chromium.args,
@@ -186,7 +192,7 @@ export async function generatePdfFromHtml(
  */
 export async function isPuppeteerAvailable(): Promise<boolean> {
   try {
-    const executablePath = await chromium.executablePath();
+    const executablePath = await chromium.executablePath(CHROMIUM_REMOTE_URL);
     return !!executablePath;
   } catch {
     return false;
