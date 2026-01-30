@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 
 // Build Content-Security-Policy using NEXT_PUBLIC_ env vars (inlined at build time)
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL || '';
+const convexUrl = (process.env.NEXT_PUBLIC_CONVEX_URL || '').trim();
 const convexWs = convexUrl.replace('https://', 'wss://');
 
 const csp = [
