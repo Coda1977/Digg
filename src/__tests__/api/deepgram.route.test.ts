@@ -10,6 +10,9 @@ vi.mock("convex/browser", () => ({
   },
 }));
 
+// Mock global fetch for Deepgram token endpoint
+const originalFetch = globalThis.fetch;
+
 import { GET as deepgramGet } from "@/app/api/deepgram/route";
 
 function makeRequest(surveyId?: string) {
@@ -26,9 +29,18 @@ describe("GET /api/deepgram", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.NEXT_PUBLIC_CONVEX_URL = "https://test.convex.cloud";
+    // Mock the Deepgram token endpoint by default
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        access_token: "temp-token-abc123",
+        expires_in: 120,
+      }),
+    }) as unknown as typeof fetch;
   });
 
   afterEach(() => {
+    globalThis.fetch = originalFetch;
     if (originalKey === undefined) {
       delete process.env.DEEPGRAM_API_KEY;
     } else {
@@ -79,13 +91,30 @@ describe("GET /api/deepgram", () => {
     expect(payload.error).toMatch(/completed/i);
   });
 
-  it("returns apiKey for valid active survey", async () => {
+  it("returns a temporary token (not the master key) for valid active survey", async () => {
     process.env.DEEPGRAM_API_KEY = "test-deepgram-key";
     mockQuery.mockResolvedValue({ status: "in_progress" });
 
     const response = await deepgramGet(makeRequest("valid-survey-id"));
     expect(response.status).toBe(200);
     const payload = await response.json();
-    expect(payload.apiKey).toBe("test-deepgram-key");
+    // Should return the temporary token, NOT the master key
+    expect(payload.apiKey).toBe("temp-token-abc123");
+    expect(payload.apiKey).not.toBe("test-deepgram-key");
+  });
+
+  it("returns 500 when Deepgram token generation fails", async () => {
+    process.env.DEEPGRAM_API_KEY = "test-deepgram-key";
+    mockQuery.mockResolvedValue({ status: "in_progress" });
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      text: async () => "Unauthorized",
+    }) as unknown as typeof fetch;
+
+    const response = await deepgramGet(makeRequest("valid-survey-id"));
+    expect(response.status).toBe(500);
+    const payload = await response.json();
+    expect(payload.error).toMatch(/token/i);
   });
 });

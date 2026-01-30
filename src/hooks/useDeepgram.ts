@@ -77,19 +77,20 @@ export function useDeepgram({ surveyId, language = "en-US", onTranscript, onErro
     }
   }, []);
 
-  // Fetch Deepgram API key from our backend
+  // Fetch a short-lived Deepgram token from our backend
+  // Always fetches a fresh token since tokens are short-lived (120s)
   const fetchApiKey = useCallback(async () => {
-    console.log("[Deepgram] Fetching API key...");
+    console.log("[Deepgram] Fetching temporary token...");
     try {
       const response = await fetch(`/api/deepgram?surveyId=${encodeURIComponent(surveyId)}`);
       console.log("[Deepgram] API response status:", response.status);
       if (!response.ok) {
         const text = await response.text();
         console.error("[Deepgram] API error response:", text);
-        throw new Error("Failed to fetch Deepgram API key");
+        throw new Error("Failed to fetch Deepgram token");
       }
       const data = await response.json();
-      console.log("[Deepgram] API key received:", data.apiKey ? "✓ (key present)" : "✗ (no key)");
+      console.log("[Deepgram] Token received:", data.apiKey ? "✓ (present)" : "✗ (missing)");
       apiKeyRef.current = data.apiKey;
       return data.apiKey;
     } catch (err) {
@@ -108,9 +109,9 @@ export function useDeepgram({ surveyId, language = "en-US", onTranscript, onErro
     setIsLoading(true);
 
     try {
-      // Get API key if we don't have it
-      const apiKey = apiKeyRef.current || (await fetchApiKey());
-      console.log("[Deepgram] Got API key, creating client...");
+      // Always fetch a fresh short-lived token for each session
+      const apiKey = await fetchApiKey();
+      console.log("[Deepgram] Got token, creating client...");
 
       // Get microphone access
       console.log("[Deepgram] Requesting microphone access...");

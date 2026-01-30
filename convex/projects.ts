@@ -1,5 +1,5 @@
 import { query, mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { requireAdmin } from "./lib/authorization";
 
 // ============================================================================
@@ -379,31 +379,14 @@ export const saveAnalysis = mutation({
   },
 });
 
-// TEMPORARY: Dev-only query to list project IDs for PDF testing
-// TODO: Remove this after testing
-export const devListProjectIds = query({
-  args: {},
-  handler: async (ctx) => {
-    const projects = await ctx.db
-      .query("projects")
-      .withIndex("by_created")
-      .order("desc")
-      .collect();
-
-    return projects.map((p) => ({
-      id: p._id,
-      name: p.name,
-      subjectName: p.subjectName,
-    }));
-  },
-});
-
-// TEMPORARY: Dev-only getById without auth for PDF testing
-// TODO: Remove this after testing
-export const devGetById = query({
-  args: { id: v.id("projects") },
+// Server-to-server getById for PDF generation (validates shared secret)
+export const getByIdInternal = query({
+  args: { id: v.id("projects"), secret: v.string() },
   handler: async (ctx, args) => {
-    // No auth check for testing
+    const expected = process.env.INTERNAL_API_SECRET;
+    if (!expected || args.secret !== expected) {
+      throw new ConvexError("Unauthorized: invalid internal secret");
+    }
 
     const project = await ctx.db.get(args.id);
     if (!project) return null;

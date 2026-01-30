@@ -47,19 +47,28 @@ export async function POST(req: Request) {
   try {
     const convex = getConvexClient();
 
-    // Fetch project data
-    const project = await convex.query(api.projects.devGetById, {
+    const internalSecret = process.env.INTERNAL_API_SECRET;
+    if (!internalSecret) {
+      return NextResponse.json(
+        { error: "Server configuration error: INTERNAL_API_SECRET not set" },
+        { status: 500 }
+      );
+    }
+
+    // Fetch project data using secret-validated internal query
+    const project = await convex.query(api.projects.getByIdInternal, {
       id: projectId as Id<"projects">,
+      secret: internalSecret,
     });
 
     if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    // Fetch surveys with messages
+    // Fetch surveys with messages using secret-validated internal query
     const surveysWithMessages = await convex.query(
-      api.surveys.devGetByProjectWithMessages,
-      { projectId: projectId as Id<"projects"> }
+      api.surveys.getByProjectWithMessagesInternal,
+      { projectId: projectId as Id<"projects">, secret: internalSecret }
     );
 
     // Get relationship options from template

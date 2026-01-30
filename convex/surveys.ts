@@ -236,12 +236,15 @@ export const getByProjectWithMessages = query({
   },
 });
 
-// TEMPORARY: Dev-only getByProjectWithMessages without auth for PDF testing
-// TODO: Remove this after testing
-export const devGetByProjectWithMessages = query({
-  args: { projectId: v.id("projects") },
+// Server-to-server getByProjectWithMessages for PDF generation (validates shared secret)
+export const getByProjectWithMessagesInternal = query({
+  args: { projectId: v.id("projects"), secret: v.string() },
   handler: async (ctx, args) => {
-    // No auth check for testing
+    const expected = process.env.INTERNAL_API_SECRET;
+    if (!expected || args.secret !== expected) {
+      throw new ConvexError("Unauthorized: invalid internal secret");
+    }
+
     const surveys = await ctx.db
       .query("surveys")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))

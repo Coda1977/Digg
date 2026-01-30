@@ -5,8 +5,9 @@ import { api } from "../../../../convex/_generated/api";
 export const runtime = "nodejs";
 
 /**
- * API route to provide Deepgram API key to authenticated survey sessions.
- * Validates that the survey exists and is active before returning the key.
+ * API route to provide a short-lived Deepgram token to authenticated survey sessions.
+ * Validates that the survey exists and is active, then generates a temporary JWT
+ * via Deepgram's /v1/auth/grant endpoint instead of exposing the master API key.
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -59,8 +60,36 @@ export async function GET(req: Request) {
       );
     }
 
-    // Return the API key for valid, active surveys
-    return NextResponse.json({ apiKey });
+    // Generate a short-lived temporary token instead of exposing the master key.
+    // TTL of 120 seconds is enough for a single voice recording session.
+    const tokenResponse = await fetch("https://api.deepgram.com/v1/auth/grant", {
+      method: "POST",
+      headers: {
+        Authorization: `Token ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ttl_seconds: 120 }),
+    });
+
+    if (!tokenResponse.ok) {
+      console.error(
+        "[DEEPGRAM] Failed to generate temporary token:",
+        tokenResponse.status,
+        await tokenResponse.text().catch(() => "")
+      );
+      return NextResponse.json(
+        { error: "Failed to generate voice session token" },
+        { status: 500 }
+      );
+    }
+
+    const tokenData = (await tokenResponse.json()) as {
+      access_token: string;
+      expires_in: number;
+    };
+
+    // Return the short-lived token (not the master key)
+    return NextResponse.json({ apiKey: tokenData.access_token });
   } catch (error) {
     console.error("Error validating survey:", error);
     return NextResponse.json(
