@@ -3,7 +3,9 @@
 ## 2026-01-30 -- Security Hardening & CI Pipeline
 
 Comprehensive security review implementation based on CTO code review findings.
-Three commits: `a5af164`, `ed41cb3`, `94905c5`.
+Commits: `a5af164`, `ed41cb3`, `94905c5`, `5ffeb73`, `cea7f88`.
+
+---
 
 ### Critical: Auth-Bypass Queries Removed
 
@@ -23,6 +25,8 @@ Both environments were configured during this session.
 - `src/app/api/pdf/generate/route.ts` -- Switched to secret-validated queries
 - `.env.example` -- Added `INTERNAL_API_SECRET` with generation instructions
 
+---
+
 ### Critical: `.env.vercel` Removed from Git
 
 **Problem:** `.env.vercel` was tracked in Git and contained a Vercel OIDC JWT token. The public GitHub repo history preserves it permanently.
@@ -35,6 +39,8 @@ Both environments were configured during this session.
 - `.gitignore` -- Added `.env.vercel`
 - `.env.vercel` -- Deleted from tracking (file remains locally)
 
+---
+
 ### High: Deepgram API Key No Longer Exposed to Browser
 
 **Problem:** `GET /api/deepgram` returned the raw `DEEPGRAM_API_KEY` in its JSON response. Any survey respondent could extract the master key from browser DevTools.
@@ -45,6 +51,8 @@ Both environments were configured during this session.
 - `src/app/api/deepgram/route.ts` -- Replaced raw key return with temp token generation
 - `src/hooks/useDeepgram.ts` -- Always fetch fresh token per session
 - `src/__tests__/api/deepgram.route.test.ts` -- Updated tests to mock token endpoint, verify temp token returned
+
+---
 
 ### High: CI/CD Pipeline Added
 
@@ -60,6 +68,8 @@ Triggers on push to `master` and pull requests targeting `master`.
 **Files created:**
 - `.github/workflows/ci.yml`
 
+---
+
 ### Medium: Security Headers Added
 
 **Problem:** No CSP, HSTS, X-Frame-Options, or other security headers were configured.
@@ -72,11 +82,24 @@ Triggers on push to `master` and pull requests targeting `master`.
 - `Permissions-Policy` (restricts camera, geolocation, payment)
 - `Content-Security-Policy` allowing self, Convex (HTTP + WebSocket), Deepgram API/WebSocket
 
-**Note:** Initially implemented as `src/middleware.ts` (Edge Runtime), but this caused persistent `MIDDLEWARE_INVOCATION_FAILED` 500 errors on Vercel with Next.js 16.0.10. Moved to `next.config.js` `headers()` which is more reliable for static security headers and avoids the Edge Runtime entirely.
+**Note:** Initially implemented as `src/middleware.ts` (Edge Runtime), but this caused persistent `MIDDLEWARE_INVOCATION_FAILED` 500 errors on Vercel with Next.js 16.0.10. Moved to `next.config.js` `headers()` which avoids the Edge Runtime entirely and is the recommended pattern for static security headers.
 
 **Files changed:**
-- `next.config.js` -- Added `headers()` with all security headers
-- `src/middleware.ts` -- Deleted (caused Edge Runtime failures on Vercel)
+- `next.config.js` -- Added `headers()` with all security headers + `.trim()` on env vars
+- `src/middleware.ts` -- Created then deleted (Edge Runtime incompatible on Vercel)
+
+---
+
+### Fix: CSP Blocking Convex WebSocket Connections
+
+**Problem:** After adding security headers, the admin login button was greyed out and the dashboard showed "Loading..." indefinitely. The `NEXT_PUBLIC_CONVEX_URL` environment variable on Vercel contained trailing CRLF (`\r\n`) characters, which were injected into the CSP `connect-src` directive. Browsers rejected the malformed URLs, blocking all WebSocket connections to Convex -- preventing auth initialization and data loading.
+
+**Fix:** Added `.trim()` when reading `NEXT_PUBLIC_CONVEX_URL` in `next.config.js` to strip trailing whitespace/newlines before building the CSP string.
+
+**Files changed:**
+- `next.config.js` -- Added `.trim()` to env var reading
+
+---
 
 ### Lint: All ESLint Errors and Warnings Resolved
 
@@ -92,12 +115,22 @@ Fixed 15 errors and 17 warnings that were blocking CI:
 | Dead code | `puppeteerClient.ts` | Removed unused `loadFonts`/`getFontPath` |
 | Expression statements | `puppeteerClient.ts` | Added `void` prefix |
 
-### Middleware Runtime Fix
+---
 
-**Problem:** `src/middleware.ts` caused `MIDDLEWARE_INVOCATION_FAILED` 500 errors on Vercel (Next.js 16.0.10 Edge Runtime compatibility issue). The initial fix of restoring the `NextRequest` parameter did not resolve the issue -- the error persisted even with correct middleware code.
+### Cleanup: Stale Files Removed
 
-**Fix:** Removed `src/middleware.ts` entirely. Moved all security headers to `next.config.js` `headers()` configuration, which bypasses the Edge Runtime and is the recommended pattern for static response headers.
+- `BUG_CORRUPT_NUMBER.txt` -- Resolved bug report from Jan 7-8 (react-pdf coordinate overflow). The app now uses Puppeteer for PDF generation, making this obsolete.
+- `_ul` -- Stale file listing artifact from a previous session.
+
+---
 
 ### Convex Deployment
 
 All Convex backend changes were deployed via `npx convex deploy -y` to `https://fast-llama-701.convex.cloud`. The `INTERNAL_API_SECRET` environment variable was set in the Convex environment.
+
+---
+
+### Remaining Actions
+
+1. **Rotate the Vercel OIDC token** -- The token from `.env.vercel` is still in Git history. Consider BFG Repo-Cleaner since the repo is public.
+2. **Clean `NEXT_PUBLIC_CONVEX_URL` on Vercel** -- Re-enter the value in Vercel Project Settings without trailing whitespace to prevent future CRLF issues.
