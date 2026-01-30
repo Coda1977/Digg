@@ -13,14 +13,13 @@ import type { Id } from "../../../../../convex/_generated/dataModel";
 import { Label } from "@/components/ui/label";
 import {
   EditorialSection,
-  EditorialHeadline,
   EditorialLabel,
   RuledDivider,
   EditorialButton,
   EditorialInput,
   EditorialTextarea,
   TemplateCard,
-  EditorialBreadcrumbs, // Added
+  EditorialBreadcrumbs,
 } from "@/components/editorial";
 import { getErrorMessage } from "@/lib/errorHandling";
 

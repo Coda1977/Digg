@@ -6,7 +6,6 @@ type RelationshipOption = { id: string; label: string };
 
 export function IntroScreen({
   subjectName,
-  subjectRole,
   relationshipOptions,
   onStart,
 }: {

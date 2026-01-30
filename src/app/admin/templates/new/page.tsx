@@ -65,7 +65,7 @@ export default function NewTemplatePage() {
     }
   }
 
-  function updateQuestion(tempId: string, field: keyof Question, value: any) {
+  function updateQuestion(tempId: string, field: keyof Question, value: Question[keyof Question]) {
     setQuestions(
       questions.map((q) => (q.tempId === tempId ? { ...q, [field]: value } : q))
     );

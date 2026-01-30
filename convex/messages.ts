@@ -11,8 +11,7 @@ export const getBySurvey = query({
   },
 });
 
-// Allowed rating scale maximums - all ratings must be within 1..max
-const ALLOWED_SCALES = [3, 4, 5, 7, 10] as const;
+// Maximum allowed rating scale value - all ratings must be within 1..max
 const MAX_ALLOWED_SCALE = 10;
 
 /**

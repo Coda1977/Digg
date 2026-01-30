@@ -8,72 +8,14 @@
 
 import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium-min";
-import path from "path";
-import fs from "fs";
-
 // Remote URL for chromium binary (required for Vercel deployment)
 // This URL points to the official Sparticuz chromium binary for AWS Lambda/Vercel
 // Using x64 architecture to match Vercel's serverless environment
 const CHROMIUM_REMOTE_URL =
   "https://github.com/Sparticuz/chromium/releases/download/v140.0.0/chromium-v140.0.0-pack.x64.tar";
 
-// @sparticuz/chromium-min has a font() method that isn't in the TypeScript types
-const chromiumWithFonts = chromium as typeof chromium & {
-  font: (fontPath: string) => Promise<void>;
-};
-
 // Disable WebGL for faster startup in serverless
 chromium.setGraphicsMode = false;
-
-/**
- * Get the path to font files
- * In production (Vercel), fonts are in the public folder
- * In development, they're accessible via file system
- */
-function getFontPath(fontName: string): string {
-  // Check common locations
-  const possiblePaths = [
-    path.join(process.cwd(), "public", "fonts", fontName),
-    path.join(process.cwd(), ".next", "static", "fonts", fontName),
-    path.join("/var/task", "public", "fonts", fontName), // Vercel serverless
-  ];
-
-  for (const fontPath of possiblePaths) {
-    if (fs.existsSync(fontPath)) {
-      return fontPath;
-    }
-  }
-
-  // Default to public/fonts
-  return path.join(process.cwd(), "public", "fonts", fontName);
-}
-
-/**
- * Load custom fonts into Chromium
- * This is required for Hebrew text rendering
- */
-async function loadFonts(): Promise<void> {
-  const fonts = [
-    "NotoSansHebrew-Regular.ttf",
-    "NotoSansHebrew-Bold.ttf",
-    "Inter-Regular.ttf",
-    "Inter-Medium.ttf",
-    "Inter-Bold.ttf",
-  ];
-
-  for (const font of fonts) {
-    const fontPath = getFontPath(font);
-    if (fs.existsSync(fontPath)) {
-      try {
-        await chromiumWithFonts.font(fontPath);
-      } catch (error) {
-        console.warn(`[PDF] Warning: Could not load font ${font}:`, error);
-      }
-    } else {
-      console.warn(`[PDF] Warning: Font file not found: ${fontPath}`);
-    }
-  }
-}
 
 /**
  * Create a Puppeteer browser instance
@@ -150,7 +92,7 @@ export async function generatePdfFromHtml(
         document.body.appendChild(testEl);
 
         // Force layout calculation
-        testEl.offsetWidth;
+        void testEl.offsetWidth;
 
         // Check if font is loaded
         const loaded = document.fonts.check(`12px "${family}"`);
@@ -164,7 +106,7 @@ export async function generatePdfFromHtml(
       await document.fonts.ready;
 
       // Final layout recalculation
-      document.body.offsetHeight;
+      void document.body.offsetHeight;
     });
 
     // Additional delay to ensure fonts are fully applied to all elements

@@ -109,7 +109,7 @@ export function HistoryModal({
                   className="font-serif"
                   style={{ fontSize: '1rem', color: '#0A0A0A', lineHeight: '1.5' }}
                 >
-                  "{pair.answer}"
+                  &quot;{pair.answer}&quot;
                 </p>
               </div>
             ))

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "../../../convex/_generated/api";
@@ -99,21 +99,16 @@ export default function AdminDashboard() {
     setStatusFilter("all");
   }
 
-  // Cache stats to prevent jumping when Convex refetches
-  const statsCache = useRef({ active: 0, total: 0, completed: 0 });
-
-  // Calculate and cache stats only when we have valid data
+  // Calculate stats from projects data
   const stats = useMemo(() => {
     if (!projects || projects.length === 0) {
-      return statsCache.current;
+      return { active: 0, total: 0, completed: 0 };
     }
-    const newStats = {
+    return {
       active: projects.filter((p) => p.status === "active").length,
       total: projects.reduce((sum, p) => sum + p.stats.total, 0),
       completed: projects.reduce((sum, p) => sum + p.stats.completed, 0),
     };
-    statsCache.current = newStats;
-    return newStats;
   }, [projects]);
 
   if (projects === undefined) {
@@ -128,7 +123,6 @@ export default function AdminDashboard() {
     );
   }
 
-  const activeProjects = projects.filter((p) => p.status === "active");
   return (
     <div className="space-y-12 sm:space-y-16">
       {/* Hero Section */}

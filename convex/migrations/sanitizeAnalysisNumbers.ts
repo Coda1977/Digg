@@ -92,7 +92,6 @@ export const sanitizeAllAnalysis = internalMutation({
       // Check and fix segmented analysis
       if (project.segmentedAnalysis) {
         const sanitizedSegments = project.segmentedAnalysis.map((segment) => {
-          let segmentNeedsFix = false;
           const sanitizedSegment = { ...segment };
 
           // Fix strengths frequency
@@ -103,7 +102,6 @@ export const sanitizeAllAnalysis = internalMutation({
                   details.push(
                     `Project ${project._id} segment ${segment.relationshipType}: Fixed frequency ${s.frequency}`
                   );
-                  segmentNeedsFix = true;
                   needsFix = true;
                   return { ...s, frequency: undefined };
                 }
@@ -117,7 +115,6 @@ export const sanitizeAllAnalysis = internalMutation({
             details.push(
               `Project ${project._id} segment ${segment.relationshipType}: Fixed basedOnSurveyCount ${sanitizedSegment.basedOnSurveyCount}`
             );
-            segmentNeedsFix = true;
             needsFix = true;
             sanitizedSegment.basedOnSurveyCount = 0;
           }

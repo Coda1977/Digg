@@ -54,7 +54,7 @@ export function RatingConfigPanel({ config, onChange }: RatingConfigPanelProps) 
           placeholder="e.g., Poor, Disagree, Not at all"
         />
         <p className="font-sans text-[0.75rem] text-ink-soft">
-          Displays below "1" on the rating scale
+          Displays below &quot;1&quot; on the rating scale
         </p>
       </div>
 
@@ -72,7 +72,7 @@ export function RatingConfigPanel({ config, onChange }: RatingConfigPanelProps) 
           placeholder="e.g., Excellent, Agree, Extremely well"
         />
         <p className="font-sans text-[0.75rem] text-ink-soft">
-          Displays below "{config.max}" on the rating scale
+          Displays below &quot;{config.max}&quot; on the rating scale
         </p>
       </div>
 
@@ -83,7 +83,7 @@ export function RatingConfigPanel({ config, onChange }: RatingConfigPanelProps) 
         </p>
         <p className="font-sans text-[0.75rem] text-ink-soft leading-relaxed">
           The AI will automatically ask adaptive follow-up questions based on the rating
-          given (e.g., "What would it take to move from a 6 to an 8?").
+          given (e.g., &quot;What would it take to move from a 6 to an 8?&quot;).
         </p>
       </div>
     </div>

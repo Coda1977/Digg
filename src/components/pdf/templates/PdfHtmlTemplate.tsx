@@ -62,7 +62,6 @@ export function renderPdfHtml(props: PdfTemplateProps): string {
  */
 function PdfDocument(props: PdfTemplateProps) {
   const {
-    projectName,
     subjectName,
     subjectRole,
     templateName,

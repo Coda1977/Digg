@@ -20,7 +20,6 @@ import {
 } from "@/components/editorial";
 import { summarySchema, analysisSchema, type Summary, type Analysis } from "@/lib/schemas";
 import { postJson } from "@/lib/http";
-import { sortByRelationship } from "@/lib/relationshipOrder";
 import {
   extractResponsesByQuestion,
   getCoverageStats,
@@ -80,7 +79,7 @@ export default function ProjectAnalysisPage() {
   const [showAllTranscripts, setShowAllTranscripts] = useState(false);
 
   // PDF download hook (server-side generation with Puppeteer)
-  const { downloadPdf, isGenerating: pdfGenerating, error: pdfError, clearError: clearPdfError } = usePdfDownload();
+  const { downloadPdf, isGenerating: pdfGenerating, error: pdfError } = usePdfDownload();
 
   // For pagination - show first 10 transcripts by default
   const TRANSCRIPTS_PER_PAGE = 10;
@@ -117,25 +116,7 @@ export default function ProjectAnalysisPage() {
     };
   }, [surveys, project?.analysis?.generatedAt]);
 
-  const surveysForPdf = useMemo(() => {
-    if (!sortedSurveys) return [];
-    const relationshipOptions = project?.template?.relationshipOptions ?? [];
-    return sortedSurveys.map((survey) => {
-      const relationshipLabel =
-        relationshipOptions.find((r) => r.id === survey.relationship)?.label ??
-        survey.relationship ??
-        "Unknown";
-      return {
-        respondentName: survey.respondentName ?? "Anonymous respondent",
-        relationshipLabel,
-        status: survey.status,
-        completedAt: survey.completedAt ?? undefined,
-        summary: survey.summary ?? undefined,
-      };
-    });
-  }, [project?.template?.relationshipOptions, sortedSurveys]);
-
-  // NEW: Extract responses by question for PDF
+  // Extract responses by question for PDF
   const responsesByQuestion = useMemo(() => {
     if (!surveysWithMessages || !project?.template) return undefined;
     const completedSurveys = surveysWithMessages.filter(
@@ -150,40 +131,7 @@ export default function ProjectAnalysisPage() {
     );
   }, [surveysWithMessages, project?.template]);
 
-  // NEW: Prepare transcripts for PDF
-  const transcripts = useMemo(() => {
-    if (!surveysWithMessages || !project?.template) return undefined;
-    const completedSurveys = surveysWithMessages.filter(
-      (s) => s.status === "completed" && s.messages.length > 0
-    );
-    if (completedSurveys.length === 0) return undefined;
-
-    const relationshipOptions = project.template.relationshipOptions;
-    return sortByRelationship(
-      completedSurveys.map((survey) => {
-        const relationshipLabel =
-          relationshipOptions.find((r) => r.id === survey.relationship)?.label ??
-          survey.relationship ??
-          "Unknown";
-        return {
-          respondentName: survey.respondentName ?? "Anonymous",
-          relationshipLabel,
-          messages: survey.messages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-        };
-      }),
-      (t) => {
-        const survey = completedSurveys.find(
-          (s) => (s.respondentName ?? "Anonymous") === t.respondentName
-        );
-        return survey?.relationship ?? "other";
-      }
-    );
-  }, [surveysWithMessages, project?.template]);
-
-  // NEW: Generate coverage text for PDF
+  // Generate coverage text for PDF
   const coverageText = useMemo(() => {
     if (!surveysWithMessages || !project?.template) return undefined;
     const completedSurveys = surveysWithMessages.filter(
@@ -194,29 +142,6 @@ export default function ProjectAnalysisPage() {
     const stats = getCoverageStats(completedSurveys, project.template.relationshipOptions);
     return `${stats.totalInterviews} interview${stats.totalInterviews === 1 ? "" : "s"}: ${stats.breakdownText}`;
   }, [surveysWithMessages, project?.template]);
-
-  // NEW: Prepare segmented analysis for PDF
-  const segmentedAnalysisForPdf = useMemo(() => {
-    if (!project?.segmentedAnalysis) return undefined;
-    const relationshipOptions = project?.template?.relationshipOptions ?? [];
-
-    return project.segmentedAnalysis.map((segment) => {
-      const relationshipLabel =
-        relationshipOptions.find((r) => r.id === segment.relationshipType)?.label ??
-        segment.relationshipType;
-
-      return {
-        relationshipType: segment.relationshipType,
-        relationshipLabel,
-        analysis: {
-          summary: segment.summary,
-          strengths: segment.strengths,
-          improvements: segment.improvements,
-          narrative: segment.narrative,
-        },
-      };
-    });
-  }, [project?.segmentedAnalysis, project?.template?.relationshipOptions]);
 
   async function onGenerateInsights() {
     setInsightsError(null);

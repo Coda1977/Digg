@@ -37,12 +37,9 @@ export function ChatInput({ surveyId, onSend, onFinish }: ChatInputProps) {
   const messagesReady = uiMessages !== null;
   const { clearDraftStorage } = useDraftStorage({ surveyId, draft, setDraft });
 
-  // Clear failed message state when error clears
-  useEffect(() => {
-    if (!error) {
-      setLastFailedMessage(null);
-    }
-  }, [error]);
+  // lastFailedMessage is only meaningful when there's an error;
+  // derive effective value so the retry button disappears when error clears.
+  const effectiveFailedMessage = error ? lastFailedMessage : null;
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -135,7 +132,7 @@ export function ChatInput({ surveyId, onSend, onFinish }: ChatInputProps) {
             <p className="text-body text-accent-red text-sm flex-1">
               {error}
             </p>
-            {lastFailedMessage && (
+            {effectiveFailedMessage && (
               <button
                 type="button"
                 onClick={() => void handleRetry()}

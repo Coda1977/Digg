@@ -16,7 +16,6 @@ import {
   EditorialButton,
   EditorialInput,
   StatusBadge,
-  EditorialBreadcrumbs,
   EditorialDataRow,
 } from "@/components/editorial";
 import { EditorialConfirmDialog } from "@/components/editorial/EditorialConfirmDialog";
