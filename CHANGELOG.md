@@ -60,11 +60,11 @@ Triggers on push to `master` and pull requests targeting `master`.
 **Files created:**
 - `.github/workflows/ci.yml`
 
-### Medium: Security Headers Middleware Added
+### Medium: Security Headers Added
 
-**Problem:** No `middleware.ts` existed. No CSP, HSTS, X-Frame-Options, or other security headers.
+**Problem:** No CSP, HSTS, X-Frame-Options, or other security headers were configured.
 
-**Fix:** Created `src/middleware.ts` adding the following headers to all non-static responses:
+**Fix:** Added security headers via `next.config.js` `headers()` configuration (applied to all routes):
 - `Strict-Transport-Security` (1 year, includeSubDomains)
 - `X-Frame-Options: DENY`
 - `X-Content-Type-Options: nosniff`
@@ -72,8 +72,11 @@ Triggers on push to `master` and pull requests targeting `master`.
 - `Permissions-Policy` (restricts camera, geolocation, payment)
 - `Content-Security-Policy` allowing self, Convex (HTTP + WebSocket), Deepgram API/WebSocket
 
-**Files created:**
-- `src/middleware.ts`
+**Note:** Initially implemented as `src/middleware.ts` (Edge Runtime), but this caused persistent `MIDDLEWARE_INVOCATION_FAILED` 500 errors on Vercel with Next.js 16.0.10. Moved to `next.config.js` `headers()` which is more reliable for static security headers and avoids the Edge Runtime entirely.
+
+**Files changed:**
+- `next.config.js` -- Added `headers()` with all security headers
+- `src/middleware.ts` -- Deleted (caused Edge Runtime failures on Vercel)
 
 ### Lint: All ESLint Errors and Warnings Resolved
 
@@ -91,9 +94,9 @@ Fixed 15 errors and 17 warnings that were blocking CI:
 
 ### Middleware Runtime Fix
 
-**Problem:** Removing the `NextRequest` parameter from the middleware function (to fix lint) caused `MIDDLEWARE_INVOCATION_FAILED` 500 errors on every request in production.
+**Problem:** `src/middleware.ts` caused `MIDDLEWARE_INVOCATION_FAILED` 500 errors on Vercel (Next.js 16.0.10 Edge Runtime compatibility issue). The initial fix of restoring the `NextRequest` parameter did not resolve the issue -- the error persisted even with correct middleware code.
 
-**Fix:** Restored the parameter with an `eslint-disable-next-line` comment.
+**Fix:** Removed `src/middleware.ts` entirely. Moved all security headers to `next.config.js` `headers()` configuration, which bypasses the Edge Runtime and is the recommended pattern for static response headers.
 
 ### Convex Deployment
 
