@@ -1,5 +1,6 @@
-import { mutation } from "./_generated/server";
+import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
+import { publicMutation, adminMutation } from "./lib/functions";
 
 /**
  * Rate limit configurations for different endpoints.
@@ -28,7 +29,7 @@ type LimitType = keyof typeof RATE_LIMITS;
  *
  * Returns: { success: boolean, remaining: number, resetMs: number }
  */
-export const checkRateLimit = mutation({
+export const checkRateLimit = publicMutation({
   args: {
     identifier: v.string(),
     limitType: v.union(
@@ -93,7 +94,7 @@ export const checkRateLimit = mutation({
  * List all rate limit records.
  * Use for debugging purposes.
  */
-export const listRateLimits = mutation({
+export const listRateLimits = adminMutation({
   args: {},
   handler: async (ctx) => {
     const allRecords = await ctx.db.query("rateLimits").collect();
@@ -109,7 +110,7 @@ export const listRateLimits = mutation({
  * Clear rate limit for a specific identifier pattern.
  * Use for debugging/admin purposes.
  */
-export const clearRateLimit = mutation({
+export const clearRateLimit = adminMutation({
   args: {
     pattern: v.string(), // e.g., "analyze:" to clear all analyze limits
   },
@@ -132,7 +133,7 @@ export const clearRateLimit = mutation({
  * Clean up old rate limit records.
  * Call this periodically (e.g., via cron) to prevent table bloat.
  */
-export const cleanupOldRecords = mutation({
+export const cleanupOldRecords = internalMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();

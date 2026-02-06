@@ -1,11 +1,9 @@
-import { mutation } from "./_generated/server";
-import { requireAdmin } from "./lib/authorization";
+import { adminMutation } from "./lib/functions";
 import { upsertBuiltInTemplates } from "./lib/builtInTemplates";
 
-export const seedTemplates = mutation({
+export const seedTemplates = adminMutation({
   args: {},
   handler: async (ctx) => {
-    await requireAdmin(ctx);
     const result = await upsertBuiltInTemplates(ctx);
     return { message: "Built-in templates seeded/updated", ...result };
   },

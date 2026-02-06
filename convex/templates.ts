@@ -1,13 +1,11 @@
-import { query, mutation } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import { nanoid } from "nanoid";
-import { requireAdmin } from "./lib/authorization";
+import { adminQuery, adminMutation } from "./lib/functions";
 import { assertNoLegacyPlaceholders } from "./lib/templateValidation";
 
-export const list = query({
+export const list = adminQuery({
   args: {},
   handler: async (ctx) => {
-    await requireAdmin(ctx);
     const templates = await ctx.db.query("templates").collect();
 
     // Get project counts for each template
@@ -28,15 +26,14 @@ export const list = query({
   },
 });
 
-export const getById = query({
+export const getById = adminQuery({
   args: { id: v.id("templates") },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
     return await ctx.db.get(args.id);
   },
 });
 
-export const getByType = query({
+export const getByType = adminQuery({
   args: {
     type: v.union(
       v.literal("personal_360"),
@@ -47,7 +44,6 @@ export const getByType = query({
     ),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
     return await ctx.db
       .query("templates")
       .withIndex("by_type", (q) => q.eq("type", args.type))
@@ -55,7 +51,7 @@ export const getByType = query({
   },
 });
 
-export const create = mutation({
+export const create = adminMutation({
   args: {
     name: v.string(),
     description: v.string(),
@@ -79,7 +75,6 @@ export const create = mutation({
     systemPromptTemplate: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
     assertNoLegacyPlaceholders(args.systemPromptTemplate);
 
     // Validate rating questions
@@ -129,7 +124,7 @@ export const create = mutation({
   },
 });
 
-export const update = mutation({
+export const update = adminMutation({
   args: {
     id: v.id("templates"),
     name: v.string(),
@@ -156,7 +151,6 @@ export const update = mutation({
     systemPromptTemplate: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
     assertNoLegacyPlaceholders(args.systemPromptTemplate);
 
     const existing = await ctx.db.get(args.id);
@@ -213,11 +207,9 @@ export const update = mutation({
   },
 });
 
-export const remove = mutation({
+export const remove = adminMutation({
   args: { id: v.id("templates") },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
-
     const template = await ctx.db.get(args.id);
     if (!template) {
       throw new ConvexError("Template not found");
@@ -244,11 +236,9 @@ export const remove = mutation({
   },
 });
 
-export const duplicate = mutation({
+export const duplicate = adminMutation({
   args: { id: v.id("templates") },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
-
     const template = await ctx.db.get(args.id);
     if (!template) {
       throw new Error("Template not found");

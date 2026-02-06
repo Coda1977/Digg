@@ -1,7 +1,7 @@
-import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { publicQuery, publicMutation, adminQuery } from "./lib/functions";
 
-export const getBySurvey = query({
+export const getBySurvey = publicQuery({
   args: { surveyId: v.id("surveys") },
   handler: async (ctx, args) => {
     return await ctx.db
@@ -26,7 +26,7 @@ function sanitizeRatingValue(value: number | undefined): number | undefined {
   return Math.round(Math.max(1, Math.min(MAX_ALLOWED_SCALE, value)) * 10) / 10;
 }
 
-export const save = mutation({
+export const save = publicMutation({
   args: {
     surveyId: v.id("surveys"),
     role: v.union(v.literal("assistant"), v.literal("user")),
@@ -62,7 +62,7 @@ export const save = mutation({
   },
 });
 
-export const getLatest = query({
+export const getLatest = publicQuery({
   args: { surveyId: v.id("surveys"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const limit = args.limit ?? 50;
@@ -77,7 +77,7 @@ export const getLatest = query({
 });
 
 // Debug query to find messages with rating values for a project
-export const debugRatings = query({
+export const debugRatings = adminQuery({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
     // Get all surveys for this project

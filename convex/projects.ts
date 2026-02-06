@@ -1,6 +1,5 @@
-import { query, mutation } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
-import { requireAdmin } from "./lib/authorization";
+import { adminQuery, adminMutation, secretQuery } from "./lib/functions";
 
 // ============================================================================
 // SANITIZATION HELPERS - Prevent corrupt numbers from being stored
@@ -31,11 +30,9 @@ function sanitizeCount(val: number): number {
   return Math.round(val);
 }
 
-export const list = query({
+export const list = adminQuery({
   args: {},
   handler: async (ctx) => {
-    await requireAdmin(ctx);
-
     const projects = await ctx.db
       .query("projects")
       .withIndex("by_created")
@@ -77,11 +74,9 @@ export const list = query({
   },
 });
 
-export const getById = query({
+export const getById = adminQuery({
   args: { id: v.id("projects") },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
-
     const project = await ctx.db.get(args.id);
     if (!project) return null;
 
@@ -111,14 +106,12 @@ export const getById = query({
   },
 });
 
-export const findSimilar = query({
+export const findSimilar = adminQuery({
   args: {
     templateId: v.id("templates"),
     subjectName: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
-
     const allProjects = await ctx.db
       .query("projects")
       .filter((q) => q.eq(q.field("templateId"), args.templateId))
@@ -135,7 +128,7 @@ export const findSimilar = query({
   },
 });
 
-export const create = mutation({
+export const create = adminMutation({
   args: {
     templateId: v.id("templates"),
     name: v.string(),
@@ -144,8 +137,6 @@ export const create = mutation({
     subjectRole: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { userId } = await requireAdmin(ctx);
-
     const projectId = await ctx.db.insert("projects", {
       templateId: args.templateId,
       name: args.name,
@@ -154,18 +145,16 @@ export const create = mutation({
       subjectRole: args.subjectRole,
       status: "active",
       createdAt: Date.now(),
-      createdBy: userId,
+      createdBy: ctx.userId,
     });
 
     return projectId;
   },
 });
 
-export const close = mutation({
+export const close = adminMutation({
   args: { id: v.id("projects") },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
-
     await ctx.db.patch(args.id, {
       status: "closed",
       closedAt: Date.now(),
@@ -173,11 +162,9 @@ export const close = mutation({
   },
 });
 
-export const reopen = mutation({
+export const reopen = adminMutation({
   args: { id: v.id("projects") },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
-
     await ctx.db.patch(args.id, {
       status: "active",
       closedAt: undefined,
@@ -185,11 +172,9 @@ export const reopen = mutation({
   },
 });
 
-export const remove = mutation({
+export const remove = adminMutation({
   args: { id: v.id("projects") },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
-
     // Delete all surveys and messages for this project
     const surveys = await ctx.db
       .query("surveys")
@@ -215,11 +200,9 @@ export const remove = mutation({
   },
 });
 
-export const getInsightsInput = query({
+export const getInsightsInput = adminQuery({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
-
     const project = await ctx.db.get(args.projectId);
     if (!project) return null;
 
@@ -246,7 +229,7 @@ export const getInsightsInput = query({
   },
 });
 
-export const saveAnalysis = mutation({
+export const saveAnalysis = adminMutation({
   args: {
     projectId: v.id("projects"),
     analysis: v.object({
@@ -308,8 +291,6 @@ export const saveAnalysis = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
-
     // SANITIZE all numeric values before storing to prevent corrupt data
     const sanitizedAnalysis = {
       summary: args.analysis.summary,
@@ -380,14 +361,9 @@ export const saveAnalysis = mutation({
 });
 
 // Server-to-server getById for PDF generation (validates shared secret)
-export const getByIdInternal = query({
-  args: { id: v.id("projects"), secret: v.string() },
+export const getByIdInternal = secretQuery({
+  args: { id: v.id("projects") },
   handler: async (ctx, args) => {
-    const expected = process.env.INTERNAL_API_SECRET;
-    if (!expected || args.secret !== expected) {
-      throw new ConvexError("Unauthorized: invalid internal secret");
-    }
-
     const project = await ctx.db.get(args.id);
     if (!project) return null;
 
